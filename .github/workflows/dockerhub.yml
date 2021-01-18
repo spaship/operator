@@ -31,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: service
-          file: src/main/docker/Dockerfile.jvm
+          file: ./service/src/main/docker/Dockerfile.jvm
           push: true
           tags: websitecd/operator-jvm:latest
       - name: Image digest
