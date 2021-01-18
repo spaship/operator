@@ -24,7 +24,7 @@ jobs:
           CI_REGISTRY_IMAGE: "websitecd/operator"
           CI_TAG: "latest"
           CI_PROJECT_DIR: "service"
-        run:
-          - mkdir -p /kaniko/.docker
-          - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$CI_DOCKERHUB_TOKEN\", \"email\":\"\"}}}" > /kaniko/.docker/config.json
-          - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/src/main/docker/Dockerfile.jvm --destination $CI_REGISTRY_IMAGE:$CI_TAG
+        run: |
+          mkdir -p /kaniko/.docker
+          echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$CI_DOCKERHUB_TOKEN\", \"email\":\"\"}}}" > /kaniko/.docker/config.json
+          /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/src/main/docker/Dockerfile.jvm --destination $CI_REGISTRY_IMAGE:$CI_TAG
