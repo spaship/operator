@@ -1,0 +1,29 @@
+apiVersion: 1
+
+envs:
+  test:
+  prod:
+
+components:
+  # Only in test env and branch is different
+  - context: /test-only-dev
+    kind: git
+    spec:
+      url: giturl1
+      dir: /subidr
+      envs:
+        test:
+          branch: special-branch
+  # should be ignored in test env
+  # branch name for prod is default
+  - context: /prod-only
+    kind: git
+    spec:
+      url: giturl2
+      envs:
+        prod: # without definition of branch
+  # homepage
+  - context: /
+    kind: git
+    spec:
+      url: giturl2

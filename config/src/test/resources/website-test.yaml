@@ -1,0 +1,24 @@
+apiVersion: 1
+
+envs:
+  dev:
+    namespace: ns-1
+  stage:
+    namespace: ns-2
+  prod:
+    namespace: ns-3
+
+components:
+  - context: /test1
+    kind: git
+    spec:
+      url: https://github.com/OpenHybridWeb/example-component-theme.git
+  - context: /test2
+    kind: git
+    spec:
+      url: https://github.com/OpenHybridWeb/example-component-homepage.git
+  - context: /test3
+    kind: service
+    spec:
+      serviceName: api
+      targetPort: 80
