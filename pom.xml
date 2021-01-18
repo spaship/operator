@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>io.websitecd.operator</groupId>
+    <artifactId>operator-root</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <url>https://github.com/websitecd/operator</url>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>http://www.apache.org/licenses/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:https://github.com/websitecd/operator.git</connection>
+        <developerConnection>scm:git:git@github.com:websitecd/operator.git</developerConnection>
+        <url>https://github.com/websitecd/operator.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+        <surefire-plugin.version>2.22.1</surefire-plugin.version>
+        <compiler-plugin.version>3.8.1</compiler-plugin.version>
+
+        <quarkus.platform.version>1.10.5.Final</quarkus.platform.version>
+        <snakeyaml.version>1.27</snakeyaml.version>
+
+        <!-- By default just do maven install and let github to do the deploy on release -->
+        <release.goal>install</release.goal>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-universe-bom</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <modules>
+        <module>config</module>
+        <module>service</module>
+    </modules>
+
+</project>

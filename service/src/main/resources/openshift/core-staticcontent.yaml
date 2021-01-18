@@ -1,0 +1,146 @@
+kind: "Template"
+apiVersion: "v1"
+metadata:
+  name: "website-content"
+labels:
+  template: "website-content"
+parameters:
+  - name: "ENV"
+    description: "Environment"
+    required: true
+
+objects:
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: web-content-${ENV}
+      labels:
+        app: website
+    spec:
+#      type: NodePort
+      ports:
+        # Expose main container
+        - port: 80
+          targetPort: 8080
+          name: http
+        # Expose rest api
+        - port: 8090
+          name: http-api
+      selector:
+        app: web-content-${ENV}
+#  - kind: Route
+#    apiVersion: route.openshift.io/v1
+#    metadata:
+#      name: web-content-api
+#    spec:
+#      port:
+#        targetPort: 8090
+#      tls:
+#        termination: edge
+#      to:
+#        kind: Service
+#        name: web-content-${ENV}
+#        weight: 100
+#      wildcardPolicy: None
+
+  - kind: Deployment
+    apiVersion: apps/v1
+    metadata:
+      name: web-content-${ENV}
+    spec:
+      selector:
+        matchLabels:
+          app: web-content-${ENV}
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            app: web-content-${ENV}
+        spec:
+          initContainers:
+            # Init data
+            - name: init-content
+              image: openhybridweb/core-staticcontent
+              imagePullPolicy: Always
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 100Mi
+                limits:
+                  cpu: 100m
+                  memory: 100Mi
+              command: [ 'node', 'init-content.js' ]
+              env:
+                - name: CONFIG_PATH
+                  value: "/app/config/content-config-git.yaml"
+                - name: TARGET_DIR
+                  value: "/app/data/"
+              volumeMounts:
+                - mountPath: "/app/config/"
+                  name: content-init
+                  readOnly: true
+                - mountPath: "/app/data/"
+                  name: data
+          containers:
+            # Main container to serve data
+            - name: httpd
+              image: "spaship/httpd"
+              imagePullPolicy: IfNotPresent
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 100Mi
+                limits:
+                  cpu: 100m
+                  memory: 100Mi
+              ports:
+                - containerPort: 8080
+              volumeMounts:
+                # ROOT context - Make available only _root component
+                - mountPath: "/var/www/html/"
+                  name: data
+                  subPath: _root
+                # Other components outside root and available via Aliases
+                - mountPath: "/var/www/components/"
+                  name: data
+                - mountPath: "/etc/httpd/conf.d/custom/"
+                  name: content-httpd
+            # Side car container providing API
+            - name: api
+              image: "openhybridweb/core-staticcontent:latest"
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                httpGet:
+                  path: "/"
+                  port: 8090
+                initialDelaySeconds: 5
+                failureThreshold: 10
+                periodSeconds: 5
+              readinessProbe:
+                httpGet:
+                  path: "/"
+                  port: 8090
+                initialDelaySeconds: 5
+                failureThreshold: 5
+                periodSeconds: 5
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 100Mi
+              ports:
+                - containerPort: 8090
+              env:
+                - name: DATA_DIR
+                  value: "/app/data/"
+              volumeMounts:
+                - mountPath: "/app/data/"
+                  name: data
+          volumes:
+            - name: content-init
+              secret:
+                secretName: content-init-${ENV}
+            - name: content-httpd
+              secret:
+                secretName: content-httpd-${ENV}
+            - name: data
+              emptyDir: { }
