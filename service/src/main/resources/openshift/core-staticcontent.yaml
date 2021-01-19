@@ -67,8 +67,8 @@ objects:
           initContainers:
             # Init data
             - name: init-content
-              image: openhybridweb/core-staticcontent
-              imagePullPolicy: Always
+              image: websitecd/content-git-init:latest
+              imagePullPolicy: IfNotPresent
               resources:
                 requests:
                   cpu: 100m
@@ -76,12 +76,13 @@ objects:
                 limits:
                   cpu: 100m
                   memory: 100Mi
-              command: [ 'node', 'init-content.js' ]
               env:
-                - name: CONFIG_PATH
+                - name: APP_CONFIG_PATH
                   value: "/app/config/content-config-git.yaml"
-                - name: TARGET_DIR
+                - name: APP_TARGET_DIR
                   value: "/app/data/"
+                - name: APP_CONFIG_SSLVERIFY
+                  value: "false"
               volumeMounts:
                 - mountPath: "/app/config/"
                   name: content-init
