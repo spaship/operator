@@ -6,10 +6,18 @@ import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.ComponentSpec;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
+import java.io.InputStream;
 import java.util.Map;
 
 public class GitContentUtils {
+
+    public static ContentConfig loadYaml(InputStream is) {
+        Yaml yaml = new Yaml(new Constructor(ContentConfig.class));
+        return yaml.load(is);
+    }
 
     public static ContentConfig createConfig(String targetEnv, WebsiteConfig websiteConfig, String rootContext) {
         ContentConfig config = new ContentConfig();

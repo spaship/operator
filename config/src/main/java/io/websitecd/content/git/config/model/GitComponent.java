@@ -5,6 +5,9 @@ public class GitComponent {
     String kind;
     GitSpec spec;
 
+    public GitComponent() {
+    }
+
     public GitComponent(String dir, String kind, GitSpec spec) {
         this.dir = dir;
         this.kind = kind;

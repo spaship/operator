@@ -5,6 +5,9 @@ public class GitSpec {
     String ref;
     String dir;
 
+    public GitSpec() {
+    }
+
     public GitSpec(String url, String ref, String dir) {
         this.url = url;
         this.ref = ref;

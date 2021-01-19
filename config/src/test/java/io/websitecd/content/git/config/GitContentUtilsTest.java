@@ -14,6 +14,16 @@ import static org.junit.Assert.assertEquals;
 public class GitContentUtilsTest {
 
     @Test
+    public void testLoadConfig() throws IOException {
+        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/gitconfig-test.yaml");
+        ContentConfig config = GitContentUtils.loadYaml(is);
+        is.close();
+
+        assertEquals(2, config.getComponents().size());
+        assertEquals("_root", config.getComponents().get(0).getDir());
+    }
+
+    @Test
     public void createConfig() throws IOException {
         InputStream is = OperatorConfigUtils.class.getResourceAsStream("/staticcontent-website-test.yaml");
         WebsiteConfig websiteConfig = OperatorConfigUtils.loadYaml(is);
