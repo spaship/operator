@@ -11,4 +11,12 @@ public class Environment {
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Environment{");
+        sb.append("namespace='").append(namespace).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

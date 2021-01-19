@@ -36,4 +36,14 @@ public class ComponentConfig {
     public void setSpec(ComponentSpec spec) {
         this.spec = spec;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ComponentConfig{");
+        sb.append("context='").append(context).append('\'');
+        sb.append(", kind='").append(kind).append('\'');
+        sb.append(", spec=").append(spec);
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -55,4 +55,15 @@ public class WebsiteConfig {
     public Environment getEnvironment(String envName) {
         return envs.get(envName);
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("WebsiteConfig{");
+        sb.append("apiVersion='").append(apiVersion).append('\'');
+        sb.append(", metadata=").append(metadata);
+        sb.append(", envs=").append(envs);
+        sb.append(", components=").append(components);
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -37,4 +37,14 @@ public class GitSpec {
     public void setDir(String dir) {
         this.dir = dir;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("GitSpec{");
+        sb.append("url='").append(url).append('\'');
+        sb.append(", ref='").append(ref).append('\'');
+        sb.append(", dir='").append(dir).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

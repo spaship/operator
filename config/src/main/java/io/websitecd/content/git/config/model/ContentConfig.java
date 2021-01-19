@@ -21,4 +21,12 @@ public class ContentConfig {
     public void setComponents(List<GitComponent> components) {
         this.components = components;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ContentConfig{");
+        sb.append("components=").append(components);
+        sb.append('}');
+        return sb.toString();
+    }
 }

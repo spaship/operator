@@ -43,4 +43,14 @@ public class GitComponent {
     public void setSpec(GitSpec spec) {
         this.spec = spec;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("GitComponent{");
+        sb.append("dir='").append(dir).append('\'');
+        sb.append(", kind='").append(kind).append('\'');
+        sb.append(", spec=").append(spec);
+        sb.append('}');
+        return sb.toString();
+    }
 }
