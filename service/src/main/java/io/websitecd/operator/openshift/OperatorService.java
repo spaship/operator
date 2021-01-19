@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.rbac.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
+import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
@@ -71,9 +72,10 @@ public class OperatorService {
 
     public void setupCoreServices(String env, WebsiteConfig config) throws MalformedURLException {
         String namespace = config.getEnvironment(env).getNamespace();
-        log.infof("Create core services env=%s  namespace=%s", env, namespace);
+        final String websiteName = Utils.getWebsiteName(config);
+        log.infof("Create core services websiteName=%s env=%s namespace=%s", websiteName, env, namespace);
         contentController.updateConfigs(env, namespace, config);
-        contentController.deploy(env, namespace);
+        contentController.deploy(env, namespace, websiteName);
 
         routerController.updateWebsiteRoutes(env, namespace, config);
     }

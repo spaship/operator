@@ -8,14 +8,19 @@ parameters:
   - name: "ENV"
     description: "Environment"
     required: true
+  - name: "NAME"
+    description: "Name of deployment"
+    value: "web"
+    required: false
 
 objects:
   - kind: Service
     apiVersion: v1
     metadata:
-      name: web-content-${ENV}
+      name: ${NAME}-content-${ENV}
       labels:
-        app: website
+        website: ${NAME}
+
     spec:
 #      type: NodePort
       ports:
@@ -27,7 +32,7 @@ objects:
         - port: 8090
           name: http-api
       selector:
-        app: web-content-${ENV}
+        app: ${NAME}-content-${ENV}
 #  - kind: Route
 #    apiVersion: route.openshift.io/v1
 #    metadata:
@@ -46,16 +51,18 @@ objects:
   - kind: Deployment
     apiVersion: apps/v1
     metadata:
-      name: web-content-${ENV}
+      name: ${NAME}-content-${ENV}
+      website: ${NAME}
     spec:
       selector:
         matchLabels:
-          app: web-content-${ENV}
+          app: ${NAME}-content-${ENV}
       replicas: 1
       template:
         metadata:
           labels:
-            app: web-content-${ENV}
+            app: ${NAME}-content-${ENV}
+            website: ${NAME}
         spec:
           initContainers:
             # Init data
@@ -138,9 +145,9 @@ objects:
           volumes:
             - name: content-init
               secret:
-                secretName: content-init-${ENV}
+                secretName: ${NAME}-content-init-${ENV}
             - name: content-httpd
               secret:
-                secretName: content-httpd-${ENV}
+                secretName: ${NAME}-content-httpd-${ENV}
             - name: data
               emptyDir: { }

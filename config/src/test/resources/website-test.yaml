@@ -1,4 +1,6 @@
 apiVersion: 1
+metadata:
+  name: websitename
 
 envs:
   dev:

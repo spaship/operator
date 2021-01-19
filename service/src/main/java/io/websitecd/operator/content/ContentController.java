@@ -34,8 +34,8 @@ public class ContentController {
 
     private static final Logger log = Logger.getLogger(ContentController.class);
 
-    static final String CONFIG_INIT = "content-init-";
-    static final String CONFIG_HTTPD = "content-httpd-";
+    static final String CONFIG_INIT = "-content-init-";
+    static final String CONFIG_HTTPD = "-content-httpd-";
 
     @Inject
     DefaultOpenShiftClient client;
@@ -92,14 +92,15 @@ public class ContentController {
     public void updateConfigs(String env, String namespace, WebsiteConfig websiteConfig) {
         ContentConfig config = GitContentUtils.createConfig(env, websiteConfig, rootContext);
         String data = new Yaml().dumpAsMap(config);
-        updateConfigSecret(env, namespace, data);
+        final String configName = Utils.getWebsiteName(websiteConfig) + CONFIG_INIT + env;
+        updateConfigSecret(configName, namespace, data);
 
         String aliases = createAliases(env, websiteConfig).toString();
-        updateConfigHttpdSecret(env, namespace, aliases);
+        final String httpdName = Utils.getWebsiteName(websiteConfig) + CONFIG_HTTPD + env;
+        updateConfigHttpdSecret(httpdName, namespace, aliases);
     }
 
-    public void updateConfigSecret(String env, String namespace, String secretData) {
-        String name = CONFIG_INIT + env;
+    public void updateConfigSecret(String name, String namespace, String secretData) {
         log.infof("Update content-init in namespace=%s, name=%s", namespace, name);
 
         Map<String, String> data = new HashMap<>();
@@ -113,8 +114,7 @@ public class ContentController {
         client.inNamespace(namespace).secrets().createOrReplace(config.build());
     }
 
-    public void updateConfigHttpdSecret(String env, String namespace, String aliasesData) {
-        String name = CONFIG_HTTPD + env;
+    public void updateConfigHttpdSecret(String name, String namespace, String aliasesData) {
         log.infof("Update content-httpd in namespace=%s, name=%s", namespace, name);
 
         Map<String, String> dataAlias = new HashMap<>();
@@ -130,7 +130,7 @@ public class ContentController {
     }
 
 
-    public void deploy(String env, String namespace) {
+    public void deploy(String env, String namespace, String websiteName) {
         final Template serverUploadedTemplate = client.templates()
                 .inNamespace(namespace)
                 .load(ContentController.class.getResourceAsStream("/openshift/core-staticcontent.yaml"))
@@ -140,6 +140,7 @@ public class ContentController {
 
         Map<String, String> params = new HashMap<>();
         params.put("ENV", env);
+        params.put("NAME", websiteName);
 
         KubernetesList result = client.templates()
                 .inNamespace(namespace).withName(templateName)

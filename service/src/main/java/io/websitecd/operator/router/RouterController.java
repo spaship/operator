@@ -27,6 +27,7 @@ public class RouterController {
 
     public void updateWebsiteRoutes(String targetEnv, String namespace, WebsiteConfig config) {
         final String hostSuffix = "-" + namespace + "." + domain;
+        final String websiteName = Utils.getWebsiteName(config);
         // TODO: It's not needed to create all routes for sub pathes when root path is present
         for (ComponentConfig component : config.getComponents()) {
             String context = component.getContext();
@@ -35,14 +36,14 @@ public class RouterController {
             RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
             RoutePortBuilder routePortBuilder = new RoutePortBuilder();
             if (component.isKindGit()) {
-                targetReference.withName("web-content-" + targetEnv);
+                targetReference.withName(websiteName + "-content-" + targetEnv);
                 routePortBuilder.withTargetPort(new IntOrString("http"));
             } else {
                 targetReference.withName(component.getSpec().getServiceName());
                 routePortBuilder.withTargetPort(new IntOrString(component.getSpec().getTargetPort()));
             }
 
-            String host = "web-" + targetEnv + hostSuffix;
+            String host = websiteName + "-" + targetEnv + hostSuffix;
             RouteSpecBuilder spec = new RouteSpecBuilder()
                     .withHost(host)
                     .withPath(context)
@@ -50,7 +51,7 @@ public class RouterController {
                     .withPort(routePortBuilder.build())
                     .withTls(new TLSConfigBuilder().withNewTermination("edge").withInsecureEdgeTerminationPolicy("Redirect").build());
 
-            String name = getRouteName(sanityContext, targetEnv);
+            String name = getRouteName(websiteName, sanityContext, targetEnv);
             RouteBuilder builder = new RouteBuilder()
                     .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv)).build())
                     .withSpec(spec.build());
@@ -62,8 +63,8 @@ public class RouterController {
         }
     }
 
-    public String getRouteName(String sanityContext, String env) {
-        StringBuilder routeName = new StringBuilder("web-");
+    public String getRouteName(String websiteName, String sanityContext, String env) {
+        StringBuilder routeName = new StringBuilder(websiteName + "-");
         routeName.append(env);
         if (StringUtils.isNotEmpty(sanityContext)) {
             routeName.append("-" + sanityContext);

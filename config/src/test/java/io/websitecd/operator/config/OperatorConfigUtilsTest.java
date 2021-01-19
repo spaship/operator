@@ -16,6 +16,8 @@ public class OperatorConfigUtilsTest {
         InputStream is = OperatorConfigUtils.class.getResourceAsStream("/website-test.yaml");
         WebsiteConfig config = OperatorConfigUtils.loadYaml(is);
         is.close();
+        assertEquals("websitename", config.getMetadata().get("name"));
+
 
         assertEquals(3, config.getEnvs().size());
         assertEquals("ns-1", config.getEnvironment("dev").getNamespace());

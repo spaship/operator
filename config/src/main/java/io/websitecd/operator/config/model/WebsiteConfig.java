@@ -7,6 +7,8 @@ public class WebsiteConfig {
 
     String apiVersion;
 
+    Map<String, String> metadata;
+
     Map<String, Environment> envs;
 
     List<ComponentConfig> components;
@@ -17,6 +19,21 @@ public class WebsiteConfig {
 
     public void setApiVersion(String apiVersion) {
         this.apiVersion = apiVersion;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getWebsiteName() {
+        if (metadata != null && metadata.containsKey("name")) {
+            return metadata.get("name");
+        }
+        return null;
     }
 
     public List<ComponentConfig> getComponents() {
