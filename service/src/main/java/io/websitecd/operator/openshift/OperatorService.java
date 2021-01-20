@@ -48,7 +48,12 @@ public class OperatorService {
 
     void onStart(@Observes StartupEvent ev) {
         log.infof("Registering INIT with delay=%s", initDelay);
-        vertx.setTimer(initDelay, e -> initServices());
+        vertx.setTimer(initDelay, e -> {
+            vertx.executeBlocking(future -> {
+                initServices();
+                future.complete();
+            }, res -> log.infof("Initialization completed"));
+        });
     }
 
     public void initServices() {
