@@ -5,21 +5,18 @@ import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.rbac.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
+import io.vertx.core.Vertx;
 import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.router.RouterController;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,6 +27,9 @@ public class OperatorService {
 
     @ConfigProperty(name = "app.operator.namespace")
     protected Optional<String> namespace;
+
+    @ConfigProperty(name = "app.operator.init.delay")
+    protected long initDelay;
 
     @Inject
     ContentController contentController;
@@ -43,12 +43,26 @@ public class OperatorService {
     @Inject
     DefaultOpenShiftClient client;
 
-    void onStart(@Observes StartupEvent ev) throws GitAPIException, IOException, URISyntaxException {
+    @Inject
+    Vertx vertx;
+
+    void onStart(@Observes StartupEvent ev) {
+        log.infof("Registering INIT with delay=%s", initDelay);
+        vertx.setTimer(initDelay, e -> initServices());
+    }
+
+    public void initServices() {
         log.infof("Openshift client_url=%s", client.getOpenshiftUrl());
 
-        websiteConfigService.cloneRepo();
-        WebsiteConfig config = websiteConfigService.getConfig();
+        try {
+            WebsiteConfig config = websiteConfigService.cloneRepo();
 
+            processConfig(config);
+        } catch (Exception e) {
+            log.error("Cannot init core services", e);
+        }
+    }
+    public void processConfig(WebsiteConfig config) {
         Map<String, Environment> envs = config.getEnvs();
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
             if (!namespace.isEmpty() && !envEntry.getValue().getNamespace().equals(namespace.get())) {
@@ -58,7 +72,6 @@ public class OperatorService {
             // ? create namespace ???
             setupCoreServices(envEntry.getKey(), config);
         }
-
     }
 
 //    public void createNamespaces(String prefix, List<String> envs) {
@@ -70,7 +83,7 @@ public class OperatorService {
 //        }
 //    }
 
-    public void setupCoreServices(String env, WebsiteConfig config) throws MalformedURLException {
+    public void setupCoreServices(String env, WebsiteConfig config) {
         String namespace = config.getEnvironment(env).getNamespace();
         final String websiteName = Utils.getWebsiteName(config);
         log.infof("Create core services websiteName=%s env=%s namespace=%s", websiteName, env, namespace);
@@ -116,13 +129,4 @@ public class OperatorService {
         return rb;
     }
 
-    public void redeploy(String env, WebsiteConfig config) throws MalformedURLException {
-        log.infof("Redeploying website config, env=%s", env);
-        String namespace = config.getEnvironment(env).getNamespace();
-        contentController.updateConfigs(env, namespace, config);
-        contentController.redeploy(env, namespace);
-        // TODO: Wait till deployment is ready
-
-        routerController.updateWebsiteRoutes(env, namespace, config);
-    }
 }

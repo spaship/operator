@@ -36,6 +36,7 @@
 
         <quarkus.platform.version>1.10.5.Final</quarkus.platform.version>
         <snakeyaml.version>1.27</snakeyaml.version>
+        <gitlab4j-api.version>4.15.7</gitlab4j-api.version>
 
         <!-- By default just do maven install and let github to do the deploy on release -->
         <release.goal>install</release.goal>

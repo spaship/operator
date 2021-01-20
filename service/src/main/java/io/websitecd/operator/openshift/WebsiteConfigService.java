@@ -2,12 +2,11 @@ package io.websitecd.operator.openshift;
 
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.WebsiteConfig;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.InitCommand;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -41,7 +40,7 @@ public class WebsiteConfigService {
 
     WebsiteConfig config;
 
-    public void cloneRepo() throws GitAPIException, IOException, URISyntaxException {
+    public WebsiteConfig cloneRepo() throws GitAPIException, IOException, URISyntaxException {
         log.info("Initializing website config");
         File gitDir = getGitDir();
         if (!gitDir.exists()) {
@@ -63,19 +62,22 @@ public class WebsiteConfigService {
         try (InputStream is = new FileInputStream(getWebsiteConfigPath(gitDir.getAbsolutePath()))) {
             config = OperatorConfigUtils.loadYaml(is);
         }
+        return config;
     }
 
-    public void reload() throws GitAPIException, IOException {
+    public WebsiteConfig updateRepo() throws GitAPIException, IOException {
         File gitDir = getGitDir();
         PullResult pullResult = Git.open(gitDir).pull().call();
         if (!pullResult.isSuccessful()) {
             throw new RuntimeException("Cannot pull repo. result=" + pullResult);
         }
-        log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, pullResult.getFetchResult().getMessages());
+        FetchResult fetchResult = pullResult.getFetchResult();
+        log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, fetchResult.getMessages());
 
         try (InputStream is = new FileInputStream(getWebsiteConfigPath(gitDir.getAbsolutePath()))) {
             config = OperatorConfigUtils.loadYaml(is);
         }
+        return config;
     }
 
     public WebsiteConfig getConfig() {
