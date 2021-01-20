@@ -134,7 +134,7 @@ objects:
               resources:
                 requests:
                   cpu: 100m
-                  memory: 100Mi
+                  memory: 50Mi
               ports:
                 - containerPort: 8090
               env:

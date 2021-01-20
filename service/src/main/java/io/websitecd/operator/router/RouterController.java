@@ -28,6 +28,7 @@ public class RouterController {
     public void updateWebsiteRoutes(String targetEnv, String namespace, WebsiteConfig config) {
         final String hostSuffix = "-" + namespace + "." + domain;
         final String websiteName = Utils.getWebsiteName(config);
+        final String host = websiteName + "-" + targetEnv + hostSuffix;
         // TODO: It's not needed to create all routes for sub pathes when root path is present
         for (ComponentConfig component : config.getComponents()) {
             String context = component.getContext();
@@ -43,7 +44,6 @@ public class RouterController {
                 routePortBuilder.withTargetPort(new IntOrString(component.getSpec().getTargetPort()));
             }
 
-            String host = websiteName + "-" + targetEnv + hostSuffix;
             RouteSpecBuilder spec = new RouteSpecBuilder()
                     .withHost(host)
                     .withPath(context)
@@ -61,6 +61,35 @@ public class RouterController {
 
             client.inNamespace(namespace).routes().createOrReplace(route);
         }
+
+        updateWebsiteInfoRoute(namespace, websiteName, targetEnv, host);
+    }
+
+    public void updateWebsiteInfoRoute(String namespace, String websiteName, String targetEnv, String host) {
+        final String context = "/websiteinfo";
+
+        RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
+        RoutePortBuilder routePortBuilder = new RoutePortBuilder();
+        targetReference.withName(websiteName + "-content-" + targetEnv);
+        routePortBuilder.withTargetPort(new IntOrString("http-api"));
+
+        RouteSpecBuilder spec = new RouteSpecBuilder()
+                .withHost(host)
+                .withPath(context)
+                .withTo(targetReference.build())
+                .withPort(routePortBuilder.build())
+                .withTls(new TLSConfigBuilder().withNewTermination("edge").withInsecureEdgeTerminationPolicy("Redirect").build());
+
+        String name = getRouteName(websiteName, "websiteinfo", targetEnv);
+
+        RouteBuilder builder = new RouteBuilder()
+                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv)).build())
+                .withSpec(spec.build());
+
+        Route route = builder.build();
+        log.infof("Deploying route=%s", route.getMetadata().getName());
+
+        client.inNamespace(namespace).routes().createOrReplace(route);
     }
 
     public String getRouteName(String websiteName, String sanityContext, String env) {
