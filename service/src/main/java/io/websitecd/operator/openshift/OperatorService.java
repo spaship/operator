@@ -57,7 +57,7 @@ public class OperatorService {
     }
 
     public void initServices() {
-        log.infof("Openshift client_url=%s", client.getOpenshiftUrl());
+        log.infof("Init service. openshift_url=%s", client.getOpenshiftUrl());
 
         try {
             WebsiteConfig config = websiteConfigService.cloneRepo();
