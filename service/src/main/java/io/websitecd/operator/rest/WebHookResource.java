@@ -33,7 +33,7 @@ public class WebHookResource {
     @Path("")
     @Produces(MediaType.TEXT_PLAIN)
     public Uni<String> webHook(@Context HttpRequest request, String data) throws Exception {
-        log.infof("webhook called");
+        log.infof("webhook called from url=%s", request.getRemoteHost());
         WebhookService.GIT_PROVIDER provider = webhookService.gitProvider(request);
         if (provider == null) {
             throw new BadRequestException("Unknown provider");

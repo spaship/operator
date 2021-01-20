@@ -17,6 +17,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ForbiddenException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class WebhookService {
@@ -31,7 +32,7 @@ public class WebhookService {
     GitlabWebHookManager gitlabWebHookManager;
 
     @ConfigProperty(name = "app.operator.website.webhook.secret")
-    String webhookSecret;
+    Optional<String> webhookSecret;
 
 
     public GIT_PROVIDER gitProvider(HttpRequest request) {
@@ -45,14 +46,16 @@ public class WebhookService {
     public Uni<String> handleGitlab(HttpRequest request, String data) throws GitAPIException, IOException, GitLabApiException {
         String secretToken = getHeader(request, "X-Gitlab-Token");
 
-        if (StringUtils.isEmpty(secretToken)) {
-            log.warn("X-Gitlab-Token is missing!");
-            throw new UnauthorizedException("X-Gitlab-Token missing");
-        }
+        if (webhookSecret.isPresent()) {
+            if (StringUtils.isEmpty(secretToken)) {
+                log.warn("X-Gitlab-Token is missing!");
+                throw new UnauthorizedException("X-Gitlab-Token missing");
+            }
 
-        if (!StringUtils.equals(secretToken, webhookSecret)) {
-            log.warn("X-Gitlab-Token is not valid!");
-            throw new ForbiddenException("X-Gitlab-Token not valid");
+            if (!StringUtils.equals(secretToken, webhookSecret.get())) {
+                log.warn("X-Gitlab-Token is not valid!");
+                throw new ForbiddenException("X-Gitlab-Token not valid");
+            }
         }
 
         Event event = gitlabWebHookManager.handleRequest(request, data);

@@ -51,11 +51,6 @@ public class GitlabWebHookManager extends WebHookManager {
 
         String secretToken = getHeader(request, "X-Gitlab-Token");
 
-        if (secretToken == null) {
-            log.warn("X-Gitlab-Token is missing!");
-            return null;
-        }
-
         if (!isValidSecretToken(secretToken)) {
             String message = "X-Gitlab-Token mismatch!";
             log.warn(message);
