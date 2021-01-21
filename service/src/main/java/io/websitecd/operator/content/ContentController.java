@@ -3,7 +3,6 @@ package io.websitecd.operator.content;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.openshift.api.model.Route;
-import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Uni;
@@ -131,19 +130,20 @@ public class ContentController {
 
 
     public void deploy(String env, String namespace, String websiteName) {
-        final Template serverUploadedTemplate = client.templates()
-                .inNamespace(namespace)
-                .load(ContentController.class.getResourceAsStream("/openshift/core-staticcontent.yaml"))
-                .createOrReplace();
-        String templateName = serverUploadedTemplate.getMetadata().getName();
-        log.infof("Template %s successfully created on server, namespace=%s", serverUploadedTemplate.getMetadata().getName(), namespace);
+//        final Template serverUploadedTemplate = client.templates()
+//                .inNamespace(namespace)
+//                .load(ContentController.class.getResourceAsStream("/openshift/core-staticcontent.yaml"))
+//                .createOrReplace();
+//        String templateName = serverUploadedTemplate.getMetadata().getName();
+//        log.infof("Template %s successfully created on server, namespace=%s", serverUploadedTemplate.getMetadata().getName(), namespace);
 
         Map<String, String> params = new HashMap<>();
         params.put("ENV", env);
         params.put("NAME", websiteName);
 
         KubernetesList result = client.templates()
-                .inNamespace(namespace).withName(templateName)
+                .inNamespace(namespace)
+                .load(ContentController.class.getResourceAsStream("/openshift/core-staticcontent.yaml"))
                 .process(params);
 
         log.debugf("Template %s successfully processed to list with %s items",

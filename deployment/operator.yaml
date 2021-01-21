@@ -26,7 +26,7 @@ spec:
       labels:
         app: websitecd-operator
     spec:
-      serviceAccountName: deployer
+      serviceAccountName: websitecd-operator
       containers:
         - name: operator
           image: "websitecd/operator-jvm:latest"
@@ -46,25 +46,10 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              cpu: 100m
+              cpu: 500m
               memory: 100Mi
           ports:
             - containerPort: 8080
           envFrom:
             - configMapRef:
                 name: "websitecd-operator-config"
----
-kind: Route
-apiVersion: route.openshift.io/v1
-metadata:
-  name: websitecd-operator
-spec:
-  port:
-    targetPort: http
-  tls:
-    termination: edge
-  to:
-    kind: Service
-    name: websitecd-operator
-    weight: 100
-  wildcardPolicy: None
