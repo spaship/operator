@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: websitecd-operator-config
+data:
+  APP_OPERATOR_WEBSITE_URL: 'http://gitlab.cee.redhat.com/lkrzyzan/ecosystem-catalog-content.git'
+  APP_OPERATOR_WEBSITE_DOMAIN: 'int.us-west.dc.preprod.paas.redhat.com'
+  APP_OPERATOR_NAMESPACE: 'mwes-swel--websitecd'
+  APP_OPERATOR_WEBSITE_CONFIG_SSLVERIFY: 'false'
