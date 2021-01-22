@@ -68,7 +68,7 @@ objects:
             # Init data
             - name: init-content
               image: quay.io/websitecd/content-git-init
-              imagePullPolicy: IfNotPresent
+#              imagePullPolicy: IfNotPresent
               resources:
                 requests:
                   cpu: 100m
@@ -116,7 +116,7 @@ objects:
             # Side car container providing API
             - name: api
               image: quay.io/websitecd/content-git-api
-              imagePullPolicy: IfNotPresent
+#              imagePullPolicy: IfNotPresent
               livenessProbe:
                 httpGet:
                   path: "/"

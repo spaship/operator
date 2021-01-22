@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: websitecd-operator-config
 data:
-  APP_OPERATOR_WEBSITE_URL: 'http://gitlab.cee.redhat.com/lkrzyzan/ecosystem-catalog-content.git'
+  APP_OPERATOR_WEBSITE_URL: 'https://gitlab.cee.redhat.com/lkrzyzan/ecosystem-catalog-content.git'
   APP_OPERATOR_WEBSITE_DOMAIN: 'int.us-west.dc.preprod.paas.redhat.com'
   APP_OPERATOR_NAMESPACE: 'catalog-preprod'
   APP_OPERATOR_WEBSITE_CONFIG_SSLVERIFY: 'false'
