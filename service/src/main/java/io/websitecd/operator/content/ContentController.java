@@ -56,7 +56,7 @@ public class ContentController {
     protected String rootContext;
 
     public void createClient(String gitUrl, String env, WebsiteConfig config) {
-        String host = staticContentHost.orElse(Utils.getWebsiteName(config) + "-" + env);
+        String host = staticContentHost.orElse(Utils.getWebsiteName(config) + "-content-" + env);
         WebClient websiteClient = WebClient.create(vertx, new WebClientOptions()
                 .setDefaultHost(host)
                 .setDefaultPort(staticContentApiPort)
