@@ -11,7 +11,6 @@ import org.jboss.resteasy.spi.HttpRequest;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import java.io.InputStreamReader;
 
 @ApplicationScoped
 public class GitlabWebHookManager extends WebHookManager {
@@ -78,14 +77,9 @@ public class GitlabWebHookManager extends WebHookManager {
 
         Event event;
         try {
-
+            event = jacksonJson.unmarshal(Event.class, postData);
             if (log.isEnabled(Logger.Level.TRACE)) {
-                log.trace("Raw POST data:\n" + postData);
-                event = jacksonJson.unmarshal(Event.class, postData);
                 log.trace(event.getObjectKind() + " event:\n" + jacksonJson.marshal(event) + "\n");
-            } else {
-                InputStreamReader reader = new InputStreamReader(request.getInputStream());
-                event = jacksonJson.unmarshal(Event.class, reader);
             }
 
         } catch (Exception e) {
