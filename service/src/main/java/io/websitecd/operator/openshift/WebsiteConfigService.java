@@ -1,7 +1,9 @@
 package io.websitecd.operator.openshift;
 
 import io.websitecd.operator.config.OperatorConfigUtils;
+import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,6 +19,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -36,11 +40,11 @@ public class WebsiteConfigService {
     @ConfigProperty(name = "app.operator.website.config.sslverify")
     Boolean sslVerify;
 
-    WebsiteConfig config;
+    Map<String, WebsiteConfig> websites = new HashMap<>();
 
     public WebsiteConfig cloneRepo(String gitUrl) throws GitAPIException, IOException, URISyntaxException {
         log.info("Initializing website config");
-        File gitDir = getGitDir();
+        File gitDir = new File(getGitDirName(workDir, gitUrl));
         if (!gitDir.exists()) {
             Git git = Git.init().setDirectory(gitDir).call();
             git.remoteAdd().setName("origin").setUri(new URIish(gitUrl)).call();
@@ -57,14 +61,17 @@ public class WebsiteConfigService {
         } else {
             log.infof("Website config already cloned. skipping dir=%s", gitDir);
         }
+        WebsiteConfig config;
         try (InputStream is = new FileInputStream(getWebsiteConfigPath(gitDir.getAbsolutePath()))) {
             config = OperatorConfigUtils.loadYaml(is);
         }
+        log.infof("Registering config under gitUrl=%s", gitUrl);
+        websites.put(gitUrl, config);
         return config;
     }
 
-    public WebsiteConfig updateRepo() throws GitAPIException, IOException {
-        File gitDir = getGitDir();
+    public WebsiteConfig updateRepo(String gitUrl) throws GitAPIException, IOException {
+        File gitDir = new File(getGitDirName(workDir, gitUrl));
         PullResult pullResult = Git.open(gitDir).pull().call();
         if (!pullResult.isSuccessful()) {
             throw new RuntimeException("Cannot pull repo. result=" + pullResult);
@@ -72,9 +79,12 @@ public class WebsiteConfigService {
         FetchResult fetchResult = pullResult.getFetchResult();
         log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, fetchResult.getMessages());
 
+        WebsiteConfig config;
         try (InputStream is = new FileInputStream(getWebsiteConfigPath(gitDir.getAbsolutePath()))) {
             config = OperatorConfigUtils.loadYaml(is);
         }
+        log.infof("Updating config under gitUrl=%s", gitUrl);
+        websites.put(gitUrl, config);
         return config;
     }
 
@@ -86,9 +96,32 @@ public class WebsiteConfigService {
         }
     }
 
-    public File getGitDir() {
-        return new File(workDir + "/website.git");
+    public static String getGitDirName(String workDir, String gitUrl) {
+        return workDir + "/" + gitUrl.replace(".", "_").replace("/", "").replace(":", "_");
     }
 
+    public boolean isKnownWebsite(String gitUrl) {
+        return websites.containsKey(gitUrl);
+    }
 
+    public boolean isKnownComponent(String gitUrl) {
+        for (WebsiteConfig config : websites.values()) {
+            for (ComponentConfig component : config.getComponents()) {
+                if (component.isKindGit()) {
+                    if (StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public WebsiteConfig getConfig(String gitUrl) {
+        return websites.get(gitUrl);
+    }
+
+    public Map<String, WebsiteConfig> getWebsites() {
+        return websites;
+    }
 }

@@ -1,10 +1,12 @@
 package io.websitecd.operator.webhook.gitlab;
 
 import io.vertx.mutiny.ext.web.client.WebClient;
+import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.openshift.WebsiteConfigService;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.gitlab4j.api.webhook.Event;
 import org.gitlab4j.api.webhook.EventCommit;
@@ -14,6 +16,7 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.Map;
 
 @ApplicationScoped
 public class GitlabWebHookListener implements WebHookListener {
@@ -41,39 +44,56 @@ public class GitlabWebHookListener implements WebHookListener {
     }
 
     public void handleEvent(String gitUrl, Event event) {
-        if (!operatorService.isKnownWebsite(gitUrl)) {
+        boolean isWebsite = websiteConfigService.isKnownWebsite(gitUrl);
+        boolean isComponent = websiteConfigService.isKnownComponent(gitUrl);
+        if (!isWebsite || !isComponent) {
             log.infof("git url unknown. ignoring. gitUrl=%s", gitUrl);
             return;
         }
-        if (isRolloutNeeded(event, websiteYamlName)) {
-            WebsiteConfig oldConfig = operatorService.getWebsites().get(gitUrl);
+
+        boolean rollout = false;
+        if (isWebsite && isRolloutNeeded(event, websiteYamlName)) {
+            WebsiteConfig oldConfig = websiteConfigService.getConfig(gitUrl);
             try {
-                WebsiteConfig newConfig = websiteConfigService.updateRepo();
+                WebsiteConfig newConfig = websiteConfigService.updateRepo(gitUrl);
                 if (deploymentChanged(oldConfig, newConfig)) {
-                    operatorService.processConfig(gitUrl);
-                    return;
+                    operatorService.processConfig(gitUrl, true);
+                    rollout = true;
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        } else {
-            // Lookup the env based on branch/tag
-            String clientId = gitUrl + "-" + "dev";
-            WebClient contentApiClient = contentController.getContentApiClient(clientId);
-            if (contentApiClient == null) {
-                throw new RuntimeException("contentApiClient not defined for gitUrl=" + clientId);
+        }
+
+        for (Map.Entry<String, WebsiteConfig> config : websiteConfigService.getWebsites().entrySet()) {
+            if (rollout && StringUtils.equals(config.getKey(), gitUrl)) {
+                log.debugf("website is already covered by rolling update. going to next component");
+                continue;
             }
-            log.infof("Update content on clientId=%s ", clientId);
-            contentController.listComponents(contentApiClient)
-                    .onItem().transform(jsonArray -> jsonArray.getList())
-                    .subscribe()
-                    .with(items -> {
-                        for (Object name : items) {
-                            contentController.refreshComponent(contentApiClient, name.toString())
-                                    .subscribe()
-                                    .with(s -> log.infof("updated name=%s result=%s", name, s));
+
+            for (ComponentConfig component : config.getValue().getComponents()) {
+                if (component.isKindGit()) {
+                    if (StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
+                        // TODO: Lookup the env based on branch/tag
+                        String clientId = gitUrl + "-" + "dev";
+                        WebClient contentApiClient = contentController.getContentApiClient(clientId);
+                        if (contentApiClient == null) {
+                            throw new RuntimeException("contentApiClient not defined for gitUrl=" + clientId);
                         }
-                    });
+                        log.infof("Update content on clientId=%s ", clientId);
+                        contentController.listComponents(contentApiClient)
+                                .onItem().transform(jsonArray -> jsonArray.getList())
+                                .subscribe()
+                                .with(items -> {
+                                    for (Object name : items) {
+                                        contentController.refreshComponent(contentApiClient, name.toString())
+                                                .subscribe()
+                                                .with(s -> log.infof("updated name=%s result=%s", name, s));
+                                    }
+                                });
+                    }
+                }
+            }
         }
     }
 

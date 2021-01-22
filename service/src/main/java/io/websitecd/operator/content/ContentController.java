@@ -55,8 +55,12 @@ public class ContentController {
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
 
+    public String getContentHost(String env, WebsiteConfig config) {
+        return staticContentHost.orElse(Utils.getWebsiteName(config) + "-content-" + env);
+    }
+
     public void createClient(String gitUrl, String env, WebsiteConfig config) {
-        String host = staticContentHost.orElse(Utils.getWebsiteName(config) + "-content-" + env);
+        String host = getContentHost(env, config);
         WebClient websiteClient = WebClient.create(vertx, new WebClientOptions()
                 .setDefaultHost(host)
                 .setDefaultPort(staticContentApiPort)
@@ -168,10 +172,11 @@ public class ContentController {
         }
     }
 
-    public void redeploy(String env, String namespace) {
-        String name = "static-" + env;
-        client.inNamespace(namespace).apps().deployments().withName(name).rolling().restart();
-        log.infof("deployment rollout name=%s", name);
+    public void redeploy(String env, WebsiteConfig config) {
+        String componentName = Utils.getWebsiteName(config) + "-content-" + env;
+        String ns = config.getEnvironment(env).getNamespace();
+        client.inNamespace(ns).apps().deployments().withName(componentName).rolling().restart();
+        log.infof("deployment rollout name=%s", componentName);
     }
 
     public Uni<String> refreshComponent(WebClient webClient, String name) {

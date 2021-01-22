@@ -67,8 +67,8 @@ objects:
           initContainers:
             # Init data
             - name: init-content
-              image: quay.io/websitecd/content-git-init
-#              imagePullPolicy: IfNotPresent
+              image: openhybridweb/core-staticcontent
+              imagePullPolicy: IfNotPresent
               resources:
                 requests:
                   cpu: 100m
@@ -76,13 +76,12 @@ objects:
                 limits:
                   cpu: 100m
                   memory: 100Mi
+              command: [ 'node', 'init-content.js' ]
               env:
-                - name: APP_CONFIG_PATH
+                - name: CONFIG_PATH
                   value: "/app/config/content-config-git.yaml"
-                - name: APP_TARGET_DIR
+                - name: TARGET_DIR
                   value: "/app/data/"
-                - name: APP_CONFIG_SSLVERIFY
-                  value: "false"
               volumeMounts:
                 - mountPath: "/app/config/"
                   name: content-init
@@ -116,7 +115,7 @@ objects:
             # Side car container providing API
             - name: api
               image: quay.io/websitecd/content-git-api
-#              imagePullPolicy: IfNotPresent
+              imagePullPolicy: IfNotPresent
               livenessProbe:
                 httpGet:
                   path: "/"

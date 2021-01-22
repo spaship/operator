@@ -14,7 +14,6 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,8 +46,6 @@ public class OperatorService {
     @Inject
     Vertx vertx;
 
-    Map<String, WebsiteConfig> websites = new HashMap<>();
-
     void onStart(@Observes StartupEvent ev) {
         log.infof("Registering INIT with delay=%s", initDelay);
         vertx.setTimer(initDelay, e -> {
@@ -63,18 +60,16 @@ public class OperatorService {
         log.infof("Init service. openshift_url=%s", client.getOpenshiftUrl());
 
         try {
-            WebsiteConfig config = websiteConfigService.cloneRepo(gitUrl);
+            websiteConfigService.cloneRepo(gitUrl);
 
-            websites.put(gitUrl, config);
-
-            processConfig(gitUrl);
+            processConfig(gitUrl, false);
         } catch (Exception e) {
             log.error("Cannot init core services", e);
         }
     }
 
-    public void processConfig(String gitUrl) {
-        WebsiteConfig config = websites.get(gitUrl);
+    public void processConfig(String gitUrl, boolean redeploy) {
+        WebsiteConfig config = websiteConfigService.getConfig(gitUrl);
         Map<String, Environment> envs = config.getEnvs();
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
             if (!namespace.isEmpty() && !envEntry.getValue().getNamespace().equals(namespace.get())) {
@@ -83,9 +78,13 @@ public class OperatorService {
             }
             // ? create namespace ???
             String env = envEntry.getKey();
+            log.infof("Processing env=%s", env);
             contentController.createClient(gitUrl, env, config);
 
             setupCoreServices(env, config);
+            if (redeploy) {
+                contentController.redeploy(env, config);
+            }
         }
     }
 
@@ -105,19 +104,8 @@ public class OperatorService {
         contentController.updateConfigs(env, namespace, config);
         contentController.deploy(env, namespace, websiteName);
 
-        routerController.updateWebsiteRoutes(env, namespace, config);
+//        no permissions at the moment
+//        routerController.updateWebsiteRoutes(env, namespace, config);
     }
 
-    /**
-     * Webiste. Key = giturl, Value = config
-     *
-     * @return
-     */
-    public Map<String, WebsiteConfig> getWebsites() {
-        return websites;
-    }
-
-    public boolean isKnownWebsite(String gitUrl) {
-        return websites.containsKey(gitUrl);
-    }
 }
