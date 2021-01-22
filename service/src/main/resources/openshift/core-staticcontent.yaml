@@ -67,7 +67,7 @@ objects:
           initContainers:
             # Init data
             - name: init-content
-              image: websitecd/content-git-init
+              image: quay.io/websitecd/content-git-init
               imagePullPolicy: IfNotPresent
               resources:
                 requests:
@@ -115,7 +115,7 @@ objects:
                   name: content-httpd
             # Side car container providing API
             - name: api
-              image: websitecd/content-git-api
+              image: quay.io/websitecd/content-git-api
               imagePullPolicy: IfNotPresent
               livenessProbe:
                 httpGet:
