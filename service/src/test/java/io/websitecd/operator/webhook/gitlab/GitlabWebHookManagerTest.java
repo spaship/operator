@@ -28,13 +28,14 @@ class GitlabWebHookManagerTest {
         try (InputStream is = GitlabWebHookManagerTest.class.getResourceAsStream("/gitlab-push.json")) {
             yaml = IOUtils.toString(is, StandardCharsets.UTF_8);
         }
+        String yamlName = "website.yaml";
         Event event = manager.unmarshal(yaml);
-        assertFalse(manager.isRolloutNeeded(event));
+        assertFalse(GitlabWebHookListener.isRolloutNeeded(event, yamlName));
 
         try (InputStream is = GitlabWebHookManagerTest.class.getResourceAsStream("/gitlab-push-website-changed.json")) {
             yaml = IOUtils.toString(is, StandardCharsets.UTF_8);
         }
         Event event2 = manager.unmarshal(yaml);
-        assertTrue(manager.isRolloutNeeded(event2));
+        assertTrue(GitlabWebHookListener.isRolloutNeeded(event2, yamlName));
     }
 }

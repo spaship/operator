@@ -20,6 +20,10 @@
 #
 # docker run -i --rm -p 8080:8080 -p 5005:5005 -e JAVA_ENABLE_DEBUG="true" websitecd/operator-jvm
 #
+# Deploy to Quay.io
+# docker tag websitecd/operator-jvm quay.io/websitecd/operator-jvm
+# docker push quay.io/websitecd/operator-jvm
+#
 ###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.1
 

@@ -4,7 +4,6 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
-import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -23,10 +22,10 @@ import org.jboss.logging.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @ApplicationScoped
 public class ContentController {
@@ -42,13 +41,13 @@ public class ContentController {
     @Inject
     Vertx vertx;
 
-    WebClient staticContentClient;
+    Map<String, WebClient> clients = new HashMap<>();
 
     @ConfigProperty(name = "quarkus.http.root-path")
     String rootPath;
 
     @ConfigProperty(name = "app.content.git.api.host")
-    String staticContentHost;
+    Optional<String> staticContentHost;
 
     @ConfigProperty(name = "app.content.git.api.port")
     int staticContentApiPort;
@@ -56,14 +55,16 @@ public class ContentController {
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
 
-    void onStart(@Observes StartupEvent ev) {
-        this.staticContentClient = WebClient.create(vertx, new WebClientOptions()
-                .setDefaultHost(staticContentHost)
+    public void createClient(String gitUrl, String env, WebsiteConfig config) {
+        String host = staticContentHost.orElse(Utils.getWebsiteName(config) + "-" + env);
+        WebClient websiteClient = WebClient.create(vertx, new WebClientOptions()
+                .setDefaultHost(host)
                 .setDefaultPort(staticContentApiPort)
                 .setTrustAll(true));
-        log.infof("Static content client created host=%s port=%s", staticContentHost, staticContentApiPort);
+        String clientId = gitUrl + "-" + env;
+        clients.put(clientId, websiteClient);
+        log.infof("Content client API created. clientId=%s host=%s port=%s", clientId, host, staticContentApiPort);
     }
-
 
     public StringBuffer createAliases(String targetEnv, WebsiteConfig websiteConfig) {
         StringBuffer config = new StringBuffer();
@@ -173,9 +174,9 @@ public class ContentController {
         log.infof("deployment rollout name=%s", name);
     }
 
-    public Uni<String> refreshComponent(String name) {
+    public Uni<String> refreshComponent(WebClient webClient, String name) {
         log.infof("Refresh component name=%s", name);
-        return staticContentClient.get("/api/update/" + name).send()
+        return webClient.get("/api/update/" + name).send()
                 .onItem().invoke(resp -> {
                     if (resp.statusCode() != 200) {
                         throw new RuntimeException(resp.bodyAsString());
@@ -183,15 +184,20 @@ public class ContentController {
                 }).map(resp -> resp.bodyAsString());
     }
 
-    public Uni<JsonArray> listComponents() {
+    public Uni<JsonArray> listComponents(WebClient webClient) {
         log.infof("List components");
-        return staticContentClient.get("/api/list").send()
+
+        return webClient.get("/api/list").send()
                 .onItem().invoke(resp -> {
                     if (resp.statusCode() != 200) {
                         throw new RuntimeException(resp.bodyAsString());
                     }
                 })
                 .map(resp -> resp.bodyAsJsonArray());
+    }
+
+    public WebClient getContentApiClient(String clientId) {
+        return clients.get(clientId);
     }
 
 }

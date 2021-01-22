@@ -78,10 +78,6 @@ public class WebsiteConfigService {
         return config;
     }
 
-    public WebsiteConfig getConfig() {
-        return config;
-    }
-
     public String getWebsiteConfigPath(String baseDir) {
         if (configDir.isEmpty()) {
             return baseDir + "/" + configFilename;

@@ -1,8 +1,5 @@
 package io.websitecd.operator.openshift;
 
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
-import io.fabric8.kubernetes.api.model.rbac.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
@@ -70,12 +67,14 @@ public class OperatorService {
 
             websites.put(gitUrl, config);
 
-            processConfig(config);
+            processConfig(gitUrl);
         } catch (Exception e) {
             log.error("Cannot init core services", e);
         }
     }
-    public void processConfig(WebsiteConfig config) {
+
+    public void processConfig(String gitUrl) {
+        WebsiteConfig config = websites.get(gitUrl);
         Map<String, Environment> envs = config.getEnvs();
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
             if (!namespace.isEmpty() && !envEntry.getValue().getNamespace().equals(namespace.get())) {
@@ -83,7 +82,10 @@ public class OperatorService {
                 continue;
             }
             // ? create namespace ???
-            setupCoreServices(envEntry.getKey(), config);
+            String env = envEntry.getKey();
+            contentController.createClient(gitUrl, env, config);
+
+            setupCoreServices(env, config);
         }
     }
 
@@ -106,47 +108,16 @@ public class OperatorService {
         routerController.updateWebsiteRoutes(env, namespace, config);
     }
 
-    public void updateServiceAccount(String namespace) {
-        log.infof("Update service-account namespace=%s", namespace);
-        ServiceAccountBuilder saBuilder = new ServiceAccountBuilder()
-                .withMetadata(new ObjectMetaBuilder().withName("core-controller").build());
-        client.inNamespace(namespace).serviceAccounts().createOrReplace(saBuilder.build());
-        RoleBinding roleBinding = generateRoleBinding(namespace, namespace);
-        client.inNamespace(namespace).rbac().roleBindings().createOrReplace(roleBinding);
-    }
-
-    public RoleBinding generateRoleBinding(String namespace, String watchedNamespace) {
-        Subject ks = new SubjectBuilder()
-                .withKind("ServiceAccount")
-                .withName("core-controller")
-                .withNamespace(namespace)
-                .build();
-
-        RoleRef roleRef = new RoleRefBuilder()
-                .withName("core-controller")
-                .withApiGroup("rbac.authorization.k8s.io")
-                .withKind("ClusterRole")
-                .build();
-
-        RoleBinding rb = new RoleBindingBuilder()
-                .withNewMetadata()
-                .withName("core-controller")
-                .withNamespace(watchedNamespace)
-//                .withOwnerReferences(createOwnerReference())
-//                .withLabels(labels.toMap())
-                .endMetadata()
-                .withRoleRef(roleRef)
-                .withSubjects(ks)
-                .build();
-
-        return rb;
-    }
-
     /**
      * Webiste. Key = giturl, Value = config
+     *
      * @return
      */
     public Map<String, WebsiteConfig> getWebsites() {
         return websites;
+    }
+
+    public boolean isKnownWebsite(String gitUrl) {
+        return websites.containsKey(gitUrl);
     }
 }

@@ -7,3 +7,4 @@ data:
   APP_OPERATOR_WEBSITE_DOMAIN: 'int.us-west.dc.preprod.paas.redhat.com'
   APP_OPERATOR_NAMESPACE: 'mwes-swel--websitecd'
   APP_OPERATOR_WEBSITE_CONFIG_SSLVERIFY: 'false'
+  APP_OPERATOR_WEBSITE_WEBHOOK_SECRET: 'CHANGEIT'
