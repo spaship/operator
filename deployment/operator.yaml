@@ -29,7 +29,7 @@ spec:
       serviceAccountName: websitecd-operator
       containers:
         - name: operator
-          image: "websitecd/operator-jvm:latest"
+          image: "quay.io/websitecd/operator-jvm"
           livenessProbe:
             httpGet:
               path: "/health/live"

@@ -6,7 +6,7 @@ import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
@@ -173,30 +173,25 @@ public class ContentController {
         log.infof("deployment rollout name=%s", name);
     }
 
-    public Uni<JsonObject> refreshComponent(String name) {
+    public Uni<String> refreshComponent(String name) {
         log.infof("Refresh component name=%s", name);
-        return staticContentClient.get("/_staticcontent/api/update/" + name).send().map(resp -> {
-            if (resp.statusCode() == 200) {
-                return resp.bodyAsJsonObject();
-            } else {
-                return new JsonObject()
-                        .put("code", resp.statusCode())
-                        .put("message", resp.bodyAsString());
-            }
-        });
+        return staticContentClient.get("/api/update/" + name).send()
+                .onItem().invoke(resp -> {
+                    if (resp.statusCode() != 200) {
+                        throw new RuntimeException(resp.bodyAsString());
+                    }
+                }).map(resp -> resp.bodyAsString());
     }
 
-    public Uni<JsonObject> listComponents() {
+    public Uni<JsonArray> listComponents() {
         log.infof("List components");
-        return staticContentClient.get("/_staticcontent/api/list").send().map(resp -> {
-            if (resp.statusCode() == 200) {
-                return resp.bodyAsJsonObject();
-            } else {
-                return new JsonObject()
-                        .put("code", resp.statusCode())
-                        .put("message", resp.bodyAsString());
-            }
-        });
+        return staticContentClient.get("/api/list").send()
+                .onItem().invoke(resp -> {
+                    if (resp.statusCode() != 200) {
+                        throw new RuntimeException(resp.bodyAsString());
+                    }
+                })
+                .map(resp -> resp.bodyAsJsonArray());
     }
 
 }

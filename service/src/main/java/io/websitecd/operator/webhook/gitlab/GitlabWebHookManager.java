@@ -1,7 +1,11 @@
 package io.websitecd.operator.webhook.gitlab;
 
-import io.quarkus.runtime.StartupEvent;
+import io.websitecd.operator.config.model.WebsiteConfig;
+import io.websitecd.operator.content.ContentController;
+import io.websitecd.operator.openshift.OperatorService;
+import io.websitecd.operator.openshift.WebsiteConfigService;
 import io.websitecd.operator.webhook.WebhookService;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.utils.JacksonJson;
 import org.gitlab4j.api.webhook.*;
@@ -9,8 +13,8 @@ import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.io.IOException;
 
 @ApplicationScoped
 public class GitlabWebHookManager extends WebHookManager {
@@ -20,12 +24,17 @@ public class GitlabWebHookManager extends WebHookManager {
     private final JacksonJson jacksonJson = new JacksonJson();
 
     @Inject
-    GitlabEventListener listener;
+    WebsiteConfigService websiteConfigService;
 
-    void onStart(@Observes StartupEvent ev) {
-        log.info("Registering Gitlab webhook listener");
-        addListener(listener);
-    }
+    @Inject
+    OperatorService operatorService;
+
+    @Inject
+    ContentController contentController;
+
+    @ConfigProperty(name = "app.operator.website.config.filename")
+    String websiteYamlName;
+
 
     public static String getHeader(HttpRequest request, String name) {
         return WebhookService.getHeader(request, name);
@@ -77,7 +86,7 @@ public class GitlabWebHookManager extends WebHookManager {
 
         Event event;
         try {
-            event = jacksonJson.unmarshal(Event.class, postData);
+            event = unmarshal(postData);
             if (log.isEnabled(Logger.Level.TRACE)) {
                 log.trace(event.getObjectKind() + " event:\n" + jacksonJson.marshal(event) + "\n");
             }
@@ -105,5 +114,55 @@ public class GitlabWebHookManager extends WebHookManager {
         }
     }
 
+    protected Event unmarshal(String data) throws IOException {
+        return jacksonJson.unmarshal(Event.class, data);
+    }
 
+    @Override
+    public void fireEvent(Event event) throws GitLabApiException {
+        if (isRolloutNeeded(event)) {
+            WebsiteConfig oldConfig = websiteConfigService.getConfig();
+            try {
+                WebsiteConfig newConfig = websiteConfigService.updateRepo();
+                if (deploymentChanged(oldConfig, newConfig)) {
+                    operatorService.processConfig(newConfig);
+                    return;
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            contentController.listComponents()
+                    .onItem().transform(jsonArray -> jsonArray.getList())
+                    .subscribe()
+                    .with(items -> {
+                        for (Object name : items) {
+                            contentController.refreshComponent(name.toString())
+                                    .subscribe()
+                                    .with(s -> log.infof("updated name=%s result=%s", name, s));
+                        }
+                    });
+        }
+        super.fireEvent(event);
+    }
+
+    public boolean isRolloutNeeded(Event event) {
+        if (event instanceof PushEvent) {
+            PushEvent pushEvent = (PushEvent) event;
+            for (EventCommit commit : pushEvent.getCommits()) {
+                if (commit.getModified().contains(websiteYamlName)) {
+                    return true;
+                }
+                if (commit.getAdded().contains(websiteYamlName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean deploymentChanged(WebsiteConfig oldConfig, WebsiteConfig newConfig) {
+        // TODO: Compare old and new config and consider if deployment has changed
+        return true;
+    }
 }

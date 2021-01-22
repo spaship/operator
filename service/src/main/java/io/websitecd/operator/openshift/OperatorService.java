@@ -17,6 +17,7 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,6 +25,9 @@ import java.util.Optional;
 public class OperatorService {
 
     private static final Logger log = Logger.getLogger(OperatorService.class);
+
+    @ConfigProperty(name = "app.operator.website.url")
+    String gitUrl;
 
     @ConfigProperty(name = "app.operator.namespace")
     protected Optional<String> namespace;
@@ -46,6 +50,8 @@ public class OperatorService {
     @Inject
     Vertx vertx;
 
+    Map<String, WebsiteConfig> websites = new HashMap<>();
+
     void onStart(@Observes StartupEvent ev) {
         log.infof("Registering INIT with delay=%s", initDelay);
         vertx.setTimer(initDelay, e -> {
@@ -60,7 +66,9 @@ public class OperatorService {
         log.infof("Init service. openshift_url=%s", client.getOpenshiftUrl());
 
         try {
-            WebsiteConfig config = websiteConfigService.cloneRepo();
+            WebsiteConfig config = websiteConfigService.cloneRepo(gitUrl);
+
+            websites.put(gitUrl, config);
 
             processConfig(config);
         } catch (Exception e) {
@@ -134,4 +142,11 @@ public class OperatorService {
         return rb;
     }
 
+    /**
+     * Webiste. Key = giturl, Value = config
+     * @return
+     */
+    public Map<String, WebsiteConfig> getWebsites() {
+        return websites;
+    }
 }

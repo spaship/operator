@@ -24,8 +24,6 @@ public class WebsiteConfigService {
 
     private static final Logger log = Logger.getLogger(WebsiteConfigService.class);
 
-    @ConfigProperty(name = "app.operator.website.url")
-    String gitUrl;
 
     String workDir = System.getProperty("user.dir");
 
@@ -40,7 +38,7 @@ public class WebsiteConfigService {
 
     WebsiteConfig config;
 
-    public WebsiteConfig cloneRepo() throws GitAPIException, IOException, URISyntaxException {
+    public WebsiteConfig cloneRepo(String gitUrl) throws GitAPIException, IOException, URISyntaxException {
         log.info("Initializing website config");
         File gitDir = getGitDir();
         if (!gitDir.exists()) {
