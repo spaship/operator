@@ -1,6 +1,23 @@
 # Development
 
-## Local docker
+## Minikube
+
+```shell
+minikube start
+minikube dashboard
+minikube tunnel
+
+kubectl create namespace catalog-preprod
+```
+
+## Local Development
+
+```shell
+mvn quarkus:dev
+```
+
+
+## Build Local Docker
 
 ```shell
 mvn clean package

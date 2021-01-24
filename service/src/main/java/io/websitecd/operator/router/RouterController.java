@@ -32,12 +32,11 @@ public class RouterController {
         // TODO: It's not needed to create all routes for sub pathes when root path is present
         for (ComponentConfig component : config.getComponents()) {
             String context = component.getContext();
-            String sanityContext = context.replace("/", "").replace("_", "");
 
             RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
             RoutePortBuilder routePortBuilder = new RoutePortBuilder();
             if (component.isKindGit()) {
-                targetReference.withName(websiteName + "-content-" + targetEnv);
+                targetReference.withName(getContentServiceName(websiteName, targetEnv));
                 routePortBuilder.withTargetPort(new IntOrString("http"));
             } else {
                 targetReference.withName(component.getSpec().getServiceName());
@@ -51,6 +50,7 @@ public class RouterController {
                     .withPort(routePortBuilder.build())
                     .withTls(new TLSConfigBuilder().withNewTermination("edge").withInsecureEdgeTerminationPolicy("Redirect").build());
 
+            String sanityContext = sanityContext(context);
             String name = getRouteName(websiteName, sanityContext, targetEnv);
             RouteBuilder builder = new RouteBuilder()
                     .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv)).build())
@@ -63,6 +63,14 @@ public class RouterController {
         }
 
         updateWebsiteInfoRoute(namespace, websiteName, targetEnv, host);
+    }
+
+    public static String getContentServiceName(String websiteName, String targetEnv) {
+        return websiteName + "-content-" + targetEnv;
+    }
+
+    public static String sanityContext(String context) {
+        return context.replace("/", "").replace("_", "");
     }
 
     public void updateWebsiteInfoRoute(String namespace, String websiteName, String targetEnv, String host) {
@@ -92,7 +100,7 @@ public class RouterController {
         client.inNamespace(namespace).routes().createOrReplace(route);
     }
 
-    public String getRouteName(String websiteName, String sanityContext, String env) {
+    public static String getRouteName(String websiteName, String sanityContext, String env) {
         StringBuilder routeName = new StringBuilder(websiteName + "-");
         routeName.append(env);
         if (StringUtils.isNotEmpty(sanityContext)) {
