@@ -31,6 +31,7 @@ public class IngressController {
         final String hostSuffix = "-" + namespace + "." + domain;
         final String websiteName = Utils.getWebsiteName(config);
         final String host = websiteName + "-" + targetEnv + hostSuffix;
+        final String contentService = RouterController.getContentServiceName(websiteName, targetEnv);
 
         List<HTTPIngressPath> paths = new ArrayList<>();
         for (ComponentConfig c : config.getComponents()) {
@@ -42,8 +43,8 @@ public class IngressController {
             }
             IngressBackend backend = new IngressBackend();
             if (c.isKindGit()) {
-                backend.setServiceName(RouterController.getContentServiceName(websiteName, targetEnv));
-                backend.setServicePort(new IntOrString(80));
+                backend.setServiceName(contentService);
+                backend.setServicePort(new IntOrString("http"));
             } else if (c.isKindService()) {
                 backend.setServiceName(c.getSpec().getServiceName());
                 backend.setServicePort(new IntOrString(c.getSpec().getTargetPort()));
@@ -55,6 +56,18 @@ public class IngressController {
             path.setBackend(backend);
             paths.add(path);
         }
+
+        //websiteinfo
+        IngressBackend backend = new IngressBackend();
+        backend.setServiceName(contentService);
+        backend.setServicePort(new IntOrString("http-api"));
+
+        HTTPIngressPath path = new HTTPIngressPath();
+        path.setPath("/websiteinfo");
+        path.setPathType("Prefix");
+        path.setBackend(backend);
+        paths.add(path);
+
         IngressRule rule = new IngressRuleBuilder().withHost(host).withNewHttp().withPaths(paths).endHttp().build();
 
         String name = RouterController.getRouteName(websiteName, null, targetEnv);

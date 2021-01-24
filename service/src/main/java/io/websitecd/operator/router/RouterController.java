@@ -78,7 +78,7 @@ public class RouterController {
 
         RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
         RoutePortBuilder routePortBuilder = new RoutePortBuilder();
-        targetReference.withName(websiteName + "-content-" + targetEnv);
+        targetReference.withName(getContentServiceName(websiteName, targetEnv));
         routePortBuilder.withTargetPort(new IntOrString("http-api"));
 
         RouteSpecBuilder spec = new RouteSpecBuilder()
