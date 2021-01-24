@@ -149,16 +149,16 @@ public class ContentController {
         KubernetesList result = client.templates()
                 .inNamespace(namespace)
                 .load(ContentController.class.getResourceAsStream("/openshift/core-staticcontent.yaml"))
-                .process(params);
+                .processLocally(params);
 
         log.debugf("Template %s successfully processed to list with %s items",
                 result.getItems().get(0).getMetadata().getName(),
                 result.getItems().size());
 
         for (HasMetadata item : result.getItems()) {
+            log.infof("Deploying kind=%s name=%s", item.getKind(), item.getMetadata().getName());
             // see https://www.javatips.net/api/fabric8-master/components/kubernetes-api/src/main/java/io/fabric8/kubernetes/api/Controller.java#
             item.getMetadata().getLabels().putAll(Utils.defaultLabels(env));
-            log.infof("Deploying kind=%s name=%s", item.getKind(), item.getMetadata().getName());
             if (item instanceof Service) {
                 client.inNamespace(namespace).services().createOrReplace((Service) item);
             }
