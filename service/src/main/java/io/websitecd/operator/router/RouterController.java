@@ -8,6 +8,7 @@ import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -40,7 +41,7 @@ public class RouterController {
                 routePortBuilder.withTargetPort(new IntOrString("http"));
             } else {
                 targetReference.withName(component.getSpec().getServiceName());
-                routePortBuilder.withTargetPort(new IntOrString(component.getSpec().getTargetPort()));
+                routePortBuilder.withTargetPort(getIntOrString(component.getSpec().getTargetPort()));
             }
 
             RouteSpecBuilder spec = new RouteSpecBuilder()
@@ -63,6 +64,14 @@ public class RouterController {
         }
 
         updateWebsiteInfoRoute(namespace, websiteName, targetEnv, host);
+    }
+
+    public static IntOrString getIntOrString(String s) {
+        if (NumberUtils.isParsable(s)) {
+            return new IntOrString(NumberUtils.toInt(s));
+        } else {
+            return new IntOrString(s);
+        }
     }
 
     public static String getContentServiceName(String websiteName, String targetEnv) {

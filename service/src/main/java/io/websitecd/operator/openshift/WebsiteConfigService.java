@@ -42,7 +42,7 @@ public class WebsiteConfigService {
 
     Map<String, WebsiteConfig> websites = new HashMap<>();
 
-    public WebsiteConfig cloneRepo(String gitUrl) throws GitAPIException, IOException, URISyntaxException {
+    public WebsiteConfig cloneRepo(String gitUrl, String branch) throws GitAPIException, IOException, URISyntaxException {
         log.info("Initializing website config");
         File gitDir = new File(getGitDirName(workDir, gitUrl));
         if (!gitDir.exists()) {
@@ -53,7 +53,7 @@ public class WebsiteConfigService {
             config.setBoolean("http", null, "sslVerify", sslVerify);
             config.save();
 
-            git.pull().call();
+            git.pull().setRemoteBranchName(branch).call();
 
             String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
             log.infof("Website config cloned to dir=%s commit_message='%s'", gitDir, lastCommitMessage);
@@ -92,7 +92,7 @@ public class WebsiteConfigService {
         if (configDir.isEmpty()) {
             return baseDir + "/" + configFilename;
         } else {
-            return baseDir + "/" + configDir + "/" + configFilename;
+            return baseDir + "/" + configDir.get() + "/" + configFilename;
         }
     }
 

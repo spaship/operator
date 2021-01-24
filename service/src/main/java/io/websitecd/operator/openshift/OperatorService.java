@@ -27,6 +27,9 @@ public class OperatorService {
     @ConfigProperty(name = "app.operator.website.url")
     String gitUrl;
 
+    @ConfigProperty(name = "app.operator.website.branch")
+    String branch;
+
     @ConfigProperty(name = "app.operator.namespace")
     protected Optional<String> namespace;
 
@@ -68,7 +71,7 @@ public class OperatorService {
         log.infof("Init service. openshift_url=%s", client.getOpenshiftUrl());
 
         try {
-            websiteConfigService.cloneRepo(gitUrl);
+            websiteConfigService.cloneRepo(gitUrl, branch);
 
             processConfig(gitUrl, false);
         } catch (Exception e) {

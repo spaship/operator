@@ -16,6 +16,8 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.websitecd.operator.router.RouterController.getIntOrString;
+
 @ApplicationScoped
 public class IngressController {
 
@@ -47,7 +49,7 @@ public class IngressController {
                 backend.setServicePort(new IntOrString("http"));
             } else if (c.isKindService()) {
                 backend.setServiceName(c.getSpec().getServiceName());
-                backend.setServicePort(new IntOrString(c.getSpec().getTargetPort()));
+                backend.setServicePort(getIntOrString(c.getSpec().getTargetPort()));
             }
 
             HTTPIngressPath path = new HTTPIngressPath();

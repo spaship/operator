@@ -7,7 +7,7 @@ minikube start
 minikube dashboard
 minikube tunnel
 
-kubectl create namespace catalog-preprod
+kubectl create namespace static-dev
 ```
 
 ## Local Development
