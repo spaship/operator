@@ -1,6 +1,6 @@
 # Website CD Operator
 
-Website CD on Openshift and Kubernetes
+Website Continues Deployment & Delivery on Kubernetes
 
 ## REST API
 

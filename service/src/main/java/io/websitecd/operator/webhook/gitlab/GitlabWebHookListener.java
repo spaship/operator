@@ -65,36 +65,41 @@ public class GitlabWebHookListener implements WebHookListener {
             }
         }
 
-        for (Map.Entry<String, WebsiteConfig> config : websiteConfigService.getWebsites().entrySet()) {
-            if (rollout && StringUtils.equals(config.getKey(), gitUrl)) {
-                log.debugf("website is already covered by rolling update. going to next component");
+        for (Map.Entry<String, WebsiteConfig> configEntry : websiteConfigService.getWebsites().entrySet()) {
+            if (rollout && StringUtils.equals(configEntry.getKey(), gitUrl)) {
+                log.debugf("component is already covered by rolling update. going to next component. ");
                 continue;
             }
 
-            for (ComponentConfig component : config.getValue().getComponents()) {
-                if (component.isKindGit()) {
-                    if (StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
-                        // TODO: Lookup the env based on branch/tag
-                        String clientId = gitUrl + "-" + "dev";
-                        WebClient contentApiClient = contentController.getContentApiClient(clientId);
-                        if (contentApiClient == null) {
-                            throw new RuntimeException("contentApiClient not defined for gitUrl=" + clientId);
-                        }
-                        log.infof("Update content on clientId=%s ", clientId);
-                        contentController.listComponents(contentApiClient)
-                                .onItem().transform(jsonArray -> jsonArray.getList())
-                                .subscribe()
-                                .with(items -> {
-                                    for (Object name : items) {
-                                        contentController.refreshComponent(contentApiClient, name.toString())
-                                                .subscribe()
-                                                .with(s -> log.infof("updated name=%s result=%s", name, s));
-                                    }
-                                });
+            WebsiteConfig config = configEntry.getValue();
+            for (ComponentConfig component : configEntry.getValue().getComponents()) {
+                if (component.isKindGit() && StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
+                    // TODO: Lookup the env based on branch/tag
+                    for (String env : config.getEnvs().keySet()) {
+                        updateAllComponents(gitUrl, env);
                     }
                 }
             }
         }
+    }
+
+    protected void updateAllComponents(String gitUrl, String env) {
+        String clientId = gitUrl + "-" + env;
+        WebClient contentApiClient = contentController.getContentApiClient(clientId);
+        if (contentApiClient == null) {
+            throw new RuntimeException("contentApiClient not defined for gitUrl=" + clientId);
+        }
+        log.infof("Update content on clientId=%s ", clientId);
+        contentController.listComponents(contentApiClient)
+                .onItem().transform(jsonArray -> jsonArray.getList())
+                .subscribe()
+                .with(items -> {
+                    for (Object name : items) {
+                        contentController.refreshComponent(contentApiClient, name.toString())
+                                .subscribe()
+                                .with(s -> log.infof("updated name=%s result=%s", name, s));
+                    }
+                });
     }
 
     public static boolean isRolloutNeeded(Event event, String yamlName) {

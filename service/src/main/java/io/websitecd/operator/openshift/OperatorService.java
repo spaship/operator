@@ -81,6 +81,7 @@ public class OperatorService {
             log.infof("Processing env=%s", env);
             contentController.createClient(gitUrl, env, config);
 
+            // TODO: Create it in working thread or async
             setupCoreServices(env, config);
             if (redeploy) {
                 contentController.redeploy(env, config);
