@@ -9,7 +9,7 @@ minikube dashboard
 minikube tunnel
 echo "$(minikube ip) minikube.info web-dev-websitecd-simple.minikube.info web-prod-websitecd-simple.minikube.info" | sudo tee -a /etc/hosts
 
-kubectl create namespace static-dev
+kubectl create namespace websitecd-simple
 ```
 
 ## Local Development

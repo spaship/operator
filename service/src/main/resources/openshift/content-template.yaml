@@ -72,8 +72,8 @@ objects:
         spec:
           initContainers:
             # Init data
-            - name: init-content
-              image: openhybridweb/core-staticcontent
+            - name: init
+              image: quay.io/websitecd/content-git-init
               imagePullPolicy: IfNotPresent
               resources:
                 requests:
@@ -82,7 +82,6 @@ objects:
                 limits:
                   cpu: 100m
                   memory: 100Mi
-              command: [ 'node', 'init-content.js' ]
               env:
                 - name: CONFIG_PATH
                   value: "/app/config/content-config-git.yaml"

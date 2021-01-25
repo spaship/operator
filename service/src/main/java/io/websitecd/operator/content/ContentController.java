@@ -155,7 +155,7 @@ public class ContentController {
     public void deploy(String env, String namespace, String websiteName, String contentRootSubpath) {
 //        final Template serverUploadedTemplate = client.templates()
 //                .inNamespace(namespace)
-//                .load(ContentController.class.getResourceAsStream("/openshift/core-staticcontent.yaml"))
+//                .load(ContentController.class.getResourceAsStream("/openshift/content-template.yaml"))
 //                .createOrReplace();
 //        String templateName = serverUploadedTemplate.getMetadata().getName();
 //        log.infof("Template %s successfully created on server, namespace=%s", serverUploadedTemplate.getMetadata().getName(), namespace);
@@ -169,7 +169,7 @@ public class ContentController {
 
         KubernetesList result = client.templates()
                 .inNamespace(namespace)
-                .load(ContentController.class.getResourceAsStream("/openshift/core-staticcontent.yaml"))
+                .load(ContentController.class.getResourceAsStream("/openshift/content-template.yaml"))
                 .processLocally(params);
 
         log.debugf("Template %s successfully processed to list with %s items",
