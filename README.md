@@ -9,8 +9,7 @@ Website Continues Deployment & Delivery on Kubernetes
 * /api/webhook
 
 
-## Installation
-
+## How to install
 
 ```shell
 kubectl apply -f deployment/config.yaml
