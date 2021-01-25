@@ -7,9 +7,9 @@ minikube config set driver hyperkit
 minikube start --addons ingress,dashboard
 minikube dashboard
 minikube tunnel
-echo "$(minikube ip) minikube.info web-dev-websitecd-simple.minikube.info web-prod-websitecd-simple.minikube.info" | sudo tee -a /etc/hosts
+echo "$(minikube ip) minikube.info web-simple-dev-websitecd-examples.minikube.info web-simple-prod-websitecd-examples.minikube.info web-advanced-dev-websitecd-examples.minikube.info web-advanced-prod-websitecd-examples.minikube.info" | sudo tee -a /etc/hosts
 
-kubectl create namespace websitecd-simple
+kubectl create namespace websitecd-examples
 ```
 
 ## Local Development

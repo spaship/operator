@@ -1,5 +1,7 @@
 package io.websitecd.operator.config.model;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +34,15 @@ public class WebsiteConfig {
     public String getWebsiteName() {
         if (metadata != null && metadata.containsKey("name")) {
             return metadata.get("name");
+        }
+        return null;
+    }
+
+    public ComponentConfig getRootComponent() {
+        for (ComponentConfig component : components) {
+            if (StringUtils.equals(component.getContext(), "/")) {
+                return component;
+            }
         }
         return null;
     }

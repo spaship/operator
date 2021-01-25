@@ -4,7 +4,6 @@ import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
 import io.websitecd.operator.Utils;
-import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
@@ -115,7 +114,7 @@ public class OperatorService {
         final String websiteName = Utils.getWebsiteName(config);
         log.infof("Create core services websiteName=%s env=%s namespace=%s", websiteName, env, namespace);
         contentController.updateConfigs(env, namespace, config);
-        contentController.deploy(env, namespace, websiteName, OperatorConfigUtils.getRootComponentSubdir(config));
+        contentController.deploy(env, namespace, websiteName, config);
 
         if (StringUtils.equals(routerMode, "ingress")) {
             ingressController.updateIngress(env, namespace, config);

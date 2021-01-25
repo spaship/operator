@@ -12,9 +12,7 @@ import io.vertx.mutiny.ext.web.client.WebClient;
 import io.websitecd.content.git.config.GitContentUtils;
 import io.websitecd.content.git.config.model.ContentConfig;
 import io.websitecd.operator.Utils;
-import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
-import io.websitecd.operator.config.model.ComponentSpec;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -33,7 +31,6 @@ public class ContentController {
     private static final Logger log = Logger.getLogger(ContentController.class);
 
     static final String CONFIG_INIT = "-content-init-";
-    static final String CONFIG_HTTPD = "-content-httpd-";
 
     @Inject
     DefaultOpenShiftClient client;
@@ -70,28 +67,6 @@ public class ContentController {
         log.infof("Content client API created. clientId=%s host=%s port=%s", clientId, host, staticContentApiPort);
     }
 
-    public StringBuffer createAliases(String targetEnv, WebsiteConfig websiteConfig) {
-        StringBuffer config = new StringBuffer();
-        if (!OperatorConfigUtils.isEnvEnabled(websiteConfig, targetEnv)) {
-            return config;
-        }
-        for (ComponentConfig c : websiteConfig.getComponents()) {
-            ComponentSpec spec = c.getSpec();
-            if (!OperatorConfigUtils.isEnvIncluded(spec.getEnvs(), targetEnv)) {
-                continue;
-            }
-
-            if (c.getKind().equals("git")) {
-                final String context = c.getContext();
-                if (StringUtils.equals("/", context)) {
-                    continue;
-                }
-                String path = getAliasPath("/var/www/components", c);
-                config.append("Alias " + context + " " + path);
-            }
-        }
-        return config;
-    }
 
     public static String getAliasPath(String rootPath, ComponentConfig c) {
         final String context = c.getContext();
@@ -116,10 +91,6 @@ public class ContentController {
         String data = new Yaml().dumpAsMap(config);
         final String configName = Utils.getWebsiteName(websiteConfig) + CONFIG_INIT + env;
         updateConfigSecret(configName, namespace, data);
-
-        String aliases = createAliases(env, websiteConfig).toString();
-        final String httpdName = Utils.getWebsiteName(websiteConfig) + CONFIG_HTTPD + env;
-        updateConfigHttpdSecret(httpdName, namespace, aliases);
     }
 
     public void updateConfigSecret(String name, String namespace, String secretData) {
@@ -136,36 +107,10 @@ public class ContentController {
         client.inNamespace(namespace).secrets().createOrReplace(config.build());
     }
 
-    public void updateConfigHttpdSecret(String name, String namespace, String aliasesData) {
-        log.infof("Update content-httpd in namespace=%s, name=%s", namespace, name);
-
-        Map<String, String> dataAlias = new HashMap<>();
-        dataAlias.put("aliases.conf", aliasesData);
-
-        log.debugf("%s=\n%s", name, dataAlias);
-
-
-        SecretBuilder configAlias = new SecretBuilder()
-                .withMetadata(new ObjectMetaBuilder().withName(name).build())
-                .withStringData(dataAlias);
-        client.inNamespace(namespace).secrets().createOrReplace(configAlias.build());
-    }
-
-
-    public void deploy(String env, String namespace, String websiteName, String contentRootSubpath) {
-//        final Template serverUploadedTemplate = client.templates()
-//                .inNamespace(namespace)
-//                .load(ContentController.class.getResourceAsStream("/openshift/content-template.yaml"))
-//                .createOrReplace();
-//        String templateName = serverUploadedTemplate.getMetadata().getName();
-//        log.infof("Template %s successfully created on server, namespace=%s", serverUploadedTemplate.getMetadata().getName(), namespace);
-
+    public void deploy(String env, String namespace, String websiteName, WebsiteConfig config) {
         Map<String, String> params = new HashMap<>();
         params.put("ENV", env);
         params.put("NAME", websiteName);
-        if (StringUtils.isNotBlank(contentRootSubpath)) {
-            params.put("CONTENT_ROOT_SUBPATH", contentRootSubpath);
-        }
 
         KubernetesList result = client.templates()
                 .inNamespace(namespace)
@@ -184,6 +129,29 @@ public class ContentController {
                 client.inNamespace(namespace).services().createOrReplace((Service) item);
             }
             if (item instanceof Deployment) {
+                Deployment deployment = (Deployment) item;
+                Container httpdContainer = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
+
+                for (ComponentConfig component : config.getComponents()) {
+                    if (!component.isKindGit()) {
+                        continue;
+                    }
+
+                    String dirName = component.getContext().substring(1);  // remove starting /
+                    VolumeMountBuilder vmb = new VolumeMountBuilder()
+                            .withName("data")
+                            .withMountPath("/var/www/html/" + dirName);
+                    String subPath = dirName;
+                    if (StringUtils.isEmpty(dirName)) {
+                        subPath = "_root";
+                    }
+                    if (StringUtils.isNotEmpty(component.getSpec().getDir())) {
+                        vmb.withSubPath(subPath + component.getSpec().getDir());
+                    }
+                    httpdContainer.getVolumeMounts().add(vmb.build());
+                }
+                log.infof("VolumeMounts=%s", httpdContainer.getVolumeMounts());
+
                 client.inNamespace(namespace).apps().deployments().createOrReplace((Deployment) item);
             }
             if (item instanceof Route) {

@@ -12,10 +12,6 @@ parameters:
     description: "Name of deployment"
     value: "web"
     required: false
-  - name: "CONTENT_ROOT_SUBPATH"
-    description: "Sub path under root content directory. Must start with /"
-    value: ""
-    required: false
 
 objects:
   - kind: Service
@@ -108,15 +104,7 @@ objects:
               ports:
                 - containerPort: 8080
               volumeMounts:
-                # ROOT context - Make available only _root component
-                - mountPath: "/var/www/html/"
-                  name: data
-                  subPath: "_root${CONTENT_ROOT_SUBPATH}"
-                # Other components outside root and available via Aliases
-                - mountPath: "/var/www/components/"
-                  name: data
-                - mountPath: "/etc/httpd/conf.d/custom/"
-                  name: content-httpd
+                # Dynamically generated
             # Side car container providing API
             - name: api
               image: quay.io/websitecd/content-git-api
@@ -151,8 +139,5 @@ objects:
             - name: content-init
               secret:
                 secretName: ${NAME}-content-init-${ENV}
-            - name: content-httpd
-              secret:
-                secretName: ${NAME}-content-httpd-${ENV}
             - name: data
               emptyDir: { }
