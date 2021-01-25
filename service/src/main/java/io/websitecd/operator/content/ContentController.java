@@ -82,14 +82,32 @@ public class ContentController {
             }
 
             if (c.getKind().equals("git")) {
-                String dir = c.getContext();
-                if (StringUtils.equals("/", c.getContext())) {
+                final String context = c.getContext();
+                if (StringUtils.equals("/", context)) {
                     continue;
                 }
-                config.append("Alias " + dir + " /var/www/components" + dir);
+                String path = getAliasPath("/var/www/components", c);
+                config.append("Alias " + context + " " + path);
             }
         }
         return config;
+    }
+
+    public static String getAliasPath(String rootPath, ComponentConfig c) {
+        final String context = c.getContext();
+        final String specDir = c.getSpec().getDir();
+        StringBuilder path = new StringBuilder(rootPath);
+        path.append(context);
+        if (StringUtils.isNotEmpty(specDir) && !StringUtils.equals("/", specDir)) {
+            path.append(specDir);
+        }
+        String result = path.toString();
+        result = result.replace("//", "/");
+        // MUST end with / otherwise alias doesn't work correctly
+        if (!result.endsWith("/")) {
+            result += "/";
+        }
+        return result;
     }
 
 
@@ -134,7 +152,7 @@ public class ContentController {
     }
 
 
-    public void deploy(String env, String namespace, String websiteName) {
+    public void deploy(String env, String namespace, String websiteName, String contentRootSubpath) {
 //        final Template serverUploadedTemplate = client.templates()
 //                .inNamespace(namespace)
 //                .load(ContentController.class.getResourceAsStream("/openshift/core-staticcontent.yaml"))
@@ -145,6 +163,9 @@ public class ContentController {
         Map<String, String> params = new HashMap<>();
         params.put("ENV", env);
         params.put("NAME", websiteName);
+        if (StringUtils.isNotBlank(contentRootSubpath)) {
+            params.put("CONTENT_ROOT_SUBPATH", contentRootSubpath);
+        }
 
         KubernetesList result = client.templates()
                 .inNamespace(namespace)

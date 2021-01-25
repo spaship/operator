@@ -39,14 +39,12 @@ public class GitContentUtilsTest {
         assertEquals("test-only-dev", component1.getDir());
         assertEquals("git", component1.getKind());
         assertEquals("giturl1", component1.getSpec().getUrl());
-        assertEquals("/subidr", component1.getSpec().getDir());
         assertEquals("special-branch", component1.getSpec().getRef());
 
         GitComponent component2 = testConfig.getComponents().get(1);
         assertEquals("_root_test/", component2.getDir());
         assertEquals("git", component2.getKind());
         assertEquals("giturl2", component2.getSpec().getUrl());
-        assertEquals("/", component2.getSpec().getDir());
         assertEquals(env, component2.getSpec().getRef());
 
         ContentConfig prodConfig = GitContentUtils.createConfig("prod", websiteConfig, rootContext);
@@ -55,7 +53,6 @@ public class GitContentUtilsTest {
         assertEquals("prod-only", prod1.getDir());
         assertEquals("git", prod1.getKind());
         assertEquals("giturl2", prod1.getSpec().getUrl());
-        assertEquals("/", prod1.getSpec().getDir());
         assertEquals("prod", prod1.getSpec().getRef());
     }
 

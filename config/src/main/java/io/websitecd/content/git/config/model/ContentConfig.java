@@ -10,8 +10,8 @@ public class ContentConfig {
         components.add(new GitComponent(dir, kind, spec));
     }
 
-    public void addGitComponent(String dir, String kind, String gitUrl, String gitRef, String gitDir) {
-        components.add(new GitComponent(dir, kind, gitUrl, gitRef, gitDir));
+    public void addGitComponent(String dir, String kind, String gitUrl, String gitRef) {
+        components.add(new GitComponent(dir, kind, gitUrl, gitRef));
     }
 
     public List<GitComponent> getComponents() {

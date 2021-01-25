@@ -37,8 +37,7 @@ public class GitContentUtils {
                     dir = rootContext;
                 }
                 dir = dir.substring(1); // remove starting "/"
-                String gitDir = StringUtils.defaultIfEmpty(spec.getDir(), "/");
-                config.addGitComponent(dir, c.getKind(), spec.getUrl(), getRef(envs, targetEnv), gitDir);
+                config.addGitComponent(dir, c.getKind(), spec.getUrl(), getRef(envs, targetEnv));
             }
         }
         return config;

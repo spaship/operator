@@ -5,6 +5,15 @@ public class ComponentConfig {
     String kind;
     ComponentSpec spec;
 
+    public ComponentConfig() {
+    }
+
+    public ComponentConfig(String context, String kind, ComponentSpec spec) {
+        this.context = context;
+        this.kind = kind;
+        this.spec = spec;
+    }
+
     public String getContext() {
         return context;
     }

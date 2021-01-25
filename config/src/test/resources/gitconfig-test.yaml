@@ -4,10 +4,8 @@ components:
     spec:
       url: https://github.com/testgit.git
       ref: prod
-      dir: /
   - dir: example
     kind: git
     spec:
       url: https://github.com/testgit2.git
       ref: master
-      dir: /

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class OperatorConfigUtilsTest {
 
@@ -33,5 +34,19 @@ public class OperatorConfigUtilsTest {
         assertEquals(true, config3.isKindService());
         assertEquals("api", config3.getSpec().getServiceName());
         assertEquals("80", config3.getSpec().getTargetPort());
+    }
+
+    @Test
+    public void getRootComponentSubdir() throws IOException {
+        try (InputStream is = OperatorConfigUtils.class.getResourceAsStream("/website-test.yaml")) {
+            WebsiteConfig config = OperatorConfigUtils.loadYaml(is);
+            assertNull(OperatorConfigUtils.getRootComponentSubdir(config));
+        }
+
+        try (InputStream is = OperatorConfigUtils.class.getResourceAsStream("/staticcontent-website-test.yaml")) {
+            WebsiteConfig config2 = OperatorConfigUtils.loadYaml(is);
+            assertEquals("subdir", OperatorConfigUtils.getRootComponentSubdir(config2));
+        }
+
     }
 }

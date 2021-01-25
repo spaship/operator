@@ -27,3 +27,4 @@ components:
     kind: git
     spec:
       url: giturl2
+      dir: subdir

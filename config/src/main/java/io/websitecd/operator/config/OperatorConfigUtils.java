@@ -1,5 +1,6 @@
 package io.websitecd.operator.config;
 
+import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -32,6 +33,21 @@ public class OperatorConfigUtils {
             return true;
         }
         return envs.containsKey(targetEnv);
+    }
+
+    /**
+     * Get root component's (context="/") dir
+     *
+     * @param config
+     * @return subdir value or null
+     */
+    public static String getRootComponentSubdir(WebsiteConfig config) {
+        for (ComponentConfig component : config.getComponents()) {
+            if (component.isKindGit() && component.getContext().equals("/")) {
+                return component.getSpec().getDir();
+            }
+        }
+        return null;
     }
 
 

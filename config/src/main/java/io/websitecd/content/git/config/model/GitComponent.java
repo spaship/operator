@@ -14,10 +14,10 @@ public class GitComponent {
         this.spec = spec;
     }
 
-    public GitComponent(String dir, String kind, String gitUrl, String gitRef, String gitDir) {
+    public GitComponent(String dir, String kind, String gitUrl, String gitRef) {
         this.dir = dir;
         this.kind = kind;
-        this.spec = new GitSpec(gitUrl, gitRef, gitDir);
+        this.spec = new GitSpec(gitUrl, gitRef);
     }
 
     public String getDir() {
