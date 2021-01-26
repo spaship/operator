@@ -32,16 +32,20 @@ public class GitContentUtils {
             }
 
             if (c.getKind().equals("git")) {
-                String dir = c.getContext();
-                if (StringUtils.equals("/", c.getContext())) {
-                    dir = rootContext;
-                }
-                dir = dir.substring(1); // remove starting "/"
+                String dir = getDirName(c.getContext(), rootContext);
                 config.addGitComponent(dir, c.getKind(), spec.getUrl(), getRef(envs, targetEnv));
             }
         }
         return config;
     }
+
+    public static String getDirName(String context, String rootContext) {
+        if (StringUtils.equals("/", context)) {
+            return rootContext;
+        }
+        return context.substring(1);
+    }
+
 
     public static String getRef(Map<String, Map<String, Object>> envs, String targetEnv) {
         if (envs == null) {

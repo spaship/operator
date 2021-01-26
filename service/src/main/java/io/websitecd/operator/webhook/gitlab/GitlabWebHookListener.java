@@ -1,7 +1,7 @@
 package io.websitecd.operator.webhook.gitlab;
 
 import io.vertx.mutiny.ext.web.client.WebClient;
-import io.websitecd.operator.config.model.ComponentConfig;
+import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.openshift.OperatorService;
@@ -70,18 +70,18 @@ public class GitlabWebHookListener implements WebHookListener {
                 log.debugf("component is already covered by rolling update. going to next component. ");
                 continue;
             }
-
             WebsiteConfig config = configEntry.getValue();
-            for (ComponentConfig component : configEntry.getValue().getComponents()) {
-                if (component.isKindGit() && StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
-                    // TODO: Lookup the env based on branch/tag
-                    for (String env : config.getEnvs().keySet()) {
-                        updateAllComponents(gitUrl, env);
-                    }
+            Map<String, Environment> envs = config.getEnvs();
+            for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
+                if (!operatorService.isEnvEnabled(envEntry.getValue())) {
+                    log.debugf("Env is not enabled");
+                    continue;
                 }
+                updateAllComponents(gitUrl, envEntry.getKey());
             }
         }
     }
+
 
     protected void updateAllComponents(String gitUrl, String env) {
         String clientId = gitUrl + "-" + env;
@@ -89,7 +89,7 @@ public class GitlabWebHookListener implements WebHookListener {
         if (contentApiClient == null) {
             throw new RuntimeException("contentApiClient not defined for gitUrl=" + clientId);
         }
-        log.infof("Update content on clientId=%s ", clientId);
+        log.infof("Update all components on clientId=%s ", clientId);
         contentController.listComponents(contentApiClient)
                 .onItem().transform(jsonArray -> jsonArray.getList())
                 .subscribe()

@@ -79,11 +79,18 @@ public class OperatorService {
         }
     }
 
+    public boolean isEnvEnabled(Environment env) {
+        if (namespace.isEmpty()) {
+            return true;
+        }
+        return env.getNamespace().equals(namespace.get());
+    }
+
     public void processConfig(String gitUrl, boolean redeploy, boolean createClients) {
         WebsiteConfig config = websiteConfigService.getConfig(gitUrl);
         Map<String, Environment> envs = config.getEnvs();
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
-            if (!namespace.isEmpty() && !envEntry.getValue().getNamespace().equals(namespace.get())) {
+            if (!isEnvEnabled(envEntry.getValue())) {
                 log.infof("namespace ignored name=%s", namespace);
                 continue;
             }
