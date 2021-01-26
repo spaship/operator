@@ -31,7 +31,7 @@ public class GitContentUtilsTest {
 
         String env = "test";
 
-        String rootContext = "/_root_test/";
+        String rootContext = "/_root_test";
         ContentConfig testConfig = GitContentUtils.createConfig(env, websiteConfig, rootContext);
 
         assertEquals(2, testConfig.getComponents().size());
@@ -42,7 +42,7 @@ public class GitContentUtilsTest {
         assertEquals("special-branch", component1.getSpec().getRef());
 
         GitComponent component2 = testConfig.getComponents().get(1);
-        assertEquals("_root_test/", component2.getDir());
+        assertEquals("_root_test", component2.getDir());
         assertEquals("git", component2.getKind());
         assertEquals("giturl2", component2.getSpec().getUrl());
         assertEquals(env, component2.getSpec().getRef());

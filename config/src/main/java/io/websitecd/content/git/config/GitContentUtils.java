@@ -41,7 +41,7 @@ public class GitContentUtils {
 
     public static String getDirName(String context, String rootContext) {
         if (StringUtils.equals("/", context)) {
-            return rootContext;
+            return rootContext.substring(1);
         }
         return context.substring(1);
     }
