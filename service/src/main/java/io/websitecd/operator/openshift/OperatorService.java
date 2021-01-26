@@ -73,13 +73,13 @@ public class OperatorService {
         try {
             websiteConfigService.cloneRepo(gitUrl, branch);
 
-            processConfig(gitUrl, false);
+            processConfig(gitUrl, false, true);
         } catch (Exception e) {
             log.error("Cannot init core services", e);
         }
     }
 
-    public void processConfig(String gitUrl, boolean redeploy) {
+    public void processConfig(String gitUrl, boolean redeploy, boolean createClients) {
         WebsiteConfig config = websiteConfigService.getConfig(gitUrl);
         Map<String, Environment> envs = config.getEnvs();
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
@@ -90,7 +90,9 @@ public class OperatorService {
             // ? create namespace ???
             String env = envEntry.getKey();
             log.infof("Processing env=%s", env);
-            contentController.createClient(gitUrl, env, config);
+            if (createClients) {
+                contentController.createClient(gitUrl, env, config);
+            }
 
             // TODO: Create it in working thread or async
             setupCoreServices(env, config);

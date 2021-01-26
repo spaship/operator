@@ -57,7 +57,7 @@ public class GitlabWebHookListener implements WebHookListener {
             try {
                 WebsiteConfig newConfig = websiteConfigService.updateRepo(gitUrl);
                 if (deploymentChanged(oldConfig, newConfig)) {
-                    operatorService.processConfig(gitUrl, true);
+                    operatorService.processConfig(gitUrl, true, false);
                     rollout = true;
                 }
             } catch (Exception e) {
