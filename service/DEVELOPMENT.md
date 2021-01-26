@@ -42,7 +42,7 @@ Fire event:
 
 ```shell
 WEBHOOK_URL=http://localhost:8080/api/webhook
-WEBHOOK_URL=https://operator-catalog-preprod.int.open.paas.redhat.com//api/webhook
+WEBHOOK_URL=https://operator-websitecd-examples.int.open.paas.redhat.com/api/webhook
 curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-Event: Push Hook" -H "X-Gitlab-Token: CHANGEIT" --data-binary "@src/test/resources/gitlab-push.json" 
 curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-Event: Push Hook" -H "X-Gitlab-Token: CHANGEIT" --data-binary "@src/test/resources/gitlab-push-website-changed.json" 
 ```
