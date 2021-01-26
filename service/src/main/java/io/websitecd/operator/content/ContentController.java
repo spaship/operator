@@ -52,6 +52,9 @@ public class ContentController {
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
 
+    @ConfigProperty(name = "app.operator.website.config.sslverify")
+    boolean sslVerify;
+
     public String getContentHost(String env, WebsiteConfig config) {
         return staticContentHost.orElse(Utils.getWebsiteName(config) + "-content-" + env);
     }
@@ -111,6 +114,7 @@ public class ContentController {
         Map<String, String> params = new HashMap<>();
         params.put("ENV", env);
         params.put("NAME", websiteName);
+        params.put("GIT_SSL_NO_VERIFY", Boolean.toString(!sslVerify));
 
         KubernetesList result = client.templates()
                 .inNamespace(namespace)
@@ -146,8 +150,9 @@ public class ContentController {
                         subPath = "_root";
                     }
                     if (StringUtils.isNotEmpty(component.getSpec().getDir())) {
-                        vmb.withSubPath(subPath + component.getSpec().getDir());
+                        subPath += component.getSpec().getDir();
                     }
+                    vmb.withSubPath(subPath);
                     httpdContainer.getVolumeMounts().add(vmb.build());
                 }
                 log.infof("VolumeMounts=%s", httpdContainer.getVolumeMounts());
