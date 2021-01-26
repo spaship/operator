@@ -14,6 +14,7 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.Optional;
 
 @ApplicationScoped
 public class RouterController {
@@ -24,10 +25,10 @@ public class RouterController {
     DefaultOpenShiftClient client;
 
     @ConfigProperty(name = "app.operator.website.domain")
-    protected String domain;
+    protected Optional<String> domain;
 
     public void updateWebsiteRoutes(String targetEnv, String namespace, WebsiteConfig config) {
-        final String hostSuffix = "-" + namespace + "." + domain;
+        final String hostSuffix = "-" + namespace + "." + domain.get();
         final String websiteName = Utils.getWebsiteName(config);
         final String host = websiteName + "-" + targetEnv + hostSuffix;
         // TODO: It's not needed to create all routes for sub pathes when root path is present

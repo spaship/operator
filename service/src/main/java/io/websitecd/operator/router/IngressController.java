@@ -15,6 +15,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static io.websitecd.operator.router.RouterController.getIntOrString;
 
@@ -27,10 +28,10 @@ public class IngressController {
     DefaultOpenShiftClient client;
 
     @ConfigProperty(name = "app.operator.website.domain")
-    protected String domain;
+    protected Optional<String> domain;
 
     public void updateIngress(String targetEnv, String namespace, WebsiteConfig config) {
-        final String hostSuffix = "-" + namespace + "." + domain;
+        final String hostSuffix = "-" + namespace + "." + domain.get();
         final String websiteName = Utils.getWebsiteName(config);
         final String host = websiteName + "-" + targetEnv + hostSuffix;
         final String contentService = RouterController.getContentServiceName(websiteName, targetEnv);

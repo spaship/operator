@@ -3,8 +3,10 @@ kind: ConfigMap
 metadata:
   name: websitecd-operator-config
 data:
-  APP_OPERATOR_WEBSITE_URL: 'https://gitlab.cee.redhat.com/lkrzyzan/ecosystem-catalog-content.git'
-  APP_OPERATOR_WEBSITE_DOMAIN: 'int.us-west.dc.preprod.paas.redhat.com'
-  APP_OPERATOR_NAMESPACE: 'mwes-swel--websitecd'
+  APP_OPERATOR_NAMESPACE: 'websitecd-examples'
+  APP_OPERATOR_ROUTER_MODE: 'disabled'
+  APP_OPERATOR_WEBSITE_URL: 'https://github.com/websitecd/websitecd-examples.git'
+  APP_OPERATOR_WEBSITE_BRANCH: 'main'
+  APP_OPERATOR_WEBSITE_CONFIG_DIR: 'websites/02-advanced'
   APP_OPERATOR_WEBSITE_CONFIG_SSLVERIFY: 'false'
   APP_OPERATOR_WEBSITE_WEBHOOK_SECRET: 'CHANGEIT'
