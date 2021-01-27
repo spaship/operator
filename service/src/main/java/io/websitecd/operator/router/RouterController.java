@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.websitecd.operator.Utils;
+import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +35,9 @@ public class RouterController {
         // TODO: It's not needed to create all routes for sub pathes when root path is present
         for (ComponentConfig component : config.getComponents()) {
             String context = component.getContext();
+            if (!OperatorConfigUtils.isComponentEnabled(config, targetEnv, context)) {
+                continue;
+            }
 
             RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
             RoutePortBuilder routePortBuilder = new RoutePortBuilder();

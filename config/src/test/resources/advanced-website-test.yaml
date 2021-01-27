@@ -5,7 +5,6 @@ envs:
     branch: test
   prod:
     branch: prod
-    skipContexts: [ "/test" ]
 
 components:
   # branch is different in test

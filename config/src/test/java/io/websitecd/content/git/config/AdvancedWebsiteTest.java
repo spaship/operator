@@ -1,28 +1,24 @@
 package io.websitecd.content.git.config;
 
+import io.websitecd.TestUtils;
 import io.websitecd.content.git.config.model.ContentConfig;
 import io.websitecd.content.git.config.model.GitComponent;
-import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
 
 public class AdvancedWebsiteTest {
 
+    String rootContext = "/_root_test";
+
     @Test
-    public void testBranches() throws IOException {
-        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/advanced-website-test.yaml");
-        WebsiteConfig websiteConfig = OperatorConfigUtils.loadYaml(is);
-        is.close();
+    public void testBranchesTestEnv() throws IOException {
+        WebsiteConfig websiteConfig = TestUtils.loadConfig("/advanced-website-test.yaml");
 
-        String env = "test";
-
-        String rootContext = "/_root_test";
-        ContentConfig testConfig = GitContentUtils.createConfig(env, websiteConfig, rootContext);
+        ContentConfig testConfig = GitContentUtils.createConfig("test", websiteConfig, rootContext);
 
         assertEquals(3, testConfig.getComponents().size());
         GitComponent component1 = testConfig.getComponents().get(0);
@@ -42,11 +38,15 @@ public class AdvancedWebsiteTest {
         assertEquals("git", component3.getKind());
         assertEquals("giturl3", component3.getSpec().getUrl());
         assertEquals("test", component3.getSpec().getRef());
+    }
 
+    @Test
+    public void testBranchesProdEnv() throws IOException {
+        WebsiteConfig websiteConfig = TestUtils.loadConfig("/advanced-website-test.yaml");
 
         ContentConfig prodConfig = GitContentUtils.createConfig("prod", websiteConfig, rootContext);
-        assertEquals(2, prodConfig.getComponents().size());
-        GitComponent prod1 = prodConfig.getComponents().get(0);
+        assertEquals(3, prodConfig.getComponents().size());
+        GitComponent prod1 = prodConfig.getComponents().get(1);
         assertEquals("theme", prod1.getDir());
         assertEquals("git", prod1.getKind());
         assertEquals("giturl2", prod1.getSpec().getUrl());
@@ -55,13 +55,10 @@ public class AdvancedWebsiteTest {
 
     @Test
     public void testInvalidEnv() throws IOException {
-        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/advanced-website-test.yaml");
-        WebsiteConfig websiteConfig = OperatorConfigUtils.loadYaml(is);
-        is.close();
+        WebsiteConfig websiteConfig = TestUtils.loadConfig("/advanced-website-test.yaml");
 
         String env = "invalid";
 
-        String rootContext = "/_root_test/";
         ContentConfig config = GitContentUtils.createConfig(env, websiteConfig, rootContext);
 
         assertEquals(0, config.getComponents().size());

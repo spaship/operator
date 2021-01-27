@@ -1,21 +1,22 @@
 package io.websitecd.operator.config;
 
+import io.websitecd.TestUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
 
 public class ComponentKindsTest {
 
+    String testedFile = "/git-service-test.yaml";
+
+
     @Test
     public void testComponentKinds() throws IOException {
-        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/git-service-test.yaml");
-        WebsiteConfig config = OperatorConfigUtils.loadYaml(is);
-        is.close();
+        WebsiteConfig config = TestUtils.loadConfig(testedFile);
 
         assertEquals(3, config.getComponents().size());
         assertEquals("/test1", config.getComponents().get(0).getContext());

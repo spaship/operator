@@ -1,0 +1,23 @@
+apiVersion: 1
+
+envs:
+  test:
+    branch: test
+    skipContexts: [ "/prod" ]
+  prod:
+    branch: prod
+    skipContexts: [ "/test" ]
+
+components:
+  - context: /both
+    kind: git
+    spec:
+      url: giturl1
+  - context: /test
+    kind: git
+    spec:
+      url: giturl2
+  - context: /prod
+    kind: git
+    spec:
+      url: giturl3
