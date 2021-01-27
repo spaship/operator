@@ -85,7 +85,7 @@ objects:
                 - name: CONFIG_PATH
                   value: "/app/config/content-config-git.yaml"
                 - name: TARGET_DIR
-                  value: "/app/data/"
+                  value: "/app/data"
                 - name: GIT_SSL_NO_VERIFY
                   value: "${GIT_SSL_NO_VERIFY}"
               volumeMounts:

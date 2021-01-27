@@ -127,14 +127,12 @@ public class ContentController {
                         continue;
                     }
 
-                    String dirName = component.getContext().substring(1);  // remove starting /
+                    final String mountPath = "/var/www/html/" + component.getContext().substring(1);  // remove starting /
                     VolumeMountBuilder vmb = new VolumeMountBuilder()
                             .withName("data")
-                            .withMountPath("/var/www/html/" + dirName);
-                    String subPath = dirName;
-                    if (StringUtils.isEmpty(dirName)) {
-                        subPath = "_root";
-                    }
+                            .withMountPath(mountPath);
+
+                    String subPath = GitContentUtils.getDirName(component.getContext(), rootContext);
                     if (StringUtils.isNotEmpty(component.getSpec().getDir())) {
                         subPath += component.getSpec().getDir();
                     }

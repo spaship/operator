@@ -39,10 +39,13 @@ public class GitContentUtils {
     }
 
     public static String getDirName(String context, String rootContext) {
+        String dirName;
         if (StringUtils.equals("/", context)) {
-            return rootContext.substring(1);
+            dirName = rootContext.substring(1);
+        } else {
+            dirName = context.substring(1);
         }
-        return context.substring(1);
+        return StringUtils.replace(dirName, "/", "_");
     }
 
 
