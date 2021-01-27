@@ -4,13 +4,13 @@ import io.websitecd.content.git.config.model.ContentConfig;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.ComponentSpec;
+import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.InputStream;
-import java.util.Map;
 
 public class GitContentUtils {
 
@@ -26,14 +26,13 @@ public class GitContentUtils {
         }
         for (ComponentConfig c : websiteConfig.getComponents()) {
             ComponentSpec spec = c.getSpec();
-            Map<String, Map<String, Object>> envs = spec.getEnvs();
-            if (!OperatorConfigUtils.isEnvIncluded(envs, targetEnv)) {
+            if (!OperatorConfigUtils.isComponentEnabled(websiteConfig, targetEnv, c.getContext())) {
                 continue;
             }
 
             if (c.getKind().equals("git")) {
                 String dir = getDirName(c.getContext(), rootContext);
-                config.addGitComponent(dir, c.getKind(), spec.getUrl(), getRef(envs, targetEnv));
+                config.addGitComponent(dir, c.getKind(), spec.getUrl(), getRef(websiteConfig, targetEnv, c.getContext()));
             }
         }
         return config;
@@ -47,16 +46,21 @@ public class GitContentUtils {
     }
 
 
-    public static String getRef(Map<String, Map<String, Object>> envs, String targetEnv) {
-        if (envs == null) {
-            return targetEnv;
+    public static String getRef(WebsiteConfig config, String targetEnv, String context) {
+        String ref = null;
+        Environment env = config.getEnvironment(targetEnv);
+        if (env != null) {
+            ref = env.getBranch();
         }
-        Map<String, Object> env = envs.get(targetEnv);
-        if (env == null) {
-            // no override - branch is same as env
-            return targetEnv;
+        ComponentSpec spec = config.getComponent(context).getSpec();
+        if (StringUtils.isNotEmpty(spec.getBranch())) {
+            ref = spec.getBranch();
         }
-        return (String) env.get("branch");
+        if (spec.getEnvs() != null && StringUtils.isNotEmpty(spec.getEnvs().get(targetEnv))) {
+            ref = spec.getEnvs().get(targetEnv);
+        }
+
+        return ref;
     }
 
 

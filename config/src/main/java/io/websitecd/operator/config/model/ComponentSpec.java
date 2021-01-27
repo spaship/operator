@@ -5,11 +5,12 @@ import java.util.Map;
 public class ComponentSpec {
     String url;
     String dir;
+    String branch;
 
     String serviceName;
     String targetPort;
 
-    Map<String, Map<String, Object>> envs;
+    Map<String, String> envs;
 
     public String getUrl() {
         return url;
@@ -25,6 +26,14 @@ public class ComponentSpec {
 
     public void setDir(String dir) {
         this.dir = dir;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public String getServiceName() {
@@ -43,11 +52,11 @@ public class ComponentSpec {
         this.targetPort = targetPort;
     }
 
-    public Map<String, Map<String, Object>> getEnvs() {
+    public Map<String, String> getEnvs() {
         return envs;
     }
 
-    public void setEnvs(Map<String, Map<String, Object>> envs) {
+    public void setEnvs(Map<String, String> envs) {
         this.envs = envs;
     }
 
@@ -56,6 +65,7 @@ public class ComponentSpec {
         final StringBuilder sb = new StringBuilder("ComponentSpec{");
         sb.append("url='").append(url).append('\'');
         sb.append(", dir='").append(dir).append('\'');
+        sb.append(", branch='").append(branch).append('\'');
         sb.append(", serviceName='").append(serviceName).append('\'');
         sb.append(", targetPort='").append(targetPort).append('\'');
         sb.append(", envs=").append(envs);

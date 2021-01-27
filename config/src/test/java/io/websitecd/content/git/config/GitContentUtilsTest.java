@@ -34,26 +34,33 @@ public class GitContentUtilsTest {
         String rootContext = "/_root_test";
         ContentConfig testConfig = GitContentUtils.createConfig(env, websiteConfig, rootContext);
 
-        assertEquals(2, testConfig.getComponents().size());
+        assertEquals(3, testConfig.getComponents().size());
         GitComponent component1 = testConfig.getComponents().get(0);
-        assertEquals("test-only-dev", component1.getDir());
+        assertEquals("test", component1.getDir());
         assertEquals("git", component1.getKind());
         assertEquals("giturl1", component1.getSpec().getUrl());
         assertEquals("special-branch", component1.getSpec().getRef());
 
         GitComponent component2 = testConfig.getComponents().get(1);
-        assertEquals("_root_test", component2.getDir());
+        assertEquals("theme", component2.getDir());
         assertEquals("git", component2.getKind());
         assertEquals("giturl2", component2.getSpec().getUrl());
-        assertEquals(env, component2.getSpec().getRef());
+        assertEquals("2.0.0", component2.getSpec().getRef());
+
+        GitComponent component3 = testConfig.getComponents().get(2);
+        assertEquals("_root_test", component3.getDir());
+        assertEquals("git", component3.getKind());
+        assertEquals("giturl3", component3.getSpec().getUrl());
+        assertEquals("test", component3.getSpec().getRef());
+
 
         ContentConfig prodConfig = GitContentUtils.createConfig("prod", websiteConfig, rootContext);
         assertEquals(2, prodConfig.getComponents().size());
         GitComponent prod1 = prodConfig.getComponents().get(0);
-        assertEquals("prod-only", prod1.getDir());
+        assertEquals("theme", prod1.getDir());
         assertEquals("git", prod1.getKind());
         assertEquals("giturl2", prod1.getSpec().getUrl());
-        assertEquals("prod", prod1.getSpec().getRef());
+        assertEquals("1.0.0", prod1.getSpec().getRef());
     }
 
     @Test

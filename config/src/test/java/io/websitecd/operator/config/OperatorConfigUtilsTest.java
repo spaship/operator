@@ -14,7 +14,7 @@ public class OperatorConfigUtilsTest {
 
     @Test
     public void testWebsite() throws IOException {
-        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/website-test.yaml");
+        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/git-service-test.yaml");
         WebsiteConfig config = OperatorConfigUtils.loadYaml(is);
         is.close();
         assertEquals("websitename", config.getMetadata().get("name"));
@@ -38,7 +38,7 @@ public class OperatorConfigUtilsTest {
 
     @Test
     public void getRootComponentSubdir() throws IOException {
-        try (InputStream is = OperatorConfigUtils.class.getResourceAsStream("/website-test.yaml")) {
+        try (InputStream is = OperatorConfigUtils.class.getResourceAsStream("/git-service-test.yaml")) {
             WebsiteConfig config = OperatorConfigUtils.loadYaml(is);
             assertNull(OperatorConfigUtils.getRootComponentSubdir(config));
         }

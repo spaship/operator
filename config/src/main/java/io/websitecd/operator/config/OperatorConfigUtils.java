@@ -6,7 +6,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.InputStream;
-import java.util.Map;
+import java.util.Set;
 
 public class OperatorConfigUtils {
 
@@ -21,18 +21,12 @@ public class OperatorConfigUtils {
     }
 
 
-    /**
-     * Check if environment is included in "spec.envs" array.
-     *
-     * @param envs
-     * @param targetEnv
-     * @return
-     */
-    public static boolean isEnvIncluded(Map<String, Map<String, Object>> envs, String targetEnv) {
-        if (envs == null) {
-            return true;
+    public static boolean isComponentEnabled(WebsiteConfig config, String targetEnv, String context) {
+        Set<String> skipContexts = config.getEnvironment(targetEnv).getSkipContexts();
+        if (skipContexts != null && skipContexts.contains(context)) {
+            return false;
         }
-        return envs.containsKey(targetEnv);
+        return true;
     }
 
     /**

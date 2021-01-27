@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1beta1.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.websitecd.operator.Utils;
+import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.ComponentSpec;
 import io.websitecd.operator.config.model.WebsiteConfig;
@@ -41,7 +42,7 @@ public class IngressController {
             String context = c.getContext();
 
             ComponentSpec spec = c.getSpec();
-            if (!Utils.isEnvIncluded(spec.getEnvs(), targetEnv)) {
+            if (!OperatorConfigUtils.isComponentEnabled(config, targetEnv, context)) {
                 continue;
             }
             IngressBackend backend = new IngressBackend();

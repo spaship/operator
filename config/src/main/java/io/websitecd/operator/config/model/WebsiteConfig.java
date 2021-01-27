@@ -39,8 +39,11 @@ public class WebsiteConfig {
     }
 
     public ComponentConfig getRootComponent() {
+        return getComponent("/");
+    }
+    public ComponentConfig getComponent(String context) {
         for (ComponentConfig component : components) {
-            if (StringUtils.equals(component.getContext(), "/")) {
+            if (StringUtils.equals(component.getContext(), context)) {
                 return component;
             }
         }
