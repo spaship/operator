@@ -14,13 +14,13 @@ import static org.junit.Assert.assertEquals;
 public class GitContentUtilsTest {
 
     @Test
-    public void testLoadConfig() throws IOException {
+    public void testLoadGitConfig() throws IOException {
+        // Just try to load git config
         InputStream is = OperatorConfigUtils.class.getResourceAsStream("/gitconfig-test.yaml");
         ContentConfig config = GitContentUtils.loadYaml(is);
         is.close();
 
-        assertEquals(2, config.getComponents().size());
-        assertEquals("_root", config.getComponents().get(0).getDir());
+        assertEquals(3, config.getComponents().size());
     }
 
     @Test

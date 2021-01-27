@@ -1,11 +1,16 @@
 components:
+  - dir: template
+    kind: git
+    spec:
+      ref: main
+      url: https://github.com/websitecd/websitecd-examples.git
+  - dir: shared-components
+    kind: git
+    spec:
+      ref: 2.0.0
+      url: https://github.com/websitecd/websitecd-examples.git
   - dir: _root
     kind: git
     spec:
-      url: https://github.com/testgit.git
-      ref: prod
-  - dir: example
-    kind: git
-    spec:
-      url: https://github.com/testgit2.git
-      ref: master
+      ref: main
+      url: https://github.com/websitecd/websitecd-examples.git

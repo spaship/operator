@@ -16,3 +16,7 @@ kubectl apply -f deployment/config.yaml
 kubectl apply -f deployment/service-account.yaml
 kubectl apply -f deployment/operator.yaml
 ```
+
+## Development
+
+See [Development Documentation](docs/DEVELOPMENT.md).
