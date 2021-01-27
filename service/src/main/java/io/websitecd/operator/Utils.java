@@ -8,9 +8,12 @@ import java.util.Map;
 
 public class Utils {
 
-    public static Map<String, String> defaultLabels(String env) {
+    public static Map<String, String> defaultLabels(String env, WebsiteConfig config) {
         Map<String, String> labels = new HashMap<>();
         labels.put("env", env);
+        if (config.getLabels() != null) {
+            labels.putAll(config.getLabels());
+        }
         return labels;
     }
 

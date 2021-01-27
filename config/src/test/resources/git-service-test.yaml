@@ -1,24 +1,14 @@
 apiVersion: 1
-metadata:
-  name: websitename
-
-envs:
-  dev:
-    namespace: ns-1
-  stage:
-    namespace: ns-2
-  prod:
-    namespace: ns-3
 
 components:
   - context: /test1
     kind: git
     spec:
-      url: https://github.com/OpenHybridWeb/example-component-theme.git
+      url: giturl1
   - context: /test2
     kind: git
     spec:
-      url: https://github.com/OpenHybridWeb/example-component-homepage.git
+      url: giturl2
   - context: /test3
     kind: service
     spec:

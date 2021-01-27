@@ -8,20 +8,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
-public class OperatorConfigUtilsTest {
+public class ComponentKindsTest {
 
     @Test
-    public void testWebsite() throws IOException {
+    public void testComponentKinds() throws IOException {
         InputStream is = OperatorConfigUtils.class.getResourceAsStream("/git-service-test.yaml");
         WebsiteConfig config = OperatorConfigUtils.loadYaml(is);
         is.close();
-        assertEquals("websitename", config.getMetadata().get("name"));
-
-
-        assertEquals(3, config.getEnvs().size());
-        assertEquals("ns-1", config.getEnvironment("dev").getNamespace());
 
         assertEquals(3, config.getComponents().size());
         assertEquals("/test1", config.getComponents().get(0).getContext());
@@ -32,21 +26,9 @@ public class OperatorConfigUtilsTest {
         assertEquals("/test3", config3.getContext());
         assertEquals("service", config3.getKind());
         assertEquals(true, config3.isKindService());
+        assertEquals(false, config3.isKindGit());
         assertEquals("api", config3.getSpec().getServiceName());
         assertEquals("80", config3.getSpec().getTargetPort());
     }
 
-    @Test
-    public void getRootComponentSubdir() throws IOException {
-        try (InputStream is = OperatorConfigUtils.class.getResourceAsStream("/git-service-test.yaml")) {
-            WebsiteConfig config = OperatorConfigUtils.loadYaml(is);
-            assertNull(OperatorConfigUtils.getRootComponentSubdir(config));
-        }
-
-        try (InputStream is = OperatorConfigUtils.class.getResourceAsStream("/staticcontent-website-test.yaml")) {
-            WebsiteConfig config2 = OperatorConfigUtils.loadYaml(is);
-            assertEquals("subdir", OperatorConfigUtils.getRootComponentSubdir(config2));
-        }
-
-    }
 }

@@ -55,7 +55,7 @@ public class RouterController {
             String sanityContext = sanityContext(context);
             String name = getRouteName(websiteName, sanityContext, targetEnv);
             RouteBuilder builder = new RouteBuilder()
-                    .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv)).build())
+                    .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, config)).build())
                     .withSpec(spec.build());
 
             Route route = builder.build();
@@ -64,7 +64,7 @@ public class RouterController {
             client.inNamespace(namespace).routes().createOrReplace(route);
         }
 
-        updateWebsiteInfoRoute(namespace, websiteName, targetEnv, host);
+        updateWebsiteInfoRoute(namespace, websiteName, targetEnv, host, config);
     }
 
     public static IntOrString getIntOrString(String s) {
@@ -83,7 +83,7 @@ public class RouterController {
         return context.replace("/", "").replace("_", "");
     }
 
-    public void updateWebsiteInfoRoute(String namespace, String websiteName, String targetEnv, String host) {
+    public void updateWebsiteInfoRoute(String namespace, String websiteName, String targetEnv, String host, WebsiteConfig config) {
         final String context = "/websiteinfo";
 
         RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
@@ -101,7 +101,7 @@ public class RouterController {
         String name = getRouteName(websiteName, "websiteinfo", targetEnv);
 
         RouteBuilder builder = new RouteBuilder()
-                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv)).build())
+                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, config)).build())
                 .withSpec(spec.build());
 
         Route route = builder.build();

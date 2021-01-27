@@ -11,21 +11,11 @@ import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
 
-public class GitContentUtilsTest {
+public class AdvancedWebsiteTest {
 
     @Test
-    public void testLoadGitConfig() throws IOException {
-        // Just try to load git config
-        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/gitconfig-test.yaml");
-        ContentConfig config = GitContentUtils.loadYaml(is);
-        is.close();
-
-        assertEquals(3, config.getComponents().size());
-    }
-
-    @Test
-    public void createConfig() throws IOException {
-        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/staticcontent-website-test.yaml");
+    public void testBranches() throws IOException {
+        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/advanced-website-test.yaml");
         WebsiteConfig websiteConfig = OperatorConfigUtils.loadYaml(is);
         is.close();
 
@@ -64,8 +54,8 @@ public class GitContentUtilsTest {
     }
 
     @Test
-    public void createConfigInvalidEnv() throws IOException {
-        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/staticcontent-website-test.yaml");
+    public void testInvalidEnv() throws IOException {
+        InputStream is = OperatorConfigUtils.class.getResourceAsStream("/advanced-website-test.yaml");
         WebsiteConfig websiteConfig = OperatorConfigUtils.loadYaml(is);
         is.close();
 

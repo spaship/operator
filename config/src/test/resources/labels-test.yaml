@@ -1,0 +1,5 @@
+apiVersion: 1
+
+labels:
+  appcode: code
+  label2: label2value

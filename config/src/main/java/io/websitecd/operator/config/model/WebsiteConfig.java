@@ -11,6 +11,8 @@ public class WebsiteConfig {
 
     Map<String, String> metadata;
 
+    Map<String, String> labels;
+
     Map<String, Environment> envs;
 
     List<ComponentConfig> components;
@@ -29,6 +31,14 @@ public class WebsiteConfig {
 
     public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
+    }
+
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(Map<String, String> labels) {
+        this.labels = labels;
     }
 
     public String getWebsiteName() {

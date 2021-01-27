@@ -77,7 +77,7 @@ public class IngressController {
         String name = RouterController.getRouteName(websiteName, null, targetEnv);
 
         IngressBuilder builder = new IngressBuilder()
-                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv)).build())
+                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, config)).build())
                 .withSpec(new IngressSpecBuilder().withRules(rule).build());
 
         Ingress ingress = builder.build();
