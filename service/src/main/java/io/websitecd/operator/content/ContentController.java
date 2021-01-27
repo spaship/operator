@@ -71,24 +71,6 @@ public class ContentController {
     }
 
 
-    public static String getAliasPath(String rootPath, ComponentConfig c) {
-        final String context = c.getContext();
-        final String specDir = c.getSpec().getDir();
-        StringBuilder path = new StringBuilder(rootPath);
-        path.append(context);
-        if (StringUtils.isNotEmpty(specDir) && !StringUtils.equals("/", specDir)) {
-            path.append(specDir);
-        }
-        String result = path.toString();
-        result = result.replace("//", "/");
-        // MUST end with / otherwise alias doesn't work correctly
-        if (!result.endsWith("/")) {
-            result += "/";
-        }
-        return result;
-    }
-
-
     public void updateConfigs(String env, String namespace, WebsiteConfig websiteConfig) {
         ContentConfig config = GitContentUtils.createConfig(env, websiteConfig, rootContext);
         String data = new Yaml().dumpAsMap(config);
