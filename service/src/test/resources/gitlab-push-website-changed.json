@@ -47,7 +47,7 @@
         "name": "Jordi Mallach",
         "email": "jordi@softcatala.org"
       },
-      "modified": ["website.yaml"],
+      "modified": ["/subpath/website.yml"],
       "removed": []
     }
   ],

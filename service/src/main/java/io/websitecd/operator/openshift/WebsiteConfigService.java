@@ -34,8 +34,8 @@ public class WebsiteConfigService {
     @ConfigProperty(name = "app.operator.website.config.dir")
     Optional<String> configDir;
 
-    @ConfigProperty(name = "app.operator.website.config.filename")
-    String configFilename;
+    @ConfigProperty(name = "app.operator.website.config.filenames")
+    String[] configFilename;
 
     @ConfigProperty(name = "app.operator.website.config.sslverify")
     Boolean sslVerify;
@@ -67,7 +67,11 @@ public class WebsiteConfigService {
         repos.put(gitUrl, new GitInfo(branch, gitDir.getAbsolutePath()));
 
         WebsiteConfig config;
-        try (InputStream is = new FileInputStream(getWebsiteConfigPath(gitDir.getAbsolutePath()))) {
+        File configFile = getWebsiteConfigPath(gitDir);
+        if (configFile == null || !configFile.exists()) {
+            throw new IOException("Website config file not exists path=" + configFile);
+        }
+        try (InputStream is = new FileInputStream(configFile)) {
             config = OperatorConfigUtils.loadYaml(is);
         }
         log.infof("Registering config under gitUrl=%s", gitUrl);
@@ -86,7 +90,12 @@ public class WebsiteConfigService {
         log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, fetchResult.getMessages());
 
         WebsiteConfig config;
-        try (InputStream is = new FileInputStream(getWebsiteConfigPath(gitDir.getAbsolutePath()))) {
+        File configFile = getWebsiteConfigPath(gitDir);
+        if (configFile == null || !configFile.exists()) {
+            throw new IOException("Website config file not exists path=" + configFile);
+        }
+
+        try (InputStream is = new FileInputStream(configFile)) {
             config = OperatorConfigUtils.loadYaml(is);
         }
         log.infof("Updating config under gitUrl=%s", gitUrl);
@@ -94,12 +103,23 @@ public class WebsiteConfigService {
         return config;
     }
 
-    public String getWebsiteConfigPath(String baseDir) {
+    public File getWebsiteConfigPath(File baseDir) {
         if (configDir.isEmpty()) {
-            return baseDir + "/" + configFilename;
+            return getWebsiteFile(baseDir);
         } else {
-            return baseDir + "/" + configDir.get() + "/" + configFilename;
+            return getWebsiteFile(new File(baseDir.getAbsolutePath(), configDir.get()));
         }
+    }
+
+    private File getWebsiteFile(File websiteDir) {
+        for (String filename : configFilename) {
+            File file = new File(websiteDir.getAbsolutePath(), filename);
+            if (file.exists()) {
+                log.infof("website config found. path=%s", file.getAbsolutePath());
+                return file;
+            }
+        }
+        return null;
     }
 
     public static String getGitDirName(String workDir, String gitUrl) {

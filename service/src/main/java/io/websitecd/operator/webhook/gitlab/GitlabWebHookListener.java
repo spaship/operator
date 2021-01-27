@@ -16,6 +16,7 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Map;
 
 @ApplicationScoped
@@ -33,9 +34,8 @@ public class GitlabWebHookListener implements WebHookListener {
     @Inject
     ContentController contentController;
 
-    @ConfigProperty(name = "app.operator.website.config.filename")
-    String websiteYamlName;
-
+    @ConfigProperty(name = "app.operator.website.config.filenames")
+    String[] websiteYamlName;
 
     @Override
     public void onPushEvent(PushEvent pushEvent) {
@@ -102,16 +102,27 @@ public class GitlabWebHookListener implements WebHookListener {
                 });
     }
 
-    public static boolean isRolloutNeeded(Event event, String yamlName) {
+    public static boolean isRolloutNeeded(Event event, String... yamlNames) {
         if (event instanceof PushEvent) {
             PushEvent pushEvent = (PushEvent) event;
             for (EventCommit commit : pushEvent.getCommits()) {
-                if (commit.getModified().contains(yamlName)) {
+                if (containsString(commit.getModified(), yamlNames)) {
                     return true;
                 }
-                if (commit.getAdded().contains(yamlName)) {
+                if (containsString(commit.getAdded(), yamlNames)) {
                     return true;
                 }
+            }
+        }
+        return false;
+    }
+    public static boolean containsString(List<String> list, String... searchStrings) {
+        if (list == null || list.size() == 0) {
+            return false;
+        }
+        for (String s : list) {
+            if (StringUtils.containsAny(s, searchStrings)) {
+                return true;
             }
         }
         return false;
