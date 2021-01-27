@@ -7,7 +7,6 @@ import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
-import io.websitecd.operator.config.model.ComponentSpec;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -40,11 +39,10 @@ public class IngressController {
         List<HTTPIngressPath> paths = new ArrayList<>();
         for (ComponentConfig c : config.getComponents()) {
             String context = c.getContext();
-
-            ComponentSpec spec = c.getSpec();
             if (!OperatorConfigUtils.isComponentEnabled(config, targetEnv, context)) {
                 continue;
             }
+
             IngressBackend backend = new IngressBackend();
             if (c.isKindGit()) {
                 backend.setServiceName(contentService);

@@ -42,6 +42,8 @@ public class WebsiteConfigService {
 
     Map<String, WebsiteConfig> websites = new HashMap<>();
 
+    Map<String, GitInfo> repos = new HashMap<>();
+
     public WebsiteConfig cloneRepo(String gitUrl, String branch) throws GitAPIException, IOException, URISyntaxException {
         log.info("Initializing website config");
         File gitDir = new File(getGitDirName(workDir, gitUrl));
@@ -58,9 +60,12 @@ public class WebsiteConfigService {
             String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
             log.infof("Website config cloned to dir=%s commit_message='%s'", gitDir, lastCommitMessage);
             git.close();
+
         } else {
             log.infof("Website config already cloned. skipping dir=%s", gitDir);
         }
+        repos.put(gitUrl, new GitInfo(branch, gitDir.getAbsolutePath()));
+
         WebsiteConfig config;
         try (InputStream is = new FileInputStream(getWebsiteConfigPath(gitDir.getAbsolutePath()))) {
             config = OperatorConfigUtils.loadYaml(is);
@@ -71,8 +76,9 @@ public class WebsiteConfigService {
     }
 
     public WebsiteConfig updateRepo(String gitUrl) throws GitAPIException, IOException {
-        File gitDir = new File(getGitDirName(workDir, gitUrl));
-        PullResult pullResult = Git.open(gitDir).pull().call();
+        GitInfo gitInfo = repos.get(gitUrl);
+        File gitDir = new File(gitInfo.getDir());
+        PullResult pullResult = Git.open(gitDir).pull().setRemoteBranchName(gitInfo.getBranch()).call();
         if (!pullResult.isSuccessful()) {
             throw new RuntimeException("Cannot pull repo. result=" + pullResult);
         }
@@ -123,5 +129,23 @@ public class WebsiteConfigService {
 
     public Map<String, WebsiteConfig> getWebsites() {
         return websites;
+    }
+
+    public static class GitInfo {
+        String branch;
+        String dir;
+
+        public GitInfo(String branch, String dir) {
+            this.branch = branch;
+            this.dir = dir;
+        }
+
+        public String getBranch() {
+            return branch;
+        }
+
+        public String getDir() {
+            return dir;
+        }
     }
 }

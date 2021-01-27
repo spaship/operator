@@ -12,6 +12,7 @@ import io.vertx.mutiny.ext.web.client.WebClient;
 import io.websitecd.content.git.config.GitContentUtils;
 import io.websitecd.content.git.config.model.ContentConfig;
 import io.websitecd.operator.Utils;
+import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -120,6 +121,9 @@ public class ContentController {
 
                 for (ComponentConfig component : config.getComponents()) {
                     if (!component.isKindGit()) {
+                        continue;
+                    }
+                    if (!OperatorConfigUtils.isComponentEnabled(config, env, component.getContext())) {
                         continue;
                     }
 
