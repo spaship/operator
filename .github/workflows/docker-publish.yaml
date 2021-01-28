@@ -3,7 +3,7 @@ name: Deploy to Registries
 on:
   push:
     branches:
-      - '**'
+      - 'main'
     tags:
       - '*'
 
@@ -23,12 +23,15 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
-      - name: Docker meta
-        id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
-        with:
-          tag-match: (.*)
-          images: quay.io/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }},${{ secrets.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}
+      - name: Prepare
+        id: prep
+        run: |
+          VERSION=latest
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo ::set-output name=version::${VERSION}
+          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -54,7 +57,9 @@ jobs:
           context: service
           file: ./service/src/main/docker/Dockerfile.jvm
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.docker_meta.outputs.tags }}
-          labels: ${{ steps.docker_meta.outputs.labels }}
+          tags: |
+            quay.io/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.prep.outputs.version }}
+            ${{ secrets.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.prep.outputs.version }}
+
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
