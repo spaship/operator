@@ -31,6 +31,10 @@ public class IngressController {
     protected Optional<String> domain;
 
     public void updateIngress(String targetEnv, String namespace, WebsiteConfig config) {
+        if (domain.isEmpty()) {
+            log.infof("No Ingress created. Missing domain configuration.");
+            return;
+        }
         final String hostSuffix = "-" + namespace + "." + domain.get();
         final String websiteName = Utils.getWebsiteName(config);
         final String host = websiteName + "-" + targetEnv + hostSuffix;
