@@ -1,0 +1,89 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: websitecd-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: websitecd-operator
+rules:
+  - apiGroups: [ "networking.k8s.io" ]
+    resources: [  "ingresses" ]
+    verbs: [ "create", "update", "get", "watch", "list" ]
+  - apiGroups: [ "" ]
+    resources: [  "secrets", "services", "namespaces" ]
+    verbs: [ "create", "update", "get", "watch", "list" ]
+  - apiGroups: [ "apps" ]
+    resources: [ "deployments" ]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: websitecd-operator
+roleRef:
+  kind: ClusterRole
+  name: websitecd-operator
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: websitecd-operator
+    namespace: websitecd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: websitecd-operator
+  labels:
+    app: websitecd-operator
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      name: http
+  selector:
+    app: websitecd-operator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websitecd-operator
+spec:
+  selector:
+    matchLabels:
+      app: websitecd-operator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: websitecd-operator
+    spec:
+      serviceAccountName: websitecd-operator
+      containers:
+        - name: operator
+          image: "quay.io/websitecd/operator-jvm"
+          livenessProbe:
+            httpGet:
+              path: "/health/live"
+              port: 8080
+            initialDelaySeconds: 10
+            failureThreshold: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: "/health/ready"
+              port: 8080
+            initialDelaySeconds: 10
+            failureThreshold: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: "websitecd-operator-config"

@@ -12,9 +12,10 @@ Website Continues Deployment & Delivery on Kubernetes
 ## How to install
 
 ```shell
-kubectl apply -f deployment/config.yaml
-kubectl apply -f deployment/service-account.yaml
-kubectl apply -f deployment/operator.yaml
+kubectl create namespace websitecd
+kubectl create namespace websitecd-examples
+kubectl apply -n websitecd -f deployment/stable/config-example.yaml
+kubectl apply -n websitecd -f deployment/stable/websitecd-kubernetes.yaml
 ```
 
 ## Development
