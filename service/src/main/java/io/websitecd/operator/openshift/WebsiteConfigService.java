@@ -66,13 +66,11 @@ public class WebsiteConfigService {
         }
         repos.put(gitUrl, new GitInfo(branch, gitDir.getAbsolutePath()));
 
-        WebsiteConfig config;
         File configFile = getWebsiteConfigPath(gitDir);
-        if (configFile == null || !configFile.exists()) {
-            throw new IOException("Website config file not exists path=" + configFile);
-        }
-        try (InputStream is = new FileInputStream(configFile)) {
-            config = OperatorConfigUtils.loadYaml(is);
+        WebsiteConfig config = loadConfig(configFile);
+        int applied = OperatorConfigUtils.applyDefaultGirUrl(config, gitUrl);
+        if (applied > 0) {
+            log.infof("git url set for %s components", applied);
         }
         log.infof("Registering config under gitUrl=%s", gitUrl);
         websites.put(gitUrl, config);
@@ -89,18 +87,24 @@ public class WebsiteConfigService {
         FetchResult fetchResult = pullResult.getFetchResult();
         log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, fetchResult.getMessages());
 
-        WebsiteConfig config;
         File configFile = getWebsiteConfigPath(gitDir);
-        if (configFile == null || !configFile.exists()) {
-            throw new IOException("Website config file not exists path=" + configFile);
-        }
-
-        try (InputStream is = new FileInputStream(configFile)) {
-            config = OperatorConfigUtils.loadYaml(is);
+        WebsiteConfig config = loadConfig(configFile);
+        int applied = OperatorConfigUtils.applyDefaultGirUrl(config, gitUrl);
+        if (applied > 0) {
+            log.infof("git url set for %s components", applied);
         }
         log.infof("Updating config under gitUrl=%s", gitUrl);
         websites.put(gitUrl, config);
         return config;
+    }
+
+    public WebsiteConfig loadConfig(File configFile) throws IOException {
+        if (configFile == null || !configFile.exists()) {
+            throw new IOException("Website config file not exists path=" + configFile);
+        }
+        try (InputStream is = new FileInputStream(configFile)) {
+            return OperatorConfigUtils.loadYaml(is);
+        }
     }
 
     public File getWebsiteConfigPath(File baseDir) {

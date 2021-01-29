@@ -1,0 +1,17 @@
+apiVersion: 1
+
+components:
+  - context: /one
+    kind: git
+    spec:
+      dir: /subidr
+  # git url should not be overriden!
+  - context: /two
+    kind: git
+    spec:
+      url: "defined-git-url"
+      dir: /subidr
+  - context: /three
+    kind: service
+    spec:
+      serviceName: service
