@@ -86,7 +86,7 @@ public class ContentController {
         Map<String, String> data = new HashMap<>();
         data.put("content-config-git.yaml", secretData);
 
-        log.debugf("%s=\n%s", name, data);
+        log.tracef("%s=\n%s", name, data);
 
         SecretBuilder config = new SecretBuilder()
                 .withMetadata(new ObjectMetaBuilder().withName(name).build())
