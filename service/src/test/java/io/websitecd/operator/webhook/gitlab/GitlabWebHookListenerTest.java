@@ -1,15 +1,9 @@
 package io.websitecd.operator.webhook.gitlab;
 
-import org.apache.commons.io.IOUtils;
-import org.gitlab4j.api.webhook.Event;
 import org.gitlab4j.api.webhook.EventCommit;
 import org.gitlab4j.api.webhook.PushEvent;
 import org.junit.jupiter.api.Test;
 
-import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,25 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test for {@link GitlabWebHookManager}
+ * Test for {@link GitlabWebHookListener}
  */
-//@QuarkusTest
-class GitlabWebHookManagerTest {
-
-    @Inject
-    GitlabWebHookManager manager;
-
-    //    @Test
-    void testGitlabPush() throws IOException {
-        String yaml;
-        try (InputStream is = GitlabWebHookManagerTest.class.getResourceAsStream("/gitlab-push.json")) {
-            yaml = IOUtils.toString(is, StandardCharsets.UTF_8);
-        }
-        String yamlName = "website.yaml";
-        Event event = manager.unmarshal(yaml);
-        // Implement E2E Test
-    }
-
+class GitlabWebHookListenerTest {
 
     @Test
     void isRolloutNeeded() {

@@ -108,10 +108,10 @@ public class WebsiteConfigService {
     }
 
     public File getWebsiteConfigPath(File baseDir) {
-        if (configDir.isEmpty()) {
+        if (getConfigDir().isEmpty()) {
             return getWebsiteFile(baseDir);
         } else {
-            return getWebsiteFile(new File(baseDir.getAbsolutePath(), configDir.get()));
+            return getWebsiteFile(new File(baseDir.getAbsolutePath(), getConfigDir().get()));
         }
     }
 
@@ -171,5 +171,13 @@ public class WebsiteConfigService {
         public String getDir() {
             return dir;
         }
+    }
+
+    public Optional<String> getConfigDir() {
+        return configDir;
+    }
+
+    public void setConfigDir(Optional<String> configDir) {
+        this.configDir = configDir;
     }
 }

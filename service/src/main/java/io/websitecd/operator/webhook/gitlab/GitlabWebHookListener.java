@@ -95,6 +95,7 @@ public class GitlabWebHookListener implements WebHookListener {
                 .subscribe()
                 .with(items -> {
                     for (Object name : items) {
+                        log.debugf("Going to update component name=%s", name);
                         contentController.refreshComponent(contentApiClient, name.toString())
                                 .subscribe()
                                 .with(s -> log.infof("updated name=%s result=%s", name, s));

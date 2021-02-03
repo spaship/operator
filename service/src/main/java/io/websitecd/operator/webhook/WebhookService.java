@@ -37,6 +37,7 @@ public class WebhookService {
 
     public GIT_PROVIDER gitProvider(HttpRequest request) {
         List<String> eventName = request.getHttpHeaders().getRequestHeader("X-Gitlab-Event");
+        log.tracef("X-Gitlab-Event=%s", eventName);
         if (eventName != null && eventName.size() > 0 && StringUtils.isNotEmpty(eventName.get(0))) {
             return GIT_PROVIDER.GITLAB;
         }

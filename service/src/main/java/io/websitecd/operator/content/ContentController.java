@@ -183,4 +183,7 @@ public class ContentController {
         return clients.get(clientId);
     }
 
+    public int getStaticContentApiPort() {
+        return staticContentApiPort;
+    }
 }

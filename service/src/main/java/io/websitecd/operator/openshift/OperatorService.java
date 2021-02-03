@@ -10,12 +10,15 @@ import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.router.IngressController;
 import io.websitecd.operator.router.RouterController;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -61,13 +64,17 @@ public class OperatorService {
         log.infof("Registering INIT with delay=%s", initDelay);
         vertx.setTimer(initDelay, e -> {
             vertx.executeBlocking(future -> {
-                initServices();
+                try {
+                    initServices(gitUrl, branch);
+                } catch (Exception ex) {
+                    future.fail(ex);
+                }
                 future.complete();
-            }, res -> log.infof("Initialization completed"));
+            }, res -> log.infof("Initialization completed. success=%s", !res.failed()));
         });
     }
 
-    public void initServices() {
+    public void initServices(String gitUrl, String branch) throws IOException, GitAPIException, URISyntaxException {
         log.infof("Init service. openshift_url=%s", client.getOpenshiftUrl());
 
         try {
@@ -75,7 +82,8 @@ public class OperatorService {
 
             processConfig(gitUrl, false, true);
         } catch (Exception e) {
-            log.error("Cannot init core services", e);
+            log.error("Cannot init core services for gitUrl=" + gitUrl, e);
+            throw e;
         }
     }
 
