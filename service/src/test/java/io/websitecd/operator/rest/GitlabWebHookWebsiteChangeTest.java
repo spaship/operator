@@ -1,5 +1,6 @@
 package io.websitecd.operator.rest;
 
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
@@ -12,8 +13,6 @@ import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.openshift.OperatorServiceTest;
 import io.websitecd.operator.openshift.WebsiteConfigService;
-import org.jboss.logging.Logger;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
@@ -21,14 +20,12 @@ import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
 @TestHTTPEndpoint(WebHookResource.class)
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class GitlabWebHookResourceTest {
-
-    private static final Logger log = Logger.getLogger(GitlabWebHookResourceTest.class);
-
+class GitlabWebHookWebsiteChangeTest {
 
     @MockServer
     KubernetesMockServer mockServer;
@@ -43,29 +40,37 @@ class GitlabWebHookResourceTest {
     ContentController contentController;
 
     @Test
-    public void gitPush() throws Exception {
+    public void gitPushWebsiteChange() throws Exception {
         ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
-
 
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
 
         OperatorServiceTest.setupServerAdvanced(mockServer);
+
+        mockServer.expect()
+                .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-dev")
+                .andReturn(200, new DeploymentSpecBuilder().build()).always();
+        mockServer.expect()
+                .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-prod")
+                .andReturn(200, new DeploymentSpecBuilder().build()).always();
+
         websiteConfigService.setConfigDir(Optional.of(OperatorServiceTest.GIT_EXAMPLES_CONFIG_SIMPLE));
         operatorService.initServices(OperatorServiceTest.GIT_EXAMPLES_URL, OperatorServiceTest.GIT_EXAMPLES_BRANCH);
 
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
-                .body(GitlabWebHookResourceTest.class.getResourceAsStream("/gitlab-push.json"))
+                .body(GitlabWebHookWebsiteChangeTest.class.getResourceAsStream("/gitlab-push-website-changed.json"))
                 .when().post()
                 .then()
                 .statusCode(200)
                 .body(is("DONE"));
 
-        Assert.assertEquals(2, apiMock.getApiListCount());
-        Assert.assertEquals(2, apiMock.getApiUpdateTest1());
-        Assert.assertEquals(2, apiMock.getApiUpdateTest2());
+        assertEquals(0, apiMock.getApiListCount());
+        assertEquals(0, apiMock.getApiUpdateTest1());
+        assertEquals(0, apiMock.getApiUpdateTest2());
+
     }
 
 }

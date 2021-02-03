@@ -1,6 +1,8 @@
 package io.websitecd.operator.openshift;
 
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -53,12 +55,12 @@ public class OperatorServiceTest {
 
         mockServer.expect()
                 .post().withPath("/api/v1/namespaces/websitecd-examples/services")
-                .andReturn(200, new SecretBuilder().build())
+                .andReturn(200, new ServiceSpecBuilder().build())
                 .always();
 
         mockServer.expect()
                 .post().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments")
-                .andReturn(200, new SecretBuilder().build())
+                .andReturn(200, new DeploymentSpecBuilder().build())
                 .always();
     }
 
