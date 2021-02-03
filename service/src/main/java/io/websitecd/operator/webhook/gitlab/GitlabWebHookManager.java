@@ -1,6 +1,7 @@
 package io.websitecd.operator.webhook.gitlab;
 
-import io.quarkus.runtime.StartupEvent;
+import io.smallrye.mutiny.Uni;
+import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.webhook.WebhookService;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.utils.JacksonJson;
@@ -9,7 +10,6 @@ import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.io.IOException;
 
@@ -22,12 +22,6 @@ public class GitlabWebHookManager extends WebHookManager {
 
     @Inject
     GitlabWebHookListener listener;
-
-    void onStart(@Observes StartupEvent ev) {
-        log.infof("Registering GitlabWebHookListener");
-        addListener(listener);
-    }
-
 
     public static String getHeader(HttpRequest request, String name) {
         return WebhookService.getHeader(request, name);
@@ -42,12 +36,12 @@ public class GitlabWebHookManager extends WebHookManager {
      * not contain a webhook event
      * @throws GitLabApiException if the parsed event is not supported
      */
-    public Event handleRequest(HttpRequest request, String postData) throws GitLabApiException {
+    public Uni<JsonObject> handleRequest(HttpRequest request, String postData) throws GitLabApiException {
 
         String eventName = getHeader(request, "X-Gitlab-Event");
         if (eventName == null || eventName.trim().isEmpty()) {
             log.warn("X-Gitlab-Event header is missing!");
-            return (null);
+            throw new GitLabApiException("X-Gitlab-Event header is missing!");
         }
 
         String secretToken = getHeader(request, "X-Gitlab-Token");
@@ -98,12 +92,24 @@ public class GitlabWebHookManager extends WebHookManager {
             event.setRequestSecretToken(secretToken);
 
             fireEvent(event);
-            return (event);
-
+            return processEvent(event);
         } catch (Exception e) {
             log.warn(String.format("Error processing event, exception=%s, error=%s",
                     e.getClass().getSimpleName(), e.getMessage()));
             throw e;
+        }
+    }
+
+    public Uni<JsonObject> processEvent(Event event) throws GitLabApiException {
+        switch (event.getObjectKind()) {
+            case PushEvent.OBJECT_KIND:
+                return listener.onPushEvent((PushEvent) event);
+            case TagPushEvent.OBJECT_KIND:
+                return listener.onTagPushEvent((TagPushEvent) event);
+            default:
+                String message = "Unsupported event object_kind, object_kind=" + event.getObjectKind();
+                log.info(message);
+                throw new GitLabApiException(message);
         }
     }
 

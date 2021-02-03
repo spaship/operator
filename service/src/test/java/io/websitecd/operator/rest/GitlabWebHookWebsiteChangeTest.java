@@ -64,8 +64,10 @@ class GitlabWebHookWebsiteChangeTest {
                 .body(GitlabWebHookWebsiteChangeTest.class.getResourceAsStream("/gitlab-push-website-changed.json"))
                 .when().post()
                 .then()
+                .log().ifValidationFails()
                 .statusCode(200)
-                .body(is("DONE"));
+                .body("status", is("SUCCESS"))
+                .body("website.name", is("simple"));
 
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(0, apiMock.getApiUpdateTest1());

@@ -4,8 +4,8 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
@@ -23,6 +23,7 @@ import org.yaml.snakeyaml.Yaml;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -167,16 +168,14 @@ public class ContentController {
                 }).map(resp -> resp.bodyAsString());
     }
 
-    public Uni<JsonArray> listComponents(WebClient webClient) {
+    public Multi<String> listComponents(WebClient webClient) {
         log.infof("List components");
 
         return webClient.get("/api/list").send()
-                .onItem().invoke(resp -> {
-                    if (resp.statusCode() != 200) {
-                        throw new RuntimeException(resp.bodyAsString());
-                    }
-                })
-                .map(resp -> resp.bodyAsJsonArray());
+                .onItem().transformToMulti(resp -> {
+                    List<String> array = resp.bodyAsJsonArray().getList();
+                    return Multi.createFrom().iterable(array);
+                });
     }
 
     public WebClient getContentApiClient(String clientId) {

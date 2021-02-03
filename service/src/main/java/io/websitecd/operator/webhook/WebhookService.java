@@ -2,18 +2,17 @@ package io.websitecd.operator.webhook;
 
 import io.quarkus.security.UnauthorizedException;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.webhook.gitlab.GitlabWebHookManager;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.gitlab4j.api.GitLabApiException;
-import org.gitlab4j.api.webhook.Event;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ForbiddenException;
 import java.io.IOException;
 import java.util.List;
@@ -44,7 +43,7 @@ public class WebhookService {
         return null;
     }
 
-    public Uni<String> handleGitlab(HttpRequest request, String data) throws GitAPIException, IOException, GitLabApiException {
+    public Uni<JsonObject> handleGitlab(HttpRequest request, String data) throws GitAPIException, IOException, GitLabApiException {
         String secretToken = getHeader(request, "X-Gitlab-Token");
 
         if (webhookSecret.isPresent()) {
@@ -59,12 +58,7 @@ public class WebhookService {
             }
         }
 
-        Event event = gitlabWebHookManager.handleRequest(request, data);
-        if (event == null) {
-            throw new BadRequestException("Invalid post data");
-        }
-
-        return Uni.createFrom().item("DONE");
+        return gitlabWebHookManager.handleRequest(request, data);
     }
 
     public static String getHeader(HttpRequest request, String name) {
