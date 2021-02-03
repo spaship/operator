@@ -1,6 +1,6 @@
 package io.websitecd.operator.openshift;
 
-import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -49,8 +49,8 @@ public class OperatorServiceTest {
 
     public static void setupServerAdvanced(KubernetesMockServer mockServer) throws Exception {
         mockServer.expect()
-                .post().withPath("/api/v1/namespaces/websitecd-examples/secrets")
-                .andReturn(200, new SecretBuilder().build())
+                .post().withPath("/api/v1/namespaces/websitecd-examples/configmaps")
+                .andReturn(200, new ConfigMapBuilder().build())
                 .always();
 
         mockServer.expect()

@@ -142,7 +142,10 @@ objects:
                   name: data
           volumes:
             - name: content-init
-              secret:
-                secretName: ${NAME}-content-init-${ENV}
+              configMap:
+                name: ${NAME}-content-init-${ENV}
+                items:
+                  - key: "content-config-git.yaml"
+                    path: "content-config-git.yaml"
             - name: data
               emptyDir: { }

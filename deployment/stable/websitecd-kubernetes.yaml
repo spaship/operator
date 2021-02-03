@@ -13,7 +13,7 @@ rules:
     resources: [  "ingresses" ]
     verbs: [ "create", "update", "get", "watch", "list" ]
   - apiGroups: [ "" ]
-    resources: [  "secrets", "services", "namespaces" ]
+    resources: [  "configmaps", "services", "namespaces" ]
     verbs: [ "create", "update", "get", "watch", "list" ]
   - apiGroups: [ "apps" ]
     resources: [ "deployments" ]

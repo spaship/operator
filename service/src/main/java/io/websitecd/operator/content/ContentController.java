@@ -72,15 +72,14 @@ public class ContentController {
         log.infof("Content client API created. clientId=%s host=%s port=%s", clientId, host, staticContentApiPort);
     }
 
-
     public void updateConfigs(String env, String namespace, WebsiteConfig websiteConfig) {
         ContentConfig config = GitContentUtils.createConfig(env, websiteConfig, rootContext);
         String data = new Yaml().dumpAsMap(config);
         final String configName = Utils.getWebsiteName(websiteConfig) + CONFIG_INIT + env;
-        updateConfigSecret(configName, namespace, data);
+        updateConfigMap(configName, namespace, data);
     }
 
-    public void updateConfigSecret(String name, String namespace, String secretData) {
+    public void updateConfigMap(String name, String namespace, String secretData) {
         log.infof("Update content-init in namespace=%s, name=%s", namespace, name);
 
         Map<String, String> data = new HashMap<>();
@@ -88,10 +87,10 @@ public class ContentController {
 
         log.tracef("%s=\n%s", name, data);
 
-        SecretBuilder config = new SecretBuilder()
+        ConfigMapBuilder config = new ConfigMapBuilder()
                 .withMetadata(new ObjectMetaBuilder().withName(name).build())
-                .withStringData(data);
-        client.inNamespace(namespace).secrets().createOrReplace(config.build());
+                .withData(data);
+        client.inNamespace(namespace).configMaps().createOrReplace(config.build());
     }
 
     public void deploy(String env, String namespace, String websiteName, WebsiteConfig config) {
