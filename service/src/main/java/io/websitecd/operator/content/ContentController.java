@@ -2,6 +2,7 @@ package io.websitecd.operator.content;
 
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.smallrye.mutiny.Multi;
@@ -12,8 +13,10 @@ import io.vertx.mutiny.ext.web.client.WebClient;
 import io.websitecd.content.git.config.GitContentUtils;
 import io.websitecd.content.git.config.model.ContentConfig;
 import io.websitecd.operator.Utils;
+import io.websitecd.operator.config.KubernetesUtils;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
+import io.websitecd.operator.config.model.DeploymentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -99,14 +102,7 @@ public class ContentController {
         params.put("NAME", websiteName);
         params.put("GIT_SSL_NO_VERIFY", Boolean.toString(!sslVerify));
 
-        KubernetesList result = client.templates()
-                .inNamespace(namespace)
-                .load(ContentController.class.getResourceAsStream("/openshift/content-template.yaml"))
-                .processLocally(params);
-
-        log.debugf("Template %s successfully processed to list with %s items",
-                result.getItems().get(0).getMetadata().getName(),
-                result.getItems().size());
+        KubernetesList result = processTemplate(namespace, params);
 
         for (HasMetadata item : result.getItems()) {
             log.infof("Deploying kind=%s name=%s", item.getKind(), item.getMetadata().getName());
@@ -117,8 +113,10 @@ public class ContentController {
             }
             if (item instanceof Deployment) {
                 Deployment deployment = (Deployment) item;
-                Container httpdContainer = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
 
+                deployment = overrideDeployment(deployment, config.getEnvironment(env).getDeployment());
+
+                Container httpdContainer = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
                 for (ComponentConfig component : config.getComponents()) {
                     if (!component.isKindGit()) {
                         continue;
@@ -148,6 +146,34 @@ public class ContentController {
             }
 
         }
+    }
+
+    protected KubernetesList processTemplate(String namespace, Map<String, String> params) {
+        KubernetesList result = client.templates()
+                .inNamespace(namespace)
+                .load(ContentController.class.getResourceAsStream("/openshift/content-template.yaml"))
+                .processLocally(params);
+
+        log.debugf("Template %s successfully processed to list with %s items",
+                result.getItems().get(0).getMetadata().getName(),
+                result.getItems().size());
+        return result;
+    }
+
+    public Deployment overrideDeployment(Deployment deployment, DeploymentConfig config) {
+        if (config == null) return deployment;
+        DeploymentSpec spec = deployment.getSpec();
+        if (config.getReplicas() != null) spec.setReplicas(config.getReplicas());
+
+        Container initContainer = spec.getTemplate().getSpec().getInitContainers().get(0);
+        Container httpdContainer = spec.getTemplate().getSpec().getContainers().get(0);
+        Container apiContainer = spec.getTemplate().getSpec().getContainers().get(1);
+
+        KubernetesUtils.overrideContainer(initContainer, config.getInit());
+        KubernetesUtils.overrideContainer(httpdContainer, config.getHttpd());
+        KubernetesUtils.overrideContainer(apiContainer, config.getApi());
+
+        return deployment;
     }
 
     public void redeploy(String env, WebsiteConfig config) {

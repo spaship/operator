@@ -7,7 +7,7 @@ public class Environment {
     String namespace;
     String branch;
     Set<String> skipContexts;
-
+    DeploymentConfig deployment;
 
     public String getNamespace() {
         return namespace;
@@ -33,12 +33,21 @@ public class Environment {
         this.skipContexts = skipContexts;
     }
 
+    public DeploymentConfig getDeployment() {
+        return deployment;
+    }
+
+    public void setDeployment(DeploymentConfig deployment) {
+        this.deployment = deployment;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Environment{");
         sb.append("namespace='").append(namespace).append('\'');
         sb.append(", branch='").append(branch).append('\'');
         sb.append(", skipContexts=").append(skipContexts);
+        sb.append(", deployment=").append(deployment);
         sb.append('}');
         return sb.toString();
     }
