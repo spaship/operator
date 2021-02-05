@@ -34,9 +34,6 @@ public class WebsiteConfigService {
     @ConfigProperty(name = "app.operator.website.config.filenames")
     String[] configFilename;
 
-    @ConfigProperty(name = "app.operator.website.config.sslverify")
-    Boolean sslVerify;
-
     Map<String, WebsiteConfig> websites = new HashMap<>();
 
     Map<String, GitInfo> repos = new HashMap<>();
@@ -51,7 +48,7 @@ public class WebsiteConfigService {
             git.remoteAdd().setName("origin").setUri(new URIish(gitUrl)).call();
 
             StoredConfig config = git.getRepository().getConfig();
-            config.setBoolean("http", null, "sslVerify", sslVerify);
+            config.setBoolean("http", null, "sslVerify", website.getSslVerify());
             config.save();
 
             git.pull().setRemoteBranchName(branch).call();
