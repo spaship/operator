@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: operator-websitecd
+spec:
+  rules:
+    - host: operator-websitecd.minikube.info
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: websitecd-operator
+                port:
+                  number: 8080

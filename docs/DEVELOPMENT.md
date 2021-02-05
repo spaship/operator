@@ -27,7 +27,7 @@ minikube config set driver hyperkit
 minikube start --addons ingress,dashboard
 minikube dashboard
 minikube tunnel
-echo "$(minikube ip) minikube.info simple-dev-websitecd-examples.minikube.info simple-prod-websitecd-examples.minikube.info advanced-dev-websitecd-examples.minikube.info advanced-prod-websitecd-examples.minikube.info" | sudo tee -a /etc/hosts
+echo "$(minikube ip) minikube.info operator-websitecd.minikube.info simple-dev-websitecd-examples.minikube.info simple-prod-websitecd-examples.minikube.info advanced-dev-websitecd-examples.minikube.info advanced-prod-websitecd-examples.minikube.info" | sudo tee -a /etc/hosts
 
 kubectl create namespace websitecd-examples
 ```
@@ -69,7 +69,7 @@ Fire event:
 
 ```shell
 WEBHOOK_URL=http://localhost:8080/api/webhook
-WEBHOOK_URL=https://operator-websitecd-examples.int.open.paas.redhat.com/api/webhook
+WEBHOOK_URL=http://operator-websitecd.minikube.info/api/webhook
 curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-Event: Push Hook" -H "X-Gitlab-Token: CHANGEIT" --data-binary "@src/test/resources/gitlab-push.json" 
 curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-Event: Push Hook" -H "X-Gitlab-Token: CHANGEIT" --data-binary "@src/test/resources/gitlab-push-website-changed.json" 
 ```
