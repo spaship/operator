@@ -5,7 +5,9 @@ import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @ApplicationScoped
@@ -35,16 +37,20 @@ public class WebsiteRepository {
         return website;
     }
 
-    public Website getByGitUrl(String gitUrl, String webhookSecretToken) {
+    public List<Website> getByGitUrl(String gitUrl, String webhookSecretToken) {
+        List<Website> result = new ArrayList<>();
         for (Map.Entry<String, Website> entry : websites.entrySet()) {
             WebsiteSpec spec = entry.getValue().getSpec();
             if (gitUrl.equals(spec.getGitUrl()) && webhookSecretToken.equals(spec.getWebhookSecret())) {
-                return entry.getValue();
+                result.add(entry.getValue());
             }
         }
-        return null;
+        return result;
     }
 
+    public void reset() {
+        websites = new HashMap<>();
+    }
 
 
 }

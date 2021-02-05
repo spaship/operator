@@ -55,4 +55,10 @@ public class ContentApiMock  extends AbstractVerticle {
         return apiUpdate2Count.getCount();
     }
 
+    public void reset() {
+        apiListCount.reset();
+        apiUpdate1Count.reset();
+        apiUpdate2Count.reset();
+    }
+
 }

@@ -61,12 +61,12 @@ public class GitlabWebHookListener {
     }
 
     public Uni<JsonObject> handleEvent(String gitUrl, Event event) {
-        Website website = websiteRepository.getByGitUrl(gitUrl, event.getRequestSecretToken());
+        List<Website> websites = websiteRepository.getByGitUrl(gitUrl, event.getRequestSecretToken());
 //        boolean isComponent = websiteConfigService.isKnownComponent(gitUrl);
         JsonObject resultObject = new JsonObject();
 
-        boolean isWebsite = website != null;
-        if (website == null) {
+        boolean isWebsite = websites.size() > 0;
+        if (!isWebsite) {
             log.infof("website with given gitUrl and token not found. ignoring. gitUrl=%s", gitUrl);
             return Uni.createFrom().item(resultObject.put("status", "IGNORED").put("reason", "pair git url and token unknown"));
         }
@@ -74,30 +74,33 @@ public class GitlabWebHookListener {
         boolean rollout = false;
         resultObject.put("status", "SUCCESS").put("components", new JsonArray());
 
-        WebsiteConfig websiteConfig = websiteConfigService.getConfig(website);
-        if (isWebsite && isRolloutNeeded(event, websiteYamlName)) {
-            try {
-                WebsiteConfig newConfig = websiteConfigService.updateRepo(website);
-                if (WebsiteController.deploymentChanged(websiteConfig, newConfig)) {
-                    operatorService.processConfig(website, true, false);
-                    rollout = true;
-                    resultObject.put("website", new JsonObject().put("name", newConfig.getWebsiteName()).put("gitUrl", gitUrl));
-                }
-                websiteConfig = newConfig;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
         List<Publisher<JsonObject>> updates = new ArrayList<>();
-        if (!rollout) {
-            Map<String, Environment> envs = websiteConfig.getEnvs();
-            for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
-                if (!operatorService.isEnvEnabled(envEntry.getValue(), website.getMetadata().getNamespace())) {
-                    log.debugf("Env is not enabled");
-                    continue;
+        for (Website website : websites) {
+            log.infof("Update website=%s", website);
+            WebsiteConfig websiteConfig = websiteConfigService.getConfig(website);
+            if (isWebsite && isRolloutNeeded(event, websiteYamlName)) {
+                try {
+                    WebsiteConfig newConfig = websiteConfigService.updateRepo(website);
+                    if (WebsiteController.deploymentChanged(websiteConfig, newConfig)) {
+                        operatorService.processConfig(website, true, false);
+                        rollout = true;
+                        resultObject.put("website", new JsonObject().put("name", newConfig.getWebsiteName()).put("gitUrl", gitUrl));
+                    }
+                    websiteConfig = newConfig;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-                Multi<JsonObject> update = updateAllComponents(gitUrl, envEntry.getKey());
-                updates.add(update);
+            }
+            if (!rollout) {
+                Map<String, Environment> envs = websiteConfig.getEnvs();
+                for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
+                    if (!operatorService.isEnvEnabled(envEntry.getValue(), website.getMetadata().getNamespace())) {
+                        log.debugf("Env is not enabled");
+                        continue;
+                    }
+                    Multi<JsonObject> update = updateAllComponents(gitUrl, envEntry.getKey());
+                    updates.add(update);
+                }
             }
         }
 

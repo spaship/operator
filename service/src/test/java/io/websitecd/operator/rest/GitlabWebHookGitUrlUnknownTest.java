@@ -29,7 +29,7 @@ class GitlabWebHookGitUrlUnknownTest extends GitlabWebhookTestCommon {
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", OperatorServiceTest.SECRET)
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE)
                 .body(GitlabWebHookGitUrlUnknownTest.class.getResourceAsStream("/gitlab-push-giturl-unknown.json"))
                 .when().post()
                 .then()

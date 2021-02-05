@@ -35,4 +35,8 @@ public class RequestCountHandler implements Handler<RoutingContext> {
     public long getCount() {
         return count;
     }
+
+    public void reset() {
+        count = 0;
+    }
 }

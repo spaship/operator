@@ -57,7 +57,7 @@ class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", OperatorServiceTest.SECRET)
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE)
                 .body(GitlabWebHookWebsiteChangeTest.class.getResourceAsStream("/gitlab-push-website-changed.json"))
                 .when().post()
                 .then()

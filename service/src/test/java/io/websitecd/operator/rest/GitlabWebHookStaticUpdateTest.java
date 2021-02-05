@@ -33,6 +33,7 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
     @Test
     public void gitPushStaticUpdate() throws Exception {
         ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
+        apiMock.reset();
 
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
@@ -44,7 +45,7 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", OperatorServiceTest.SECRET)
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE)
                 .body(GitlabWebHookStaticUpdateTest.class.getResourceAsStream("/gitlab-push.json"))
                 .when().post()
                 .then()
