@@ -22,6 +22,9 @@ public class WebsiteConfigEnvProvider {
     @ConfigProperty(name = "website.branch")
     Optional<String> branch;
 
+    @ConfigProperty(name = "website.sslVerify")
+    Optional<Boolean> sslVerify;
+
     @ConfigProperty(name = "website.config.dir")
     Optional<String> configDir;
 
@@ -46,7 +49,7 @@ public class WebsiteConfigEnvProvider {
             return;
         }
         // TODO validate input values
-        WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.get(), configDir.orElse(null));
+        WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.get(), configDir.orElse(null), sslVerify.orElse(true));
         log.infof("Registering INIT EnvProvider with delay=%s website=%s", initDelay, websiteSpec);
         vertx.setTimer(initDelay, e -> {
             vertx.executeBlocking(future -> {

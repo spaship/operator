@@ -5,16 +5,17 @@ public class WebsiteSpec {
     String gitUrl;
     String branch;
     String dir;
-    Boolean sslVerify;
+    Boolean sslVerify = true;
     String webhookSecret;
 
     public WebsiteSpec() {
     }
 
-    public WebsiteSpec(String gitUrl, String branch, String dir) {
+    public WebsiteSpec(String gitUrl, String branch, String dir, Boolean sslVerify) {
         this.gitUrl = gitUrl;
         this.branch = branch;
         this.dir = dir;
+        this.sslVerify = sslVerify;
     }
 
     public String getGitUrl() {
