@@ -46,7 +46,7 @@ class GitlabWebHookWebsiteChangeTest {
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
 
-        OperatorServiceTest.setupServerAdvanced(mockServer);
+        OperatorServiceTest.setupMockServer(mockServer);
 
         mockServer.expect()
                 .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-dev")
@@ -54,6 +54,12 @@ class GitlabWebHookWebsiteChangeTest {
         mockServer.expect()
                 .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-prod")
                 .andReturn(200, new DeploymentSpecBuilder().build()).always();
+
+        // TODO: Correctly return deployment
+//        mockServer.expect()
+//                .get().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-dev")
+//                .andReturn(200, new DeploymentSpecBuilder().build()).always();
+        // And test if redeploy happened
 
         websiteConfigService.setConfigDir(Optional.of(OperatorServiceTest.GIT_EXAMPLES_CONFIG_SIMPLE));
         operatorService.initServices(OperatorServiceTest.GIT_EXAMPLES_URL, OperatorServiceTest.GIT_EXAMPLES_BRANCH);

@@ -46,7 +46,7 @@ class GitlabWebHookStaticUpdateTest {
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
 
-        OperatorServiceTest.setupServerAdvanced(mockServer);
+        OperatorServiceTest.setupMockServer(mockServer);
         websiteConfigService.setConfigDir(Optional.of(OperatorServiceTest.GIT_EXAMPLES_CONFIG_SIMPLE));
         operatorService.initServices(OperatorServiceTest.GIT_EXAMPLES_URL, OperatorServiceTest.GIT_EXAMPLES_BRANCH);
 

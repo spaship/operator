@@ -34,7 +34,7 @@ public class OperatorServiceTest {
 
     @Test
     public void testSimpleExample() throws Exception {
-        setupServerAdvanced(mockServer);
+        setupMockServer(mockServer);
         websiteConfigService.setConfigDir(Optional.of(GIT_EXAMPLES_CONFIG_SIMPLE));
         operatorService.initServices(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH);
     }
@@ -42,12 +42,12 @@ public class OperatorServiceTest {
 
     @Test
     public void testAdvancedExample() throws Exception {
-        setupServerAdvanced(mockServer);
+        setupMockServer(mockServer);
         websiteConfigService.setConfigDir(Optional.of(GIT_EXAMPLES_CONFIG_ADVANCED));
         operatorService.initServices(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH);
     }
 
-    public static void setupServerAdvanced(KubernetesMockServer mockServer) throws Exception {
+    public static void setupMockServer(KubernetesMockServer mockServer) throws Exception {
         mockServer.expect()
                 .post().withPath("/api/v1/namespaces/websitecd-examples/configmaps")
                 .andReturn(200, new ConfigMapBuilder().build())
