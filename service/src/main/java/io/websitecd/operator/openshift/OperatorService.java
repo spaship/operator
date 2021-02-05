@@ -55,7 +55,7 @@ public class OperatorService {
         try {
             websiteConfigService.cloneRepo(website);
 
-            processConfig(gitUrl, false, true, website.getMetadata().getNamespace());
+            processConfig(website, false, true);
         } catch (Exception e) {
             log.error("Cannot init core services for gitUrl=" + gitUrl, e);
             throw e;
@@ -69,8 +69,11 @@ public class OperatorService {
         return env.getNamespace().equals(namespace);
     }
 
-    public void processConfig(String gitUrl, boolean redeploy, boolean createClients, String namespace) {
-        WebsiteConfig config = websiteConfigService.getConfig(gitUrl);
+    public void processConfig(Website website, boolean redeploy, boolean createClients) {
+        WebsiteConfig config = websiteConfigService.getConfig(website);
+        String namespace = website.getMetadata().getNamespace();
+
+        String gitUrl = website.getSpec().getGitUrl();
         Map<String, Environment> envs = config.getEnvs();
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
             String env = envEntry.getKey();

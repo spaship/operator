@@ -74,30 +74,25 @@ public class GitlabWebHookListener {
         boolean rollout = false;
         resultObject.put("status", "SUCCESS").put("components", new JsonArray());
 
+        WebsiteConfig websiteConfig = websiteConfigService.getConfig(website);
         if (isWebsite && isRolloutNeeded(event, websiteYamlName)) {
-            WebsiteConfig oldConfig = websiteConfigService.getConfig(gitUrl);
             try {
-                WebsiteConfig newConfig = websiteConfigService.updateRepo(gitUrl);
-                if (WebsiteController.deploymentChanged(oldConfig, newConfig)) {
-                    operatorService.processConfig(gitUrl, true, false, null);
+                WebsiteConfig newConfig = websiteConfigService.updateRepo(website);
+                if (WebsiteController.deploymentChanged(websiteConfig, newConfig)) {
+                    operatorService.processConfig(website, true, false);
                     rollout = true;
                     resultObject.put("website", new JsonObject().put("name", newConfig.getWebsiteName()).put("gitUrl", gitUrl));
                 }
+                websiteConfig = newConfig;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
-
         List<Publisher<JsonObject>> updates = new ArrayList<>();
-        for (Map.Entry<String, WebsiteConfig> configEntry : websiteConfigService.getWebsites().entrySet()) {
-            if (rollout && StringUtils.equals(configEntry.getKey(), gitUrl)) {
-                log.debugf("component is already covered by rolling update. going to next component. ");
-                continue;
-            }
-            WebsiteConfig config = configEntry.getValue();
-            Map<String, Environment> envs = config.getEnvs();
+        if (!rollout) {
+            Map<String, Environment> envs = websiteConfig.getEnvs();
             for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
-                if (!operatorService.isEnvEnabled(envEntry.getValue(), null)) {
+                if (!operatorService.isEnvEnabled(envEntry.getValue(), website.getMetadata().getNamespace())) {
                     log.debugf("Env is not enabled");
                     continue;
                 }
@@ -105,6 +100,7 @@ public class GitlabWebHookListener {
                 updates.add(update);
             }
         }
+
         Multi<JsonObject> merged = Multi.createBy().merging().streams(updates);
 
         Uni<JsonObject> result = merged.collectItems()

@@ -126,13 +126,12 @@ public class WebsiteController {
         log.infof("Website modified, resource=%s", resource);
         websiteRepository.addWebsite(resource);
 
-        String namespace = resource.getMetadata().getNamespace();
         String gitUrl = resource.getSpec().getGitUrl();
-        WebsiteConfig oldConfig = websiteConfigService.getConfig(gitUrl);
+        WebsiteConfig oldConfig = websiteConfigService.getConfig(resource);
         try {
-            WebsiteConfig newConfig = websiteConfigService.updateRepo(gitUrl);
+            WebsiteConfig newConfig = websiteConfigService.updateRepo(resource);
             if (WebsiteController.deploymentChanged(oldConfig, newConfig)) {
-                operatorService.processConfig(gitUrl, true, false, namespace);
+                operatorService.processConfig(resource, true, false);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

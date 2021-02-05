@@ -70,12 +70,22 @@ public class WebsiteConfigService {
         if (applied > 0) {
             log.infof("git url set for %s components", applied);
         }
-        log.infof("Registering config under gitUrl=%s", gitUrl);
-        websites.put(gitUrl, config);
+        registerWebsiteConfig(website, config);
         return config;
     }
 
-    public WebsiteConfig updateRepo(String gitUrl) throws GitAPIException, IOException {
+    private void registerWebsiteConfig(Website website, WebsiteConfig config) {
+        String id = createWebsiteConfigId(website);
+        log.infof("Registering config under id=%s", id);
+        websites.put(id, config);
+    }
+
+    public String createWebsiteConfigId(Website website) {
+        return website.getMetadata().getNamespace() + "-" + website.getMetadata().getName() + "-" + website.getSpec().getGitUrl();
+    }
+
+    public WebsiteConfig updateRepo(Website website) throws GitAPIException, IOException {
+        String gitUrl = website.getSpec().getGitUrl();
         GitInfo gitInfo = repos.get(gitUrl);
         File gitDir = new File(gitInfo.getDir());
         PullResult pullResult = Git.open(gitDir).pull().setRemoteBranchName(gitInfo.getBranch()).call();
@@ -91,8 +101,7 @@ public class WebsiteConfigService {
         if (applied > 0) {
             log.infof("git url set for %s components", applied);
         }
-        log.infof("Updating config under gitUrl=%s", gitUrl);
-        websites.put(gitUrl, config);
+        registerWebsiteConfig(website, config);
         return config;
     }
 
@@ -145,8 +154,8 @@ public class WebsiteConfigService {
         return false;
     }
 
-    public WebsiteConfig getConfig(String gitUrl) {
-        return websites.get(gitUrl);
+    public WebsiteConfig getConfig(Website website) {
+        return websites.get(createWebsiteConfigId(website));
     }
 
     public Map<String, WebsiteConfig> getWebsites() {
