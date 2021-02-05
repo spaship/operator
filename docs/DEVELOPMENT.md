@@ -24,7 +24,7 @@ Add this repository to pom.xml: `https://repository.jboss.org/nexus/content/repo
 
 ```shell
 minikube config set driver hyperkit
-minikube start --addons ingress,dashboard
+minikube start --addons ingress,dashboard --cpus 4 --memory 8192
 minikube dashboard
 # tunnel not needed if using /etc/hosts bellow
 # minikube tunnel
