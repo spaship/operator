@@ -111,7 +111,6 @@ public class WebsiteController {
     public void websiteAdded(Website resource) {
         log.infof("Website added, resource=%s", resource);
 
-
         try {
             operatorService.initServices(resource.getSpec(), resource.getMetadata().getNamespace());
         } catch (Exception e) {

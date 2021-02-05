@@ -47,19 +47,12 @@ public class OperatorService {
     public void initServices(WebsiteSpec websiteSpec) throws IOException, GitAPIException, URISyntaxException {
         initServices(websiteSpec, null);
     }
+
     public void initServices(WebsiteSpec websiteSpec, String namespace) throws IOException, GitAPIException, URISyntaxException {
-        initServices(websiteSpec.getGitUrl(), websiteSpec.getBranch(), namespace);
-    }
-
-    public void initServices(String gitUrl, String branch) throws IOException, GitAPIException, URISyntaxException {
-        initServices(gitUrl, branch, null);
-    }
-
-    public void initServices(String gitUrl, String branch, String namespace) throws IOException, GitAPIException, URISyntaxException {
         log.infof("Init service. openshift_url=%s", client.getOpenshiftUrl());
 
+        String gitUrl = websiteSpec.getGitUrl();
         try {
-            WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl, branch, null);
             websiteConfigService.cloneRepo(websiteSpec);
 
             processConfig(gitUrl, false, true, namespace);

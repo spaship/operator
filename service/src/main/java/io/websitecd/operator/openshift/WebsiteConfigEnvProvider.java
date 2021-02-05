@@ -2,6 +2,7 @@ package io.websitecd.operator.openshift;
 
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
+import io.websitecd.operator.crd.WebsiteSpec;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -20,6 +21,9 @@ public class WebsiteConfigEnvProvider {
 
     @ConfigProperty(name = "website.branch")
     Optional<String> branch;
+
+    @ConfigProperty(name = "website.config.dir")
+    Optional<String> configDir;
 
     @ConfigProperty(name = "app.operator.provider.env.delay")
     protected long initDelay;
@@ -41,11 +45,13 @@ public class WebsiteConfigEnvProvider {
             log.infof("No Git URL Defined in env variable. Skipping");
             return;
         }
-        log.infof("Registering INIT EnvProvider with delay=%s", initDelay);
+        // TODO validate input values
+        WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.get(), configDir.orElse(null));
+        log.infof("Registering INIT EnvProvider with delay=%s website=%s", initDelay, websiteSpec);
         vertx.setTimer(initDelay, e -> {
             vertx.executeBlocking(future -> {
                 try {
-                    operatorService.initServices(gitUrl.get(), branch.get(), namespace.get());
+                    operatorService.initServices(websiteSpec, namespace.get());
                 } catch (Exception ex) {
                     future.fail(ex);
                 }

@@ -1,7 +1,7 @@
 apiVersion: websitecd.io/v1
 kind: Website
 metadata:
-  name: simple
+  name: advanced
 spec:
   gitUrl: https://github.com/websitecd/websitecd-examples.git
   branch: main

@@ -16,7 +16,6 @@ import io.websitecd.operator.openshift.WebsiteConfigService;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
@@ -61,8 +60,7 @@ class GitlabWebHookWebsiteChangeTest {
 //                .andReturn(200, new DeploymentSpecBuilder().build()).always();
         // And test if redeploy happened
 
-        websiteConfigService.setConfigDir(Optional.of(OperatorServiceTest.GIT_EXAMPLES_CONFIG_SIMPLE));
-        operatorService.initServices(OperatorServiceTest.GIT_EXAMPLES_URL, OperatorServiceTest.GIT_EXAMPLES_BRANCH);
+        operatorService.initServices(OperatorServiceTest.SIMPLE_WEB);
 
         given()
                 .header("Content-type", "application/json")

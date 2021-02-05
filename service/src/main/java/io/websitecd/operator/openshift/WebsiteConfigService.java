@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @ApplicationScoped
 public class WebsiteConfigService {
@@ -31,9 +30,6 @@ public class WebsiteConfigService {
 
 
     String workDir = System.getProperty("user.dir");
-
-    @ConfigProperty(name = "app.operator.website.config.dir")
-    Optional<String> configDir;
 
     @ConfigProperty(name = "app.operator.website.config.filenames")
     String[] configFilename;
@@ -67,9 +63,9 @@ public class WebsiteConfigService {
         } else {
             log.infof("Website config already cloned. skipping dir=%s", gitDir);
         }
-        repos.put(gitUrl, new GitInfo(branch, gitDir.getAbsolutePath()));
+        repos.put(gitUrl, new GitInfo(branch, gitDir.getAbsolutePath(), website.getDir()));
 
-        File configFile = getWebsiteConfigPath(gitDir);
+        File configFile = getWebsiteConfigPath(gitDir, website.getDir());
         WebsiteConfig config = loadConfig(configFile);
         int applied = OperatorConfigUtils.applyDefaultGirUrl(config, gitUrl);
         if (applied > 0) {
@@ -90,7 +86,7 @@ public class WebsiteConfigService {
         FetchResult fetchResult = pullResult.getFetchResult();
         log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, fetchResult.getMessages());
 
-        File configFile = getWebsiteConfigPath(gitDir);
+        File configFile = getWebsiteConfigPath(gitDir, gitInfo.getConfigDir());
         WebsiteConfig config = loadConfig(configFile);
         int applied = OperatorConfigUtils.applyDefaultGirUrl(config, gitUrl);
         if (applied > 0) {
@@ -110,11 +106,11 @@ public class WebsiteConfigService {
         }
     }
 
-    public File getWebsiteConfigPath(File baseDir) {
-        if (getConfigDir().isEmpty()) {
+    public File getWebsiteConfigPath(File baseDir, String configDir) {
+        if (StringUtils.isEmpty(configDir)) {
             return getWebsiteFile(baseDir);
         } else {
-            return getWebsiteFile(new File(baseDir.getAbsolutePath(), getConfigDir().get()));
+            return getWebsiteFile(new File(baseDir.getAbsolutePath(), configDir));
         }
     }
 
@@ -161,10 +157,12 @@ public class WebsiteConfigService {
     public static class GitInfo {
         String branch;
         String dir;
+        String configDir;
 
-        public GitInfo(String branch, String dir) {
+        public GitInfo(String branch, String dir, String configDir) {
             this.branch = branch;
             this.dir = dir;
+            this.configDir = configDir;
         }
 
         public String getBranch() {
@@ -174,13 +172,10 @@ public class WebsiteConfigService {
         public String getDir() {
             return dir;
         }
+
+        public String getConfigDir() {
+            return configDir;
+        }
     }
 
-    public Optional<String> getConfigDir() {
-        return configDir;
-    }
-
-    public void setConfigDir(Optional<String> configDir) {
-        this.configDir = configDir;
-    }
 }

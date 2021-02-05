@@ -8,10 +8,10 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.quarkus.test.kubernetes.client.MockServer;
+import io.websitecd.operator.crd.WebsiteSpec;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.util.Optional;
 
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
@@ -29,22 +29,23 @@ public class OperatorServiceTest {
 
     public static final String GIT_EXAMPLES_URL = "https://github.com/websitecd/websitecd-examples.git";
     public static final String GIT_EXAMPLES_BRANCH = "main";
-    public static final String GIT_EXAMPLES_CONFIG_ADVANCED = "websites/02-advanced";
     public static final String GIT_EXAMPLES_CONFIG_SIMPLE = "websites/01-simple";
+    public static final String GIT_EXAMPLES_CONFIG_ADVANCED = "websites/02-advanced";
+
+    public static WebsiteSpec SIMPLE_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_SIMPLE);
+    public static WebsiteSpec ADVANCED_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_ADVANCED);
 
     @Test
     public void testSimpleExample() throws Exception {
         setupMockServer(mockServer);
-        websiteConfigService.setConfigDir(Optional.of(GIT_EXAMPLES_CONFIG_SIMPLE));
-        operatorService.initServices(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH);
+        operatorService.initServices(SIMPLE_WEB);
     }
 
 
     @Test
     public void testAdvancedExample() throws Exception {
         setupMockServer(mockServer);
-        websiteConfigService.setConfigDir(Optional.of(GIT_EXAMPLES_CONFIG_ADVANCED));
-        operatorService.initServices(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH);
+        operatorService.initServices(ADVANCED_WEB);
     }
 
     public static void setupMockServer(KubernetesMockServer mockServer) throws Exception {

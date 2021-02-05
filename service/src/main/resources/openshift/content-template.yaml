@@ -101,7 +101,7 @@ objects:
               imagePullPolicy: IfNotPresent
               resources:
                 requests:
-                  cpu: 100m
+                  cpu: 10m
                   memory: 100Mi
                 limits:
                   cpu: 100m

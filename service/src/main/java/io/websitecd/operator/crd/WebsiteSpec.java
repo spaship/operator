@@ -64,7 +64,6 @@ public class WebsiteSpec {
         sb.append(", branch='").append(branch).append('\'');
         sb.append(", dir='").append(dir).append('\'');
         sb.append(", sslVerify='").append(sslVerify).append('\'');
-        sb.append(", webhookSecret='").append(webhookSecret).append('\'');
         sb.append('}');
         return sb.toString();
     }
