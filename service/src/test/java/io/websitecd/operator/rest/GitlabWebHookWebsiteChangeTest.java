@@ -10,9 +10,7 @@ import io.quarkus.test.kubernetes.client.MockServer;
 import io.vertx.core.Vertx;
 import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.content.ContentController;
-import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.openshift.OperatorServiceTest;
-import io.websitecd.operator.openshift.WebsiteConfigService;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
@@ -24,16 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTest
 @TestHTTPEndpoint(WebHookResource.class)
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class GitlabWebHookWebsiteChangeTest {
+class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
 
     @MockServer
     KubernetesMockServer mockServer;
-
-    @Inject
-    OperatorService operatorService;
-
-    @Inject
-    WebsiteConfigService websiteConfigService;
 
     @Inject
     ContentController contentController;
@@ -60,11 +52,12 @@ class GitlabWebHookWebsiteChangeTest {
 //                .andReturn(200, new DeploymentSpecBuilder().build()).always();
         // And test if redeploy happened
 
-        operatorService.initServices(OperatorServiceTest.SIMPLE_WEB);
+        registerSimpleWeb();
 
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET)
                 .body(GitlabWebHookWebsiteChangeTest.class.getResourceAsStream("/gitlab-push-website-changed.json"))
                 .when().post()
                 .then()

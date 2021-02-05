@@ -8,6 +8,6 @@ data:
   APP_OPERATOR_WEBSITE_DOMAIN: 'minikube.info'
   WEBSITE_GITURL: 'https://github.com/websitecd/websitecd-examples.git'
   WEBSITE_BRANCH: 'main'
-  APP_OPERATOR_WEBSITE_CONFIG_DIR: 'websites/02-advanced'
+  WEBSITE_CONFIG_DIR: 'websites/02-advanced'
+  WEBSITE_WEBHOOK_SECRET: 'CHANGEIT'
   APP_OPERATOR_WEBSITE_CONFIG_SSLVERIFY: 'true'
-  APP_OPERATOR_WEBSITE_WEBHOOK_SECRET: 'CHANGEIT'

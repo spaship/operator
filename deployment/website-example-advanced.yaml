@@ -7,3 +7,4 @@ spec:
   branch: main
   dir: websites/02-advanced
 #  sslVerify: false
+  webhookSecret: TOKENADVANCED

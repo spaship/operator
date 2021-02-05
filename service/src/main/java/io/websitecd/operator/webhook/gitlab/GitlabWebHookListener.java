@@ -9,10 +9,13 @@ import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.controller.WebsiteController;
+import io.websitecd.operator.controller.WebsiteRepository;
+import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.openshift.WebsiteConfigService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.webhook.Event;
 import org.gitlab4j.api.webhook.EventCommit;
 import org.gitlab4j.api.webhook.PushEvent;
@@ -36,6 +39,9 @@ public class GitlabWebHookListener {
     WebsiteConfigService websiteConfigService;
 
     @Inject
+    WebsiteRepository websiteRepository;
+
+    @Inject
     OperatorService operatorService;
 
     @Inject
@@ -44,23 +50,25 @@ public class GitlabWebHookListener {
     @ConfigProperty(name = "app.operator.website.config.filenames")
     String[] websiteYamlName;
 
-    public Uni<JsonObject> onPushEvent(PushEvent pushEvent) {
+    public Uni<JsonObject> onPushEvent(PushEvent pushEvent) throws GitLabApiException {
         String gitUrl = pushEvent.getRepository().getGit_http_url();
         return handleEvent(gitUrl, pushEvent);
     }
 
-    public Uni<JsonObject> onTagPushEvent(TagPushEvent tagPushEvent) {
+    public Uni<JsonObject> onTagPushEvent(TagPushEvent tagPushEvent) throws GitLabApiException {
         String gitUrl = tagPushEvent.getRepository().getGit_http_url();
         return handleEvent(gitUrl, tagPushEvent);
     }
 
     public Uni<JsonObject> handleEvent(String gitUrl, Event event) {
-        boolean isWebsite = websiteConfigService.isKnownWebsite(gitUrl);
-        boolean isComponent = websiteConfigService.isKnownComponent(gitUrl);
+        Website website = websiteRepository.getByGitUrl(gitUrl, event.getRequestSecretToken());
+//        boolean isComponent = websiteConfigService.isKnownComponent(gitUrl);
         JsonObject resultObject = new JsonObject();
-        if (!isWebsite || !isComponent) {
-            log.infof("git url unknown. ignoring. gitUrl=%s", gitUrl);
-            return Uni.createFrom().item(resultObject.put("status", "IGNORED").put("reason", "git url unknown"));
+
+        boolean isWebsite = website != null;
+        if (website == null) {
+            log.infof("website with given gitUrl and token not found. ignoring. gitUrl=%s", gitUrl);
+            return Uni.createFrom().item(resultObject.put("status", "IGNORED").put("reason", "pair git url and token unknown"));
         }
 
         boolean rollout = false;

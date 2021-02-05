@@ -39,6 +39,9 @@ public class WebsiteController {
     @Inject
     WebsiteConfigService websiteConfigService;
 
+    @Inject
+    WebsiteRepository websiteRepository;
+
     @ConfigProperty(name = "app.operator.provider.crd.enabled")
     boolean crdEnabled;
 
@@ -112,6 +115,8 @@ public class WebsiteController {
         log.infof("Website added, resource=%s", resource);
 
         try {
+            websiteRepository.addWebsite(resource);
+
             operatorService.initServices(resource.getSpec(), resource.getMetadata().getNamespace());
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -120,6 +125,8 @@ public class WebsiteController {
 
     public void websiteModified(Website resource) {
         log.infof("Website modified, resource=%s", resource);
+        websiteRepository.addWebsite(resource);
+
         String namespace = resource.getMetadata().getNamespace();
         String gitUrl = resource.getSpec().getGitUrl();
         WebsiteConfig oldConfig = websiteConfigService.getConfig(gitUrl);

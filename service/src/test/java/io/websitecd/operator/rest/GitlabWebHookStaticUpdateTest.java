@@ -10,9 +10,7 @@ import io.restassured.http.ContentType;
 import io.vertx.core.Vertx;
 import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.content.ContentController;
-import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.openshift.OperatorServiceTest;
-import io.websitecd.operator.openshift.WebsiteConfigService;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
@@ -24,16 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTest
 @TestHTTPEndpoint(WebHookResource.class)
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class GitlabWebHookStaticUpdateTest {
+class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
 
     @MockServer
     KubernetesMockServer mockServer;
-
-    @Inject
-    OperatorService operatorService;
-
-    @Inject
-    WebsiteConfigService websiteConfigService;
 
     @Inject
     ContentController contentController;
@@ -46,11 +38,13 @@ class GitlabWebHookStaticUpdateTest {
         vertx.deployVerticle(apiMock);
 
         OperatorServiceTest.setupMockServer(mockServer);
-        operatorService.initServices(OperatorServiceTest.SIMPLE_WEB);
+
+        registerSimpleWeb();
 
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET)
                 .body(GitlabWebHookStaticUpdateTest.class.getResourceAsStream("/gitlab-push.json"))
                 .when().post()
                 .then()

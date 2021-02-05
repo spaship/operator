@@ -5,6 +5,7 @@ import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
+import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.WebsiteSpec;
 import io.websitecd.operator.router.IngressController;
 import io.websitecd.operator.router.RouterController;
@@ -42,6 +43,9 @@ public class OperatorService {
 
     @Inject
     DefaultOpenShiftClient client;
+
+    @Inject
+    WebsiteRepository websiteRepository;
 
 
     public void initServices(WebsiteSpec websiteSpec) throws IOException, GitAPIException, URISyntaxException {

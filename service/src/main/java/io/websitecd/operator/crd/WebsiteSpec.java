@@ -11,11 +11,12 @@ public class WebsiteSpec {
     public WebsiteSpec() {
     }
 
-    public WebsiteSpec(String gitUrl, String branch, String dir, Boolean sslVerify) {
+    public WebsiteSpec(String gitUrl, String branch, String dir, Boolean sslVerify, String webhookSecret) {
         this.gitUrl = gitUrl;
         this.branch = branch;
         this.dir = dir;
         this.sslVerify = sslVerify;
+        this.webhookSecret = webhookSecret;
     }
 
     public String getGitUrl() {

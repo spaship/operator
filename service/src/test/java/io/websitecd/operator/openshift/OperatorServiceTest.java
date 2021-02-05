@@ -31,9 +31,10 @@ public class OperatorServiceTest {
     public static final String GIT_EXAMPLES_BRANCH = "main";
     public static final String GIT_EXAMPLES_CONFIG_SIMPLE = "websites/01-simple";
     public static final String GIT_EXAMPLES_CONFIG_ADVANCED = "websites/02-advanced";
+    public static final String SECRET = "testsecret";
 
-    public static WebsiteSpec SIMPLE_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_SIMPLE, true);
-    public static WebsiteSpec ADVANCED_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_ADVANCED, true);
+    public static WebsiteSpec SIMPLE_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_SIMPLE, true, SECRET);
+    public static WebsiteSpec ADVANCED_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_ADVANCED, true, SECRET);
 
     @Test
     public void testSimpleExample() throws Exception {

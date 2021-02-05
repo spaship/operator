@@ -7,12 +7,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.quarkus.test.kubernetes.client.MockServer;
 import io.restassured.http.ContentType;
-import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.openshift.OperatorServiceTest;
-import io.websitecd.operator.openshift.WebsiteConfigService;
 import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
@@ -20,25 +16,20 @@ import static org.hamcrest.Matchers.is;
 @QuarkusTest
 @TestHTTPEndpoint(WebHookResource.class)
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class GitlabWebHookGitUrlUnknownTest {
+class GitlabWebHookGitUrlUnknownTest extends GitlabWebhookTestCommon {
 
     @MockServer
     KubernetesMockServer mockServer;
 
-    @Inject
-    OperatorService operatorService;
-
-    @Inject
-    WebsiteConfigService websiteConfigService;
-
     @Test
     public void ignoredGitUrl() throws Exception {
         OperatorServiceTest.setupMockServer(mockServer);
-        operatorService.initServices(OperatorServiceTest.SIMPLE_WEB);
+        registerSimpleWeb();
 
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET)
                 .body(GitlabWebHookGitUrlUnknownTest.class.getResourceAsStream("/gitlab-push-giturl-unknown.json"))
                 .when().post()
                 .then()

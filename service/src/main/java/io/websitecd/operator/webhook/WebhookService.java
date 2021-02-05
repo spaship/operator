@@ -6,17 +6,14 @@ import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.webhook.gitlab.GitlabWebHookManager;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.gitlab4j.api.GitLabApiException;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.ForbiddenException;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @ApplicationScoped
 public class WebhookService {
@@ -30,10 +27,6 @@ public class WebhookService {
     @Inject
     GitlabWebHookManager gitlabWebHookManager;
 
-    @ConfigProperty(name = "app.operator.website.webhook.secret")
-    Optional<String> webhookSecret;
-
-
     public GIT_PROVIDER gitProvider(HttpRequest request) {
         List<String> eventName = request.getHttpHeaders().getRequestHeader("X-Gitlab-Event");
         log.tracef("X-Gitlab-Event=%s", eventName);
@@ -46,16 +39,9 @@ public class WebhookService {
     public Uni<JsonObject> handleGitlab(HttpRequest request, String data) throws GitAPIException, IOException, GitLabApiException {
         String secretToken = getHeader(request, "X-Gitlab-Token");
 
-        if (webhookSecret.isPresent()) {
-            if (StringUtils.isEmpty(secretToken)) {
-                log.warn("X-Gitlab-Token is missing!");
-                throw new UnauthorizedException("X-Gitlab-Token missing");
-            }
-
-            if (!StringUtils.equals(secretToken, webhookSecret.get())) {
-                log.warn("X-Gitlab-Token is not valid!");
-                throw new ForbiddenException("X-Gitlab-Token not valid");
-            }
+        if (StringUtils.isEmpty(secretToken)) {
+            log.warn("X-Gitlab-Token is missing!");
+            throw new UnauthorizedException("X-Gitlab-Token missing");
         }
 
         return gitlabWebHookManager.handleRequest(request, data);

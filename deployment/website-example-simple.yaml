@@ -7,3 +7,4 @@ spec:
   branch: main
   dir: websites/01-simple
 #  sslVerify: false
+  webhookSecret: TOKENSIMPLE
