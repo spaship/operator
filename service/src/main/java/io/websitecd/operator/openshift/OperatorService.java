@@ -6,7 +6,7 @@ import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.controller.WebsiteRepository;
-import io.websitecd.operator.crd.WebsiteSpec;
+import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.router.IngressController;
 import io.websitecd.operator.router.RouterController;
 import org.apache.commons.lang3.StringUtils;
@@ -48,18 +48,14 @@ public class OperatorService {
     WebsiteRepository websiteRepository;
 
 
-    public void initServices(WebsiteSpec websiteSpec) throws IOException, GitAPIException, URISyntaxException {
-        initServices(websiteSpec, null);
-    }
-
-    public void initServices(WebsiteSpec websiteSpec, String namespace) throws IOException, GitAPIException, URISyntaxException {
+    public void initServices(Website website) throws IOException, GitAPIException, URISyntaxException {
         log.infof("Init service. openshift_url=%s", client.getOpenshiftUrl());
 
-        String gitUrl = websiteSpec.getGitUrl();
+        String gitUrl = website.getSpec().getGitUrl();
         try {
-            websiteConfigService.cloneRepo(websiteSpec);
+            websiteConfigService.cloneRepo(website);
 
-            processConfig(gitUrl, false, true, namespace);
+            processConfig(gitUrl, false, true, website.getMetadata().getNamespace());
         } catch (Exception e) {
             log.error("Cannot init core services for gitUrl=" + gitUrl, e);
             throw e;

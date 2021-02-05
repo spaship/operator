@@ -116,8 +116,7 @@ public class WebsiteController {
 
         try {
             websiteRepository.addWebsite(resource);
-
-            operatorService.initServices(resource.getSpec(), resource.getMetadata().getNamespace());
+            operatorService.initServices(resource);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

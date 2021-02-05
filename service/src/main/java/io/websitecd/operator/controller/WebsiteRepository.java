@@ -13,9 +13,10 @@ public class WebsiteRepository {
 
     private Map<String, Website> websites = new HashMap<>();
 
-    public void addWebsite(Website website) {
+    public Website addWebsite(Website website) {
         String id = createId(website.getMetadata().getNamespace(), website.getMetadata().getName());
         websites.put(id, website);
+        return website;
     }
 
     public Website getWebsite(String id) {
@@ -26,9 +27,9 @@ public class WebsiteRepository {
         return namespace + "-" + name;
     }
 
-    public Website createWebsite(String name, WebsiteSpec websiteSpec) {
+    public static Website createWebsite(String name, WebsiteSpec websiteSpec, String namespace) {
         Website website = new Website();
-        website.setMetadata(new ObjectMetaBuilder().withName(name).build());
+        website.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
         website.setSpec(websiteSpec);
 
         return website;

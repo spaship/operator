@@ -8,45 +8,29 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.quarkus.test.kubernetes.client.MockServer;
-import io.websitecd.operator.crd.WebsiteSpec;
+import io.websitecd.operator.rest.GitlabWebhookTestCommon;
 import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
 
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-public class OperatorServiceTest {
+public class OperatorServiceTest extends GitlabWebhookTestCommon {
 
 
     @MockServer
     KubernetesMockServer mockServer;
 
-    @Inject
-    OperatorService operatorService;
-
-    @Inject
-    WebsiteConfigService websiteConfigService;
-
-    public static final String GIT_EXAMPLES_URL = "https://github.com/websitecd/websitecd-examples.git";
-    public static final String GIT_EXAMPLES_BRANCH = "main";
-    public static final String GIT_EXAMPLES_CONFIG_SIMPLE = "websites/01-simple";
-    public static final String GIT_EXAMPLES_CONFIG_ADVANCED = "websites/02-advanced";
-    public static final String SECRET = "testsecret";
-
-    public static WebsiteSpec SIMPLE_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_SIMPLE, true, SECRET);
-    public static WebsiteSpec ADVANCED_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_ADVANCED, true, SECRET);
 
     @Test
     public void testSimpleExample() throws Exception {
         setupMockServer(mockServer);
-        operatorService.initServices(SIMPLE_WEB);
+        registerSimpleWeb();
     }
 
 
     @Test
     public void testAdvancedExample() throws Exception {
         setupMockServer(mockServer);
-        operatorService.initServices(ADVANCED_WEB);
+        registerAdvancedWeb();
     }
 
     public static void setupMockServer(KubernetesMockServer mockServer) throws Exception {

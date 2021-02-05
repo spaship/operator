@@ -59,14 +59,15 @@ public class WebsiteConfigEnvProvider {
         }
         // TODO validate input values
         WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.get(), configDir.orElse(null), sslVerify.orElse(true), secret.get());
-        Website website = websiteRepository.createWebsite(websiteName.get(), websiteSpec);
+        Website website = WebsiteRepository.createWebsite(websiteName.get(), websiteSpec, namespace.get());
+
         websiteRepository.addWebsite(website);
 
         log.infof("Registering INIT EnvProvider with delay=%s website=%s", initDelay, websiteSpec);
         vertx.setTimer(initDelay, e -> {
             vertx.executeBlocking(future -> {
                 try {
-                    operatorService.initServices(websiteSpec, namespace.get());
+                    operatorService.initServices(website);
                 } catch (Exception ex) {
                     future.fail(ex);
                 }

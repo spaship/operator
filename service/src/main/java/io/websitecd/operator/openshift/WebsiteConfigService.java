@@ -3,6 +3,7 @@ package io.websitecd.operator.openshift;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
+import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
@@ -38,17 +39,18 @@ public class WebsiteConfigService {
 
     Map<String, GitInfo> repos = new HashMap<>();
 
-    public WebsiteConfig cloneRepo(WebsiteSpec website) throws GitAPIException, IOException, URISyntaxException {
-        log.info("Initializing website config");
-        String gitUrl = website.getGitUrl();
-        String branch = website.getBranch();
+    public WebsiteConfig cloneRepo(Website website) throws GitAPIException, IOException, URISyntaxException {
+        WebsiteSpec websiteSpec = website.getSpec();
+        log.infof("Initializing website config spec=%s", websiteSpec);
+        String gitUrl = websiteSpec.getGitUrl();
+        String branch = websiteSpec.getBranch();
         File gitDir = new File(getGitDirName(workDir, gitUrl));
         if (!gitDir.exists()) {
             Git git = Git.init().setDirectory(gitDir).call();
             git.remoteAdd().setName("origin").setUri(new URIish(gitUrl)).call();
 
             StoredConfig config = git.getRepository().getConfig();
-            config.setBoolean("http", null, "sslVerify", website.getSslVerify());
+            config.setBoolean("http", null, "sslVerify", websiteSpec.getSslVerify());
             config.save();
 
             git.pull().setRemoteBranchName(branch).call();
@@ -60,9 +62,9 @@ public class WebsiteConfigService {
         } else {
             log.infof("Website config already cloned. skipping dir=%s", gitDir);
         }
-        repos.put(gitUrl, new GitInfo(branch, gitDir.getAbsolutePath(), website.getDir()));
+        repos.put(gitUrl, new GitInfo(branch, gitDir.getAbsolutePath(), websiteSpec.getDir()));
 
-        File configFile = getWebsiteConfigPath(gitDir, website.getDir());
+        File configFile = getWebsiteConfigPath(gitDir, websiteSpec.getDir());
         WebsiteConfig config = loadConfig(configFile);
         int applied = OperatorConfigUtils.applyDefaultGirUrl(config, gitUrl);
         if (applied > 0) {
