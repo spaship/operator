@@ -66,11 +66,16 @@ More examples: https://github.com/websitecd/websitecd-examples.git
 
 ## How To Install
 
+Operator:
 ```shell
 kubectl create namespace websitecd
-kubectl create namespace websitecd-examples
-kubectl apply -n websitecd -f deployment/stable/config-example.yaml
 kubectl apply -n websitecd -f deployment/stable/websitecd-kubernetes.yaml
+```
+
+Website:
+```shell
+kubectl create namespace websitecd-examples
+kubectl apply -n websitecd-examples -f deployment/website-example-simple.yaml
 ```
 
 ## Contact
