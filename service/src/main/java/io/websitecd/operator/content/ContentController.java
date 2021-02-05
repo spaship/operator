@@ -49,7 +49,7 @@ public class ContentController {
     String rootPath;
 
     @ConfigProperty(name = "app.content.git.api.host")
-    Optional<String> staticContentHost;
+    Optional<String> contentApiHost;
 
     @ConfigProperty(name = "app.content.git.api.port")
     int staticContentApiPort;
@@ -61,7 +61,12 @@ public class ContentController {
     boolean sslVerify;
 
     public String getContentHost(String env, WebsiteConfig config) {
-        return staticContentHost.orElse(Utils.getWebsiteName(config) + "-content-" + env);
+        if (contentApiHost.isPresent()) {
+            return contentApiHost.get();
+        }
+        String serviceName = Utils.getWebsiteName(config) + "-content-" + env;
+        String namespace = config.getEnvironment(env).getNamespace();
+        return serviceName + "." + namespace + ".svc.cluster.local";
     }
 
     public void createClient(String gitUrl, String env, WebsiteConfig config) {
