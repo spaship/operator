@@ -9,7 +9,6 @@ import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -75,12 +74,8 @@ public class RouterController {
         updateWebsiteInfoRoute(namespace, websiteName, targetEnv, host, config);
     }
 
-    public static IntOrString getIntOrString(String s) {
-        if (NumberUtils.isParsable(s)) {
-            return new IntOrString(NumberUtils.toInt(s));
-        } else {
-            return new IntOrString(s);
-        }
+    public static IntOrString getIntOrString(Integer i) {
+        return new IntOrString(i);
     }
 
     public static String getContentServiceName(String websiteName, String targetEnv) {

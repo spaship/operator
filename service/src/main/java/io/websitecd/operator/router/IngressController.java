@@ -1,8 +1,7 @@
 package io.websitecd.operator.router;
 
-import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1beta1.*;
+import io.fabric8.kubernetes.api.model.networking.v1.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.OperatorConfigUtils;
@@ -16,8 +15,6 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static io.websitecd.operator.router.RouterController.getIntOrString;
 
 @ApplicationScoped
 public class IngressController {
@@ -47,31 +44,37 @@ public class IngressController {
                 continue;
             }
 
-            IngressBackend backend = new IngressBackend();
+            IngressBackendBuilder ingressBackendBuilder = new IngressBackendBuilder();
+
             if (c.isKindGit()) {
-                backend.setServiceName(contentService);
-                backend.setServicePort(new IntOrString("http"));
+                ingressBackendBuilder.withService(new IngressServiceBackendBuilder()
+                        .withName(contentService)
+                        .withPort(new ServiceBackendPortBuilder().withName("http").build())
+                        .build());
             } else if (c.isKindService()) {
-                backend.setServiceName(c.getSpec().getServiceName());
-                backend.setServicePort(getIntOrString(c.getSpec().getTargetPort()));
+                ingressBackendBuilder.withService(new IngressServiceBackendBuilder()
+                        .withName(c.getSpec().getServiceName())
+                        .withPort(new ServiceBackendPortBuilder().withNumber(c.getSpec().getTargetPort()).build())
+                        .build());
             }
 
             HTTPIngressPath path = new HTTPIngressPath();
             path.setPath(context);
             path.setPathType("Prefix");
-            path.setBackend(backend);
+            path.setBackend(ingressBackendBuilder.build());
             paths.add(path);
         }
 
         //websiteinfo
-        IngressBackend backend = new IngressBackend();
-        backend.setServiceName(contentService);
-        backend.setServicePort(new IntOrString("http-api"));
+        IngressBackend contentApibackend = new IngressBackendBuilder().withService(new IngressServiceBackendBuilder()
+                .withName(contentService)
+                .withPort(new ServiceBackendPortBuilder().withName("http-api").build())
+                .build()).build();
 
         HTTPIngressPath path = new HTTPIngressPath();
         path.setPath("/websiteinfo");
         path.setPathType("Prefix");
-        path.setBackend(backend);
+        path.setBackend(contentApibackend);
         paths.add(path);
 
         IngressRule rule = new IngressRuleBuilder().withHost(host).withNewHttp().withPaths(paths).endHttp().build();
@@ -85,7 +88,7 @@ public class IngressController {
         Ingress ingress = builder.build();
         log.infof("Ingress: %s", ingress);
 
-        client.inNamespace(namespace).network().ingress().createOrReplace(ingress);
+        client.inNamespace(namespace).network().v1().ingresses().createOrReplace(ingress);
     }
 
 }

@@ -8,7 +8,7 @@ public class ComponentSpec {
     String branch;
 
     String serviceName;
-    String targetPort;
+    Integer targetPort;
 
     Map<String, String> envs;
 
@@ -44,11 +44,11 @@ public class ComponentSpec {
         this.serviceName = serviceName;
     }
 
-    public String getTargetPort() {
+    public Integer getTargetPort() {
         return targetPort;
     }
 
-    public void setTargetPort(String targetPort) {
+    public void setTargetPort(Integer targetPort) {
         this.targetPort = targetPort;
     }
 

@@ -29,7 +29,7 @@ public class ComponentKindsTest {
         assertEquals(true, config3.isKindService());
         assertEquals(false, config3.isKindGit());
         assertEquals("api", config3.getSpec().getServiceName());
-        assertEquals("80", config3.getSpec().getTargetPort());
+        assertEquals(Integer.valueOf(80), config3.getSpec().getTargetPort());
     }
 
 }
