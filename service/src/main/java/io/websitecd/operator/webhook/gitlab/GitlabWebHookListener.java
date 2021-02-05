@@ -8,6 +8,7 @@ import io.vertx.mutiny.ext.web.client.WebClient;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
+import io.websitecd.operator.controller.WebsiteController;
 import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.openshift.WebsiteConfigService;
 import org.apache.commons.lang3.StringUtils;
@@ -69,8 +70,8 @@ public class GitlabWebHookListener {
             WebsiteConfig oldConfig = websiteConfigService.getConfig(gitUrl);
             try {
                 WebsiteConfig newConfig = websiteConfigService.updateRepo(gitUrl);
-                if (deploymentChanged(oldConfig, newConfig)) {
-                    operatorService.processConfig(gitUrl, true, false);
+                if (WebsiteController.deploymentChanged(oldConfig, newConfig)) {
+                    operatorService.processConfig(gitUrl, true, false, null);
                     rollout = true;
                     resultObject.put("website", new JsonObject().put("name", newConfig.getWebsiteName()).put("gitUrl", gitUrl));
                 }
@@ -88,7 +89,7 @@ public class GitlabWebHookListener {
             WebsiteConfig config = configEntry.getValue();
             Map<String, Environment> envs = config.getEnvs();
             for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
-                if (!operatorService.isEnvEnabled(envEntry.getValue())) {
+                if (!operatorService.isEnvEnabled(envEntry.getValue(), null)) {
                     log.debugf("Env is not enabled");
                     continue;
                 }
@@ -147,11 +148,6 @@ public class GitlabWebHookListener {
             }
         }
         return false;
-    }
-
-    public boolean deploymentChanged(WebsiteConfig oldConfig, WebsiteConfig newConfig) {
-        // TODO: Compare old and new config and consider if deployment has changed
-        return true;
     }
 
 }

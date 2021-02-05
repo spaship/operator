@@ -1,0 +1,9 @@
+apiVersion: websitecd.io/v1
+kind: Website
+metadata:
+  name: simple
+spec:
+  gitUrl: https://github.com/websitecd/websitecd-examples.git
+  branch: main
+  dir: websites/02-advanced
+#  sslVerify: false

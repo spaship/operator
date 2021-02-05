@@ -3,6 +3,7 @@ package io.websitecd.operator.openshift;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
+import io.websitecd.operator.crd.WebsiteSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
@@ -44,8 +45,10 @@ public class WebsiteConfigService {
 
     Map<String, GitInfo> repos = new HashMap<>();
 
-    public WebsiteConfig cloneRepo(String gitUrl, String branch) throws GitAPIException, IOException, URISyntaxException {
+    public WebsiteConfig cloneRepo(WebsiteSpec website) throws GitAPIException, IOException, URISyntaxException {
         log.info("Initializing website config");
+        String gitUrl = website.getGitUrl();
+        String branch = website.getBranch();
         File gitDir = new File(getGitDirName(workDir, gitUrl));
         if (!gitDir.exists()) {
             Git git = Git.init().setDirectory(gitDir).call();
