@@ -26,10 +26,17 @@ Add this repository to pom.xml: `https://repository.jboss.org/nexus/content/repo
 minikube config set driver hyperkit
 minikube start --addons ingress,dashboard
 minikube dashboard
-minikube tunnel
+# tunnel not needed if using /etc/hosts bellow
+# minikube tunnel
 echo "$(minikube ip) minikube.info operator-websitecd.minikube.info simple-dev-websitecd-examples.minikube.info simple-prod-websitecd-examples.minikube.info advanced-dev-websitecd-examples.minikube.info advanced-prod-websitecd-examples.minikube.info" | sudo tee -a /etc/hosts
 
 kubectl create namespace websitecd-examples
+```
+
+### Logs
+
+```shell
+kubectl -n websitecd logs --selector=app=websitecd-operator --tail 10 -f
 ```
 
 ## Local Development
