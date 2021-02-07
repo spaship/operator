@@ -10,9 +10,11 @@ import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
+import io.vertx.core.Vertx;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteList;
+import io.websitecd.operator.crd.WebsiteSpec;
 import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.openshift.WebsiteConfigService;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -45,17 +47,24 @@ public class WebsiteController {
     @ConfigProperty(name = "app.operator.provider.crd.enabled")
     boolean crdEnabled;
 
-    void onStart(@Observes StartupEvent ev) throws IOException {
-        if (crdEnabled) {
-            log.infof("CRD enabled. Going to register CRD");
-            initWebsiteCrd();
-        }
-    }
+    @Inject
+    Vertx vertx;
 
+    private boolean ready = false;
+
+    void onStart(@Observes StartupEvent ev) throws IOException {
+        if (!crdEnabled) {
+            ready = true;
+            return;
+        }
+        log.infof("CRD enabled. Going to register CRD");
+        initWebsiteCrd();
+    }
 
     public void initWebsiteCrd() throws IOException {
         registerCrd();
         watch();
+        ready = true;
     }
 
     public void registerCrd() throws IOException {
@@ -91,13 +100,16 @@ public class WebsiteController {
             @Override
             public void eventReceived(Watcher.Action action, Website resource) {
                 log.debugf("==> %s for %s", action, resource);
-                if (resource.getSpec() == null) {
-                    log.error("No Spec for resource " + resource);
+                WebsiteSpec websiteSpec = resource.getSpec();
+                if (websiteSpec == null) {
+                    log.errorf("No Spec for resource=%s", resource);
                     return;
                 }
                 switch (action) {
                     case ADDED:
+                        // TODO Check if resources are succesfully deployed and anything is needed to be redeployed
                         websiteAdded(resource);
+                        break;
                     case MODIFIED:
                         websiteModified(resource);
                         break;
@@ -126,7 +138,6 @@ public class WebsiteController {
         log.infof("Website modified, resource=%s", resource);
         websiteRepository.addWebsite(resource);
 
-        String gitUrl = resource.getSpec().getGitUrl();
         WebsiteConfig oldConfig = websiteConfigService.getConfig(resource);
         try {
             WebsiteConfig newConfig = websiteConfigService.updateRepo(resource);
@@ -141,6 +152,10 @@ public class WebsiteController {
     public static boolean deploymentChanged(WebsiteConfig oldConfig, WebsiteConfig newConfig) {
         // TODO: Compare old and new config and consider if deployment has changed
         return true;
+    }
+
+    public boolean isReady() {
+        return ready;
     }
 
 }

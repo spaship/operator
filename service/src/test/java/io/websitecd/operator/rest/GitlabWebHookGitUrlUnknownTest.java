@@ -1,11 +1,9 @@
 package io.websitecd.operator.rest;
 
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
-import io.quarkus.test.kubernetes.client.MockServer;
 import io.restassured.http.ContentType;
 import io.websitecd.operator.openshift.OperatorServiceTest;
 import org.junit.jupiter.api.Test;
@@ -18,12 +16,8 @@ import static org.hamcrest.Matchers.is;
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GitlabWebHookGitUrlUnknownTest extends GitlabWebhookTestCommon {
 
-    @MockServer
-    KubernetesMockServer mockServer;
-
     @Test
     public void ignoredGitUrl() throws Exception {
-        OperatorServiceTest.setupMockServer(mockServer);
         registerSimpleWeb();
 
         given()

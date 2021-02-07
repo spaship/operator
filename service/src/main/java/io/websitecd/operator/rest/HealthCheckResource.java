@@ -1,10 +1,18 @@
 package io.websitecd.operator.rest;
 
+import io.websitecd.operator.controller.WebsiteController;
+
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.NoContentException;
+import javax.ws.rs.core.Response;
 
 @Path("/health")
 public class HealthCheckResource {
+
+    @Inject
+    WebsiteController websiteController;
 
     @GET
     @Path("live")
@@ -14,8 +22,11 @@ public class HealthCheckResource {
 
     @GET
     @Path("ready")
-    public String ready() {
-        return "ready";
+    public Response ready() throws NoContentException {
+        if (websiteController.isReady()) {
+            return Response.ok("ready").build();
+        }
+        return Response.noContent().build();
     }
 
 }

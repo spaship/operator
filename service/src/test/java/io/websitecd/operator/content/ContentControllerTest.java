@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
+import io.websitecd.operator.QuarkusTestBase;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import org.junit.Assert;
@@ -22,7 +23,7 @@ import java.util.Map;
 
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class ContentControllerTest {
+class ContentControllerTest extends QuarkusTestBase {
 
     @Inject
     ContentController contentController;

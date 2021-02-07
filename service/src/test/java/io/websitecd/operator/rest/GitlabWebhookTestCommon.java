@@ -1,5 +1,6 @@
 package io.websitecd.operator.rest;
 
+import io.websitecd.operator.QuarkusTestBase;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
@@ -10,7 +11,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-public class GitlabWebhookTestCommon {
+public class GitlabWebhookTestCommon extends QuarkusTestBase {
 
     public static final String GIT_EXAMPLES_URL = "https://github.com/websitecd/websitecd-examples.git";
     public static final String GIT_EXAMPLES_BRANCH = "main";

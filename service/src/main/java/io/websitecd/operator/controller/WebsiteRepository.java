@@ -16,17 +16,12 @@ public class WebsiteRepository {
     private Map<String, Website> websites = new HashMap<>();
 
     public Website addWebsite(Website website) {
-        String id = createId(website.getMetadata().getNamespace(), website.getMetadata().getName());
-        websites.put(id, website);
+        websites.put(website.getId(), website);
         return website;
     }
 
     public Website getWebsite(String id) {
         return websites.get(id);
-    }
-
-    protected String createId(String namespace, String name) {
-        return namespace + "-" + name;
     }
 
     public static Website createWebsite(String name, WebsiteSpec websiteSpec, String namespace) {

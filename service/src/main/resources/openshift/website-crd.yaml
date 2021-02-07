@@ -32,6 +32,10 @@ spec:
                   default: true
                 webhookSecret:
                   type: string
+              required:
+                - gitUrl
+                - branch
+                - webhookSecret
       additionalPrinterColumns:
         - name: Git URL
           type: string

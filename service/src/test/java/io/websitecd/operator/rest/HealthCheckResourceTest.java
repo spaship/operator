@@ -2,6 +2,7 @@ package io.websitecd.operator.rest;
 
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import io.websitecd.operator.QuarkusTestBase;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -9,7 +10,7 @@ import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
 @TestHTTPEndpoint(HealthCheckResource.class)
-class HealthCheckResourceTest {
+class HealthCheckResourceTest extends QuarkusTestBase {
 
     @Test
     void live() {
@@ -22,7 +23,7 @@ class HealthCheckResourceTest {
     }
 
     @Test
-    void ready() {
+    void ready() throws InterruptedException {
         given()
                 .when().get("/ready")
                 .then()

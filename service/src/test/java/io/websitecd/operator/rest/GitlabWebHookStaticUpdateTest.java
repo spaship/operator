@@ -1,11 +1,9 @@
 package io.websitecd.operator.rest;
 
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
-import io.quarkus.test.kubernetes.client.MockServer;
 import io.restassured.http.ContentType;
 import io.vertx.core.Vertx;
 import io.websitecd.operator.ContentApiMock;
@@ -24,9 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
 
-    @MockServer
-    KubernetesMockServer mockServer;
-
     @Inject
     ContentController contentController;
 
@@ -37,8 +32,6 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
 
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
-
-        OperatorServiceTest.setupMockServer(mockServer);
 
         registerSimpleWeb();
 

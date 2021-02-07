@@ -1,5 +1,7 @@
 package io.websitecd.operator.crd;
 
+import java.util.Objects;
+
 public class WebsiteSpec {
 
     String gitUrl;
@@ -68,5 +70,18 @@ public class WebsiteSpec {
         sb.append(", sslVerify='").append(sslVerify).append('\'');
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WebsiteSpec that = (WebsiteSpec) o;
+        return gitUrl.equals(that.gitUrl) && Objects.equals(branch, that.branch) && Objects.equals(dir, that.dir) && Objects.equals(sslVerify, that.sslVerify) && Objects.equals(webhookSecret, that.webhookSecret);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(gitUrl, branch, dir, sslVerify, webhookSecret);
     }
 }
