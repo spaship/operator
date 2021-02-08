@@ -15,7 +15,7 @@ Operator covers common enterprise use cases like:
 
 ## The Simplest Use Case
 
-1. Describe your website and push it into your git repo
+### Step 1 - Describe your website and push it into your git repo
 ```yaml
 apiVersion: 1
 
@@ -44,7 +44,28 @@ components:
       dir: /websites/01-simple/home
 ```
 
-2. Register your git repo in the operator. That's IT!
+### Step 2 - Register your git repo in the operator.
+Create simple `simple-site.yaml`:
+
+```yaml
+apiVersion: websitecd.io/v1
+kind: Website
+metadata:
+  name: simple
+spec:
+  gitUrl: https://github.com/websitecd/websitecd-examples.git
+  branch: main
+  dir: websites/01-simple              # Relative path to your website.yaml
+  webhookSecret: TOKENSIMPLE
+```   
+
+Apply it
+```shell
+kubectl create namespace websitecd-examples
+kubectl apply -n websitecd-examples -f simple-site.yaml
+```   
+
+That's IT!
 
 Operator creates both `dev` and `prod` environment with main `SPA` and `theme` and is ready
 to accept Git webhook events for:
