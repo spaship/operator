@@ -20,7 +20,7 @@ public class MetadataTest {
 
         Map<String, String> metadata = config.getMetadata();
         assertNotNull(metadata);
-        assertEquals("websitename", config.getWebsiteName());
+        assertEquals("value", metadata.get("key"));
     }
 
 }

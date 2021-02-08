@@ -136,7 +136,7 @@ public class GitlabWebHookListener {
                 WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
                 if (WebsiteController.deploymentChanged(websiteConfig, newConfig)) {
                     operatorService.initInfrastructure(website, true, false);
-                    updatedSites.add(new JsonObject().put("name", newConfig.getWebsiteName()).put("namespace", website.getMetadata().getNamespace()));
+                    updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
 
                     websiteRepository.addWebsite(website);
                     website.setConfig(websiteConfig);
