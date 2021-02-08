@@ -78,6 +78,9 @@ public class WebsiteController {
                     case MODIFIED:
                         websiteModified(resource);
                         break;
+                    case DELETED:
+                        websiteDeleted(resource);
+                        break;
                 }
             }
 
@@ -112,6 +115,7 @@ public class WebsiteController {
 
         try {
             WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
+            website.setConfig(newConfig);
             if (WebsiteController.deploymentChanged(oldConfig, newConfig)) {
                 websiteRepository.addWebsite(website);
                 operatorService.initInfrastructure(website, true, false);
@@ -119,7 +123,18 @@ public class WebsiteController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
 
+    public void websiteDeleted(Website website) {
+        log.infof("Website deleted, website=%s", website);
+        try {
+            WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
+            website.setConfig(newConfig);
+            websiteRepository.removeWebsite(website);
+            operatorService.deleteInfrastructure(website);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static boolean deploymentChanged(WebsiteConfig oldConfig, WebsiteConfig newConfig) {

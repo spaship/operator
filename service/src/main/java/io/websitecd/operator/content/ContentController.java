@@ -87,11 +87,24 @@ public class ContentController {
         log.infof("Content client API created. clientId=%s host=%s port=%s", clientId, host, staticContentApiPort);
     }
 
+    public void removeClient(String env, Website config) {
+        clients.remove(getClientId(config, env));
+    }
+
     public void updateConfigs(String env, String namespace, Website website) {
         ContentConfig config = GitContentUtils.createConfig(env, website.getConfig(), rootContext);
         String data = new Yaml().dumpAsMap(config);
-        final String configName = Utils.getWebsiteName(website) + CONFIG_INIT + env;
+        final String configName = getInitConfigName(website, env);
         updateConfigMap(configName, namespace, data);
+    }
+
+    public String getInitConfigName(Website website, String env) {
+        return Utils.getWebsiteName(website) + CONFIG_INIT + env;
+    }
+
+    public void deleteConfigs(String env, String namespace, Website website) {
+        final String configName = getInitConfigName(website, env);
+        client.inNamespace(namespace).configMaps().withName(configName).delete();
     }
 
     public void updateConfigMap(String name, String namespace, String secretData) {
@@ -193,6 +206,25 @@ public class ContentController {
         String ns = website.getMetadata().getNamespace();
         client.inNamespace(ns).apps().deployments().withName(componentName).rolling().restart();
         log.infof("deployment rollout name=%s", componentName);
+    }
+
+    public void deleteDeployment(String env, String namespace, String websiteName) {
+        Map<String, String> params = new HashMap<>();
+        params.put("ENV", env);
+        params.put("NAME", websiteName);
+        params.put("GIT_SSL_NO_VERIFY", Boolean.toString(!sslVerify));
+
+        KubernetesList result = processTemplate(namespace, params);
+
+        for (HasMetadata item : result.getItems()) {
+            log.infof("Deleting deployment kind=%s name=%s", item.getKind(), item.getMetadata().getName());
+            if (item instanceof Service) {
+                client.inNamespace(namespace).services().withName(item.getMetadata().getName()).delete();
+            }
+            if (item instanceof Deployment) {
+                client.inNamespace(namespace).apps().deployments().withName(item.getMetadata().getName()).delete();
+            }
+        }
     }
 
     public Future<JsonObject> refreshComponent(Website website, String env, String name) {

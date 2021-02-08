@@ -94,4 +94,12 @@ public class IngressController {
         client.inNamespace(namespace).network().v1().ingresses().createOrReplace(ingress);
     }
 
+    public void deleteIngress(String targetEnv, Website website) {
+        String namespace = website.getMetadata().getNamespace();
+        final String websiteName = Utils.getWebsiteName(website);
+        String name = RouterController.getRouteName(websiteName, null, targetEnv);
+
+        client.inNamespace(namespace).network().v1().ingresses().withName(name).delete();
+    }
+
 }

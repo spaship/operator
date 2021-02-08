@@ -126,4 +126,15 @@ public class RouterController {
         return routeName.toString();
     }
 
+    public void deleteWebsiteRoutes(String targetEnv, Website website) {
+        String namespace = website.getMetadata().getNamespace();
+        final String websiteName = Utils.getWebsiteName(website);
+
+        for (ComponentConfig component : website.getConfig().getComponents()) {
+            String sanityContext = sanityContext(component.getContext());
+            String name = getRouteName(websiteName, sanityContext, targetEnv);
+            client.inNamespace(namespace).routes().withName(name).delete();
+        }
+    }
+
 }
