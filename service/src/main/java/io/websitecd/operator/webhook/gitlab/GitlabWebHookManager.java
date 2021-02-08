@@ -1,13 +1,14 @@
 package io.websitecd.operator.webhook.gitlab;
 
-import io.smallrye.mutiny.Uni;
+import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.webhook.WebhookService;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.utils.JacksonJson;
 import org.gitlab4j.api.webhook.*;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.spi.HttpRequest;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -23,7 +24,7 @@ public class GitlabWebHookManager extends WebHookManager {
     @Inject
     GitlabWebHookListener listener;
 
-    public static String getHeader(HttpRequest request, String name) {
+    public static String getHeader(HttpServerRequest request, String name) {
         return WebhookService.getHeader(request, name);
     }
 
@@ -32,11 +33,12 @@ public class GitlabWebHookManager extends WebHookManager {
      * fires it off to the registered listeners.
      *
      * @param request the HttpServletRequest to read the Event instance from
+     * @param postData
      * @return the Event instance that was read from the request body, null if the request
      * not contain a webhook event
      * @throws GitLabApiException if the parsed event is not supported
      */
-    public Uni<JsonObject> handleRequest(HttpRequest request, String postData) throws GitLabApiException {
+    public Future<JsonObject> handleRequest(HttpServerRequest request, Buffer postData) throws GitLabApiException {
 
         String eventName = getHeader(request, "X-Gitlab-Event");
         if (eventName == null || eventName.trim().isEmpty()) {
@@ -86,7 +88,7 @@ public class GitlabWebHookManager extends WebHookManager {
 
         try {
 
-            event.setRequestUrl(request.getUri().getRequestUri().toString());
+            event.setRequestUrl(request.absoluteURI());
 //            event.setRequestQueryString(request.getQueryString());
 
             event.setRequestSecretToken(secretToken);
@@ -100,7 +102,7 @@ public class GitlabWebHookManager extends WebHookManager {
         }
     }
 
-    public Uni<JsonObject> processEvent(Event event) throws GitLabApiException {
+    public Future<JsonObject> processEvent(Event event) throws GitLabApiException {
         switch (event.getObjectKind()) {
             case PushEvent.OBJECT_KIND:
                 return listener.onPushEvent((PushEvent) event);
@@ -113,8 +115,8 @@ public class GitlabWebHookManager extends WebHookManager {
         }
     }
 
-    protected Event unmarshal(String data) throws IOException {
-        return jacksonJson.unmarshal(Event.class, data);
+    protected Event unmarshal(Buffer data) throws IOException {
+        return jacksonJson.unmarshal(Event.class, data.toString());
     }
 
 }

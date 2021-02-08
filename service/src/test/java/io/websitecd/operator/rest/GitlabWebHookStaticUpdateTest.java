@@ -1,7 +1,6 @@
 package io.websitecd.operator.rest;
 
 import io.quarkus.test.common.QuarkusTestResource;
-import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.restassured.http.ContentType;
@@ -18,7 +17,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
-@TestHTTPEndpoint(WebHookResource.class)
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
 
@@ -27,20 +25,21 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
 
     @Test
     public void gitPushStaticUpdate() throws Exception {
+        registerSimpleWeb();
+
         ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
         apiMock.reset();
 
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
 
-        registerSimpleWeb();
 
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
                 .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE)
                 .body(GitlabWebHookStaticUpdateTest.class.getResourceAsStream("/gitlab-push.json"))
-                .when().post()
+                .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(200)
@@ -48,7 +47,7 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
                 .body("status", is("SUCCESS"))
                 .body("components.size()", is(4));
 
-        assertEquals(2, apiMock.getApiListCount());
+        assertEquals(0, apiMock.getApiListCount());
         assertEquals(2, apiMock.getApiUpdateTest1());
         assertEquals(2, apiMock.getApiUpdateTest2());
     }

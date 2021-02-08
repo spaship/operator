@@ -1,18 +1,17 @@
 package io.websitecd.operator.webhook;
 
 import io.quarkus.security.UnauthorizedException;
-import io.smallrye.mutiny.Uni;
+import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.webhook.gitlab.GitlabWebHookManager;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.gitlab4j.api.GitLabApiException;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.spi.HttpRequest;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.io.IOException;
 import java.util.List;
 
 @ApplicationScoped
@@ -27,8 +26,8 @@ public class WebhookService {
     @Inject
     GitlabWebHookManager gitlabWebHookManager;
 
-    public GIT_PROVIDER gitProvider(HttpRequest request) {
-        List<String> eventName = request.getHttpHeaders().getRequestHeader("X-Gitlab-Event");
+    public GIT_PROVIDER gitProvider(HttpServerRequest request) {
+        List<String> eventName = request.headers().getAll("X-Gitlab-Event");
         log.tracef("X-Gitlab-Event=%s", eventName);
         if (eventName != null && eventName.size() > 0 && StringUtils.isNotEmpty(eventName.get(0))) {
             return GIT_PROVIDER.GITLAB;
@@ -36,7 +35,7 @@ public class WebhookService {
         return null;
     }
 
-    public Uni<JsonObject> handleGitlab(HttpRequest request, String data) throws GitAPIException, IOException, GitLabApiException {
+    public Future<JsonObject> handleGitlab(HttpServerRequest request, Buffer data) {
         String secretToken = getHeader(request, "X-Gitlab-Token");
 
         if (StringUtils.isEmpty(secretToken)) {
@@ -44,11 +43,15 @@ public class WebhookService {
             throw new UnauthorizedException("X-Gitlab-Token missing");
         }
 
-        return gitlabWebHookManager.handleRequest(request, data);
+        try {
+            return gitlabWebHookManager.handleRequest(request, data);
+        } catch (GitLabApiException e) {
+            return Future.failedFuture(e);
+        }
     }
 
-    public static String getHeader(HttpRequest request, String name) {
-        List<String> headers = request.getHttpHeaders().getRequestHeader(name);
+    public static String getHeader(HttpServerRequest request, String name) {
+        List<String> headers = request.headers().getAll(name);
         if (headers == null || headers.size() == 0) {
             return null;
         }

@@ -5,11 +5,14 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
-import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.Uni;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.mutiny.core.Vertx;
-import io.vertx.mutiny.ext.web.client.WebClient;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.websitecd.content.git.config.GitContentUtils;
 import io.websitecd.content.git.config.model.ContentConfig;
 import io.websitecd.operator.Utils;
@@ -27,7 +30,6 @@ import org.yaml.snakeyaml.Yaml;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -193,25 +195,46 @@ public class ContentController {
         log.infof("deployment rollout name=%s", componentName);
     }
 
-    public Uni<String> refreshComponent(WebClient webClient, String name) {
-        log.infof("Refresh component name=%s", name);
-        return webClient.get("/api/update/" + name).send()
-                .onItem().invoke(resp -> {
-                    if (resp.statusCode() != 200) {
-                        throw new RuntimeException(resp.bodyAsString());
+    public Future<JsonObject> refreshComponent(Website website, String env, String name) {
+        log.infof("Update components on websiteId=%s env=%s, name=%s", website.getId(), env, name);
+        WebClient webClient = getContentApiClient(website, env);
+
+        Promise<JsonObject> promise = Promise.promise();
+        webClient.get("/api/update/" + name)
+                .expect(ResponsePredicate.SC_OK)
+                .send(ar -> {
+                    log.debugf("update result=%s", ar);
+                    if (ar.succeeded()) {
+                        JsonObject result = new JsonObject()
+                                .put("name", name)
+                                .put("status", ar.result().bodyAsString())
+                                .put("namespace", website.getMetadata().getNamespace())
+                                .put("website", website.getMetadata().getName())
+                                .put("env", env);
+                        promise.tryComplete(new JsonObject().put("component", result));
+                    } else {
+                        promise.tryFail(ar.cause());
                     }
-                }).map(resp -> resp.bodyAsString());
+                });
+        return promise.future();
     }
 
-    @SuppressWarnings(value = "unchecked")
-    public Multi<String> listComponents(WebClient webClient) {
+    public Future<JsonArray> listComponents(WebClient webClient) {
         log.infof("List components");
 
-        return webClient.get("/api/list").send()
-                .onItem().transformToMulti(resp -> {
-                    List<String> array = resp.bodyAsJsonArray().getList();
-                    return Multi.createFrom().iterable(array);
-                });
+        Promise<JsonArray> promise = Promise.promise();
+        webClient.get("/api/list").send(result -> {
+            if (result.failed()) {
+                promise.fail(result.cause());
+                return;
+            }
+            if (result.result().statusCode() != 200) {
+                promise.tryFail(result.result().bodyAsString());
+            } else {
+                promise.tryComplete(result.result().bodyAsJsonArray());
+            }
+        });
+        return promise.future();
     }
 
     public WebClient getContentApiClient(Website website, String env) {

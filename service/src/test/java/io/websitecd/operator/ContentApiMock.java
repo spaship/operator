@@ -29,11 +29,11 @@ public class ContentApiMock  extends AbstractVerticle {
                 .handler(ctx -> ctx.response()
                         .putHeader("content-type", "application/json")
                         .end("[\"test1\", \"test2\"]"));
-        router.route("/api/update/test1")
+        router.route("/api/update/theme")
                 .handler(apiUpdate1Count)
                 .handler(ctx -> ctx.response().end("DONE"));
 
-        router.route("/api/update/test2")
+        router.route("/api/update/_root")
                 .handler(apiUpdate2Count)
                 .handler(ctx -> ctx.response().end("DONE"));
 

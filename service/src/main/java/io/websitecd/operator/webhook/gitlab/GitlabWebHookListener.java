@@ -1,10 +1,10 @@
 package io.websitecd.operator.webhook.gitlab;
 
-import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.Uni;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mutiny.ext.web.client.WebClient;
 import io.websitecd.content.git.config.GitContentUtils;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
@@ -24,7 +24,6 @@ import org.gitlab4j.api.webhook.EventCommit;
 import org.gitlab4j.api.webhook.PushEvent;
 import org.gitlab4j.api.webhook.TagPushEvent;
 import org.jboss.logging.Logger;
-import org.reactivestreams.Publisher;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -56,31 +55,35 @@ public class GitlabWebHookListener {
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
 
-    public Uni<JsonObject> onPushEvent(PushEvent pushEvent) throws GitLabApiException {
+    public Future<JsonObject> onPushEvent(PushEvent pushEvent) throws GitLabApiException {
         String gitUrl = pushEvent.getRepository().getGit_http_url();
         return handleEvent(gitUrl, pushEvent);
     }
 
-    public Uni<JsonObject> onTagPushEvent(TagPushEvent tagPushEvent) throws GitLabApiException {
+    public Future<JsonObject> onTagPushEvent(TagPushEvent tagPushEvent) throws GitLabApiException {
         String gitUrl = tagPushEvent.getRepository().getGit_http_url();
         return handleEvent(gitUrl, tagPushEvent);
     }
 
-    public Uni<JsonObject> handleEvent(String gitUrl, Event event) {
+    public Future<JsonObject> handleEvent(String gitUrl, Event event) {
         List<Website> websites = websiteRepository.getByGitUrl(gitUrl, event.getRequestSecretToken());
 //        boolean isComponent = websiteConfigService.isKnownComponent(gitUrl);
         JsonObject resultObject = new JsonObject();
 
+        Promise<JsonObject> promise = Promise.promise();
+
         boolean isWebsite = websites.size() > 0;
         if (!isWebsite) {
             log.infof("website with given gitUrl and token not found. ignoring. gitUrl=%s", gitUrl);
-            return Uni.createFrom().item(resultObject.put("status", "IGNORED").put("reason", "pair git url and token unknown"));
+            resultObject.put("status", "IGNORED").put("reason", "pair git url and token unknown");
+            promise.complete(resultObject);
+            return promise.future();
         }
 
         boolean rollout = false;
         resultObject.put("status", "SUCCESS").put("components", new JsonArray());
 
-        List<Publisher<JsonObject>> updates = new ArrayList<>();
+        List<Future> updates = new ArrayList<>();
         for (Website website : websites) {
             log.infof("Update website=%s", website);
             WebsiteConfig websiteConfig = website.getConfig();
@@ -116,61 +119,23 @@ public class GitlabWebHookListener {
                         String componentDir = GitContentUtils.getDirName(component.getContext(), rootContext);
                         names.add(componentDir);
                     }
-                    if (names.size() > 0) {
-                        Multi<JsonObject> update = updateAllComponents(website, env);
+                    for (String name : names) {
+                        Future<JsonObject> update = contentController.refreshComponent(website, env, name);
                         updates.add(update);
                     }
                 }
             }
         }
 
-        Multi<JsonObject> merged = Multi.createBy().merging().streams(updates);
-
-        Uni<JsonObject> result = merged.collectItems()
-                .in(() -> resultObject, (arr, obj) -> arr.getJsonArray("components").add(obj));
-
-        return result;
-    }
-
-//    protected Multi<JsonObject> updateComponents(Website website, String env, List<String> names) {
-//        String gitUrl = website.getSpec().getGitUrl();
-//        WebClient contentApiClient = contentController.getContentApiClient(website, env);
-//        if (contentApiClient == null) {
-//            throw new RuntimeException("contentApiClient not defined for gitUrl=" + gitUrl);
-//        }
-//        log.infof("Update components on websiteId=%s env=%s, names=%s", website.getId(), env, names);
-//        return Multi.createFrom().items(names.toArray(new String[0]))
-//                .onItem().invoke(name -> {
-//                    log.debugf("Going to update component name=%s", name);
-//                    contentController.refreshComponent(contentApiClient, name)
-//                            .subscribe()
-//                            .with(s -> log.infof("updated name=%s result=%s", name, s), err -> {
-//                                log.error("Error update", err);
-//                                Uni.createFrom().failure(err);
-//                            });
-//                })
-//                .onFailure(err -> {
-//                    log.error("eee", err);
-//                    return false;
-//                }).recoverWithItem("error")
-//                .onItem().transform(name -> new JsonObject().put("gitUrl", gitUrl).put("env", env).put("component", name));
-//    }
-
-    protected Multi<JsonObject> updateAllComponents(Website website, String env) {
-        String gitUrl = website.getSpec().getGitUrl();
-        WebClient contentApiClient = contentController.getContentApiClient(website, env);
-        if (contentApiClient == null) {
-            throw new RuntimeException("contentApiClient not defined for gitUrl=" + gitUrl);
-        }
-        log.infof("Update all components on websiteId=%s env=%s", website.getId(), env);
-        return contentController.listComponents(contentApiClient)
-                .invoke(name -> {
-                    log.debugf("Going to update component name=%s", name);
-                    contentController.refreshComponent(contentApiClient, name)
-                            .subscribe()
-                            .with(s -> log.infof("updated name=%s result=%s", name, s), err -> Uni.createFrom().failure(err));
+        CompositeFuture.join(updates)
+                .onSuccess(e -> {
+                    if (e.result().list() != null) {
+                        resultObject.put("components", e.result().list());
+                    }
                 })
-                .onItem().transform(name -> new JsonObject().put("gitUrl", gitUrl).put("env", env).put("component", name));
+                .onComplete(ar -> promise.complete(resultObject))
+                .onFailure(promise::fail);
+        return promise.future();
     }
 
     public static boolean isRolloutNeeded(Event event, String... yamlNames) {

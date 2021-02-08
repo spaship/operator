@@ -1,20 +1,22 @@
 package io.websitecd.operator.rest;
 
-import io.smallrye.mutiny.Uni;
+import io.quarkus.vertx.web.Route;
+import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import io.websitecd.operator.webhook.WebhookService;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.spi.HttpRequest;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.BadRequestException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Path("/api/webhook/")
-@Consumes(MediaType.APPLICATION_JSON)
+@ApplicationScoped
 public class WebHookResource {
 
     public static final String CONTEXT = "api/webhook/";
@@ -30,22 +32,24 @@ public class WebHookResource {
         return apis;
     }
 
-    @POST
-    @Path("")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<JsonObject> webHook(@Context HttpRequest request, String data) throws Exception {
-        log.infof("webhook called from url=%s", request.getRemoteHost());
+    @Route(methods = HttpMethod.POST, path = "/api/webhook", produces = "application/json")
+    public void webhook(RoutingContext rc) {
+        Buffer body = rc.getBody();
+        HttpServerRequest request = rc.request();
+        log.infof("webhook called from url=%s", request.remoteAddress());
         WebhookService.GIT_PROVIDER provider = webhookService.gitProvider(request);
         if (provider == null) {
             throw new BadRequestException("Unknown provider");
         }
-        switch (provider) {
-            case GITLAB:
-                return webhookService.handleGitlab(request, data);
 
+        Future<JsonObject> result;
+        if (provider.equals(WebhookService.GIT_PROVIDER.GITLAB)) {
+            result = webhookService.handleGitlab(request, body);
+        } else {
+            throw new BadRequestException("Unknown provider");
         }
-        throw new BadRequestException("Unknown provider");
+        result.onFailure(err -> rc.fail(err))
+                .onSuccess(ar -> rc.response().end(ar.toBuffer()));
     }
-
 
 }
