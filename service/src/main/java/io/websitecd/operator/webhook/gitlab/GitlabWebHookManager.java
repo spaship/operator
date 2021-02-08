@@ -32,18 +32,17 @@ public class GitlabWebHookManager extends WebHookManager {
      * Parses and verifies an Event instance from the HTTP request and
      * fires it off to the registered listeners.
      *
-     * @param request the HttpServletRequest to read the Event instance from
+     * @param request  the HttpServletRequest to read the Event instance from
      * @param postData
      * @return the Event instance that was read from the request body, null if the request
      * not contain a webhook event
-     * @throws GitLabApiException if the parsed event is not supported
      */
-    public Future<JsonObject> handleRequest(HttpServerRequest request, Buffer postData) throws GitLabApiException {
+    public Future<JsonObject> handleRequest(HttpServerRequest request, Buffer postData) {
 
         String eventName = getHeader(request, "X-Gitlab-Event");
         if (eventName == null || eventName.trim().isEmpty()) {
             log.warn("X-Gitlab-Event header is missing!");
-            throw new GitLabApiException("X-Gitlab-Event header is missing!");
+            return Future.failedFuture(new GitLabApiException("X-Gitlab-Event header is missing!"));
         }
 
         String secretToken = getHeader(request, "X-Gitlab-Token");
@@ -51,7 +50,7 @@ public class GitlabWebHookManager extends WebHookManager {
         if (!isValidSecretToken(secretToken)) {
             String message = "X-Gitlab-Token mismatch!";
             log.warn(message);
-            throw new GitLabApiException(message);
+            return Future.failedFuture(new GitLabApiException(message));
         }
 
         log.infof("handleEvent: X-Gitlab-Event=%s", eventName);
@@ -70,7 +69,7 @@ public class GitlabWebHookManager extends WebHookManager {
             default:
                 String message = "Unsupported X-Gitlab-Event, event Name=" + eventName;
                 log.warn(message);
-                throw new GitLabApiException(message);
+                return Future.failedFuture(new GitLabApiException(message));
         }
 
         Event event;
@@ -83,7 +82,7 @@ public class GitlabWebHookManager extends WebHookManager {
         } catch (Exception e) {
             log.warn(String.format("Error processing JSON data, exception=%s, error=%s",
                     e.getClass().getSimpleName(), e.getMessage()));
-            throw new GitLabApiException(e);
+            return Future.failedFuture(new GitLabApiException(e));
         }
 
         try {
@@ -98,11 +97,11 @@ public class GitlabWebHookManager extends WebHookManager {
         } catch (Exception e) {
             log.warn(String.format("Error processing event, exception=%s, error=%s",
                     e.getClass().getSimpleName(), e.getMessage()));
-            throw e;
+            return Future.failedFuture(e);
         }
     }
 
-    public Future<JsonObject> processEvent(Event event) throws GitLabApiException {
+    public Future<JsonObject> processEvent(Event event) {
         switch (event.getObjectKind()) {
             case PushEvent.OBJECT_KIND:
                 return listener.onPushEvent((PushEvent) event);
@@ -111,7 +110,7 @@ public class GitlabWebHookManager extends WebHookManager {
             default:
                 String message = "Unsupported event object_kind, object_kind=" + event.getObjectKind();
                 log.info(message);
-                throw new GitLabApiException(message);
+                return Future.failedFuture(new GitLabApiException(message));
         }
     }
 

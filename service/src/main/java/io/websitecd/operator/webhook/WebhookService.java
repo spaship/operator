@@ -7,7 +7,6 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.webhook.gitlab.GitlabWebHookManager;
 import org.apache.commons.lang3.StringUtils;
-import org.gitlab4j.api.GitLabApiException;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -40,14 +39,10 @@ public class WebhookService {
 
         if (StringUtils.isEmpty(secretToken)) {
             log.warn("X-Gitlab-Token is missing!");
-            throw new UnauthorizedException("X-Gitlab-Token missing");
+            return Future.failedFuture(new UnauthorizedException("X-Gitlab-Token missing"));
         }
 
-        try {
-            return gitlabWebHookManager.handleRequest(request, data);
-        } catch (GitLabApiException e) {
-            return Future.failedFuture(e);
-        }
+        return gitlabWebHookManager.handleRequest(request, data);
     }
 
     public static String getHeader(HttpServerRequest request, String name) {

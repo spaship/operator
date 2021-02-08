@@ -12,7 +12,6 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,14 +38,16 @@ public class WebHookResource {
         log.infof("webhook called from url=%s", request.remoteAddress());
         WebhookService.GIT_PROVIDER provider = webhookService.gitProvider(request);
         if (provider == null) {
-            throw new BadRequestException("Unknown provider");
+            rc.response().setStatusCode(400).end("Unknown provider");
+            return;
         }
 
         Future<JsonObject> result;
         if (provider.equals(WebhookService.GIT_PROVIDER.GITLAB)) {
             result = webhookService.handleGitlab(request, body);
         } else {
-            throw new BadRequestException("Unknown provider");
+            rc.response().setStatusCode(400).end("Unknown provider");
+            return;
         }
         result.onFailure(err -> rc.fail(err))
                 .onSuccess(ar -> rc.response().end(ar.toBuffer()));

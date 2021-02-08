@@ -18,7 +18,6 @@ import io.websitecd.operator.openshift.GitWebsiteConfigService;
 import io.websitecd.operator.openshift.OperatorService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.webhook.Event;
 import org.gitlab4j.api.webhook.EventCommit;
 import org.gitlab4j.api.webhook.PushEvent;
@@ -55,12 +54,12 @@ public class GitlabWebHookListener {
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
 
-    public Future<JsonObject> onPushEvent(PushEvent pushEvent) throws GitLabApiException {
+    public Future<JsonObject> onPushEvent(PushEvent pushEvent) {
         String gitUrl = pushEvent.getRepository().getGit_http_url();
         return handleEvent(gitUrl, pushEvent);
     }
 
-    public Future<JsonObject> onTagPushEvent(TagPushEvent tagPushEvent) throws GitLabApiException {
+    public Future<JsonObject> onTagPushEvent(TagPushEvent tagPushEvent) {
         String gitUrl = tagPushEvent.getRepository().getGit_http_url();
         return handleEvent(gitUrl, tagPushEvent);
     }
@@ -97,7 +96,7 @@ public class GitlabWebHookListener {
                     }
                     websiteConfig = newConfig;
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return Future.failedFuture(e);
                 }
             }
             if (!rollout) {
