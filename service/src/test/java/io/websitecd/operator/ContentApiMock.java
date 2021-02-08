@@ -1,6 +1,7 @@
 package io.websitecd.operator;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import org.jboss.logging.Logger;
 
@@ -9,6 +10,7 @@ public class ContentApiMock  extends AbstractVerticle {
     private static final Logger log = Logger.getLogger(ContentApiMock.class);
 
     int port;
+    HttpServer server;
 
     RequestCountHandler apiListCount = RequestCountHandler.create();
     RequestCountHandler apiUpdate1Count = RequestCountHandler.create();
@@ -37,12 +39,18 @@ public class ContentApiMock  extends AbstractVerticle {
                 .handler(apiUpdate2Count)
                 .handler(ctx -> ctx.response().end("DONE"));
 
-        vertx.createHttpServer()
+        server = vertx.createHttpServer()
                 .exceptionHandler(t -> log.error("Error", t))
                 .requestHandler(router)
                 .listen(port);
         log.infof("Mock started port=%s", port);
 
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        server.close();
     }
 
     public long getApiListCount() {

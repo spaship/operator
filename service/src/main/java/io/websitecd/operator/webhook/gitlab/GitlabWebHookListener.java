@@ -14,6 +14,7 @@ import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.controller.WebsiteController;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
+import io.websitecd.operator.crd.WebsiteSpec;
 import io.websitecd.operator.openshift.GitWebsiteConfigService;
 import io.websitecd.operator.openshift.OperatorService;
 import org.apache.commons.lang3.StringUtils;
@@ -26,9 +27,13 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static io.websitecd.operator.webhook.WebhookService.STATUS_IGNORED;
+import static io.websitecd.operator.webhook.WebhookService.STATUS_SUCCESS;
 
 @ApplicationScoped
 public class GitlabWebHookListener {
@@ -65,67 +70,42 @@ public class GitlabWebHookListener {
     }
 
     public Future<JsonObject> handleEvent(String gitUrl, Event event) {
-        List<Website> websites = websiteRepository.getByGitUrl(gitUrl, event.getRequestSecretToken());
-//        boolean isComponent = websiteConfigService.isKnownComponent(gitUrl);
-        JsonObject resultObject = new JsonObject();
-
-        Promise<JsonObject> promise = Promise.promise();
-
-        boolean isWebsite = websites.size() > 0;
-        if (!isWebsite) {
-            log.infof("website with given gitUrl and token not found. ignoring. gitUrl=%s", gitUrl);
-            resultObject.put("status", "IGNORED").put("reason", "pair git url and token unknown");
-            promise.complete(resultObject);
-            return promise.future();
+        String requestSecretToken = event.getRequestSecretToken();
+        boolean isRollout = isRolloutNeeded(event, websiteYamlName);
+        if (isRollout) {
+            return rollout(gitUrl, event);
         }
 
-        boolean rollout = false;
-        resultObject.put("status", "SUCCESS").put("components", new JsonArray());
+        log.debugf("Trying to find websites with same token but gitUrl may be used as component");
 
         List<Future> updates = new ArrayList<>();
-        for (Website website : websites) {
-            log.infof("Update website=%s", website);
-            WebsiteConfig websiteConfig = website.getConfig();
-            if (isWebsite && isRolloutNeeded(event, websiteYamlName)) {
-                try {
-                    WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
-                    if (WebsiteController.deploymentChanged(websiteConfig, newConfig)) {
-                        operatorService.initInfrastructure(website, true, false);
-                        rollout = true;
-                        resultObject.put("website", new JsonObject().put("name", newConfig.getWebsiteName()).put("gitUrl", gitUrl));
-                    }
-                    websiteConfig = newConfig;
-                } catch (Exception e) {
-                    return Future.failedFuture(e);
+        boolean websiteFound = false;
+        for (Map.Entry<String, Website> entry : websiteRepository.getWebsites().entrySet()) {
+            Website website = entry.getValue();
+            WebsiteSpec spec = website.getSpec();
+            if (!requestSecretToken.equals(spec.getWebhookSecret())) {
+                log.debugf("skipping website id=%s", website.getId());
+                continue;
+            }
+            websiteFound = true;
+            boolean componentFound = false;
+            for (ComponentConfig component : website.getConfig().getComponents()) {
+                if (StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
+                    componentFound = true;
+                    break;
                 }
             }
-            if (!rollout) {
-                Map<String, Environment> envs = websiteConfig.getEnvs();
-                for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
-                    String env = envEntry.getKey();
-                    if (!operatorService.isEnvEnabled(envEntry.getValue(), website.getMetadata().getNamespace())) {
-                        log.debug("Env is not enabled");
-                        continue;
-                    }
-                    List<String> names = new ArrayList<>();
-                    for (ComponentConfig component : websiteConfig.getComponents()) {
-                        if (!component.isKindGit()) {
-                            continue;
-                        }
-                        if (!OperatorConfigUtils.isComponentEnabled(websiteConfig, env, component.getContext())) {
-                            continue;
-                        }
-                        String componentDir = GitContentUtils.getDirName(component.getContext(), rootContext);
-                        names.add(componentDir);
-                    }
-                    for (String name : names) {
-                        Future<JsonObject> update = contentController.refreshComponent(website, env, name);
-                        updates.add(update);
-                    }
-                }
+            if (componentFound) {
+                updates.addAll(getComponentUpdates(website, gitUrl));
             }
         }
+        if (!websiteFound) {
+            return Future.failedFuture(new BadRequestException("no matched website"));
+        }
 
+        JsonObject resultObject = new JsonObject().put("status", STATUS_SUCCESS).put("components", new JsonArray());
+
+        Promise<JsonObject> promise = Promise.promise();
         CompositeFuture.join(updates)
                 .onSuccess(e -> {
                     if (e.result().list() != null) {
@@ -135,6 +115,71 @@ public class GitlabWebHookListener {
                 .onComplete(ar -> promise.complete(resultObject))
                 .onFailure(promise::fail);
         return promise.future();
+    }
+
+    public Future<JsonObject> rollout(String gitUrl, Event event) {
+        String requestSecretToken = event.getRequestSecretToken();
+        List<Website> websites = websiteRepository.getByGitUrl(gitUrl, requestSecretToken);
+        JsonObject resultObject = new JsonObject();
+
+        if (websites.size() == 0) {
+            log.infof("website with given gitUrl and token not found. ignoring. gitUrl=%s", gitUrl);
+            resultObject.put("status", STATUS_IGNORED).put("reason", "pair git url and token unknown");
+            return Future.succeededFuture(resultObject);
+        }
+
+        JsonArray updatedSites = new JsonArray();
+        for (Website website : websites) {
+            log.infof("Update website=%s", website);
+            WebsiteConfig websiteConfig = website.getConfig();
+            try {
+                WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
+                if (WebsiteController.deploymentChanged(websiteConfig, newConfig)) {
+                    operatorService.initInfrastructure(website, true, false);
+                    updatedSites.add(new JsonObject().put("name", newConfig.getWebsiteName()).put("namespace", website.getMetadata().getNamespace()));
+
+                    websiteRepository.addWebsite(website);
+                    website.setConfig(websiteConfig);
+                }
+            } catch (Exception e) {
+                return Future.failedFuture(e);
+            }
+        }
+        resultObject.put("status", STATUS_SUCCESS)
+                .put("websites", updatedSites);
+        return Future.succeededFuture(resultObject);
+    }
+
+    public List<Future> getComponentUpdates(Website website, String gitUrl) {
+        List<Future> updates = new ArrayList<>();
+        WebsiteConfig websiteConfig = website.getConfig();
+        Map<String, Environment> envs = websiteConfig.getEnvs();
+        for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
+            String env = envEntry.getKey();
+            if (!operatorService.isEnvEnabled(envEntry.getValue(), website.getMetadata().getNamespace())) {
+                log.debug("Env is not enabled");
+                continue;
+            }
+            List<String> names = new ArrayList<>();
+            for (ComponentConfig component : websiteConfig.getComponents()) {
+                if (!component.isKindGit()) {
+                    continue;
+                }
+                if (StringUtils.isNotEmpty(component.getSpec().getUrl()) && !StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
+                    continue;
+                }
+                if (!OperatorConfigUtils.isComponentEnabled(websiteConfig, env, component.getContext())) {
+                    continue;
+                }
+                String componentDir = GitContentUtils.getDirName(component.getContext(), rootContext);
+                names.add(componentDir);
+            }
+            for (String name : names) {
+                Future<JsonObject> update = contentController.refreshComponent(website, env, name);
+                updates.add(update);
+            }
+        }
+        return updates;
     }
 
     public static boolean isRolloutNeeded(Event event, String... yamlNames) {

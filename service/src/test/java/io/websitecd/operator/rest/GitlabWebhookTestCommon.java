@@ -36,13 +36,16 @@ public class GitlabWebhookTestCommon extends QuarkusTestBase {
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
 
+    public void registerWeb(Website website) throws IOException, GitAPIException, URISyntaxException {
+        websiteRepository.reset();
+        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website);
+        website.setConfig(websiteConfig);
+        websiteRepository.addWebsite(website);
+        operatorService.initNewWebsite(website);
+    }
 
     public void registerSimpleWeb() throws GitAPIException, IOException, URISyntaxException {
-        websiteRepository.reset();
-        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(SIMPLE_WEBSITE);
-        SIMPLE_WEBSITE.setConfig(websiteConfig);
-        websiteRepository.addWebsite(SIMPLE_WEBSITE);
-        operatorService.initNewWebsite(SIMPLE_WEBSITE);
+        registerWeb(SIMPLE_WEBSITE);
     }
 
     public void registerAdvancedWeb() throws GitAPIException, IOException, URISyntaxException {

@@ -12,6 +12,7 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,8 +50,14 @@ public class WebHookResource {
             rc.response().setStatusCode(400).end("Unknown provider");
             return;
         }
-        result.onFailure(err -> rc.fail(err))
-                .onSuccess(ar -> rc.response().end(ar.toBuffer()));
+        result.onSuccess(ar -> rc.response().end(ar.toBuffer()))
+                .onFailure(err -> {
+                    if (err instanceof BadRequestException) {
+                        rc.response().setStatusCode(400).end(err.getMessage());
+                    } else {
+                        rc.fail(err);
+                    }
+                });
     }
 
 }

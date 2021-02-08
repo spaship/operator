@@ -46,6 +46,10 @@ public class WebsiteRepository {
         return result;
     }
 
+    public Map<String, Website> getWebsites() {
+        return websites;
+    }
+
     public void reset() {
         websites = new HashMap<>();
     }

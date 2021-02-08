@@ -18,6 +18,9 @@ public class WebhookService {
 
     private static final Logger log = Logger.getLogger(WebhookService.class);
 
+    public static final String STATUS_IGNORED = "IGNORED";
+    public static final String STATUS_SUCCESS = "SUCCESS";
+
     public enum GIT_PROVIDER {
         GITLAB
     }

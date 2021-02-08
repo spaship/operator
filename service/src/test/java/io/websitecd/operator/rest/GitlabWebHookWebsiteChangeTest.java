@@ -55,12 +55,14 @@ class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
                 .log().ifValidationFails()
                 .statusCode(200)
                 .body("status", is("SUCCESS"))
-                .body("website.name", is("simple"));
+                .body("websites[0].name", is("simple"));
 
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(0, apiMock.getApiUpdateTest1());
         assertEquals(0, apiMock.getApiUpdateTest2());
 
+        apiMock.reset();
+        vertx.close();
     }
 
 }
