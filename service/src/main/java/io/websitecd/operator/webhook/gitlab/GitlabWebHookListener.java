@@ -5,6 +5,9 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.ext.web.client.WebClient;
+import io.websitecd.content.git.config.GitContentUtils;
+import io.websitecd.operator.config.OperatorConfigUtils;
+import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
@@ -50,6 +53,9 @@ public class GitlabWebHookListener {
     @ConfigProperty(name = "app.operator.website.config.filenames")
     String[] websiteYamlName;
 
+    @ConfigProperty(name = "app.content.git.rootcontext")
+    protected String rootContext;
+
     public Uni<JsonObject> onPushEvent(PushEvent pushEvent) throws GitLabApiException {
         String gitUrl = pushEvent.getRepository().getGit_http_url();
         return handleEvent(gitUrl, pushEvent);
@@ -94,12 +100,26 @@ public class GitlabWebHookListener {
             if (!rollout) {
                 Map<String, Environment> envs = websiteConfig.getEnvs();
                 for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
+                    String env = envEntry.getKey();
                     if (!operatorService.isEnvEnabled(envEntry.getValue(), website.getMetadata().getNamespace())) {
-                        log.debugf("Env is not enabled");
+                        log.debug("Env is not enabled");
                         continue;
                     }
-                    Multi<JsonObject> update = updateAllComponents(website, envEntry.getKey());
-                    updates.add(update);
+                    List<String> names = new ArrayList<>();
+                    for (ComponentConfig component : websiteConfig.getComponents()) {
+                        if (!component.isKindGit()) {
+                            continue;
+                        }
+                        if (!OperatorConfigUtils.isComponentEnabled(websiteConfig, env, component.getContext())) {
+                            continue;
+                        }
+                        String componentDir = GitContentUtils.getDirName(component.getContext(), rootContext);
+                        names.add(componentDir);
+                    }
+                    if (names.size() > 0) {
+                        Multi<JsonObject> update = updateAllComponents(website, env);
+                        updates.add(update);
+                    }
                 }
             }
         }
@@ -112,6 +132,29 @@ public class GitlabWebHookListener {
         return result;
     }
 
+//    protected Multi<JsonObject> updateComponents(Website website, String env, List<String> names) {
+//        String gitUrl = website.getSpec().getGitUrl();
+//        WebClient contentApiClient = contentController.getContentApiClient(website, env);
+//        if (contentApiClient == null) {
+//            throw new RuntimeException("contentApiClient not defined for gitUrl=" + gitUrl);
+//        }
+//        log.infof("Update components on websiteId=%s env=%s, names=%s", website.getId(), env, names);
+//        return Multi.createFrom().items(names.toArray(new String[0]))
+//                .onItem().invoke(name -> {
+//                    log.debugf("Going to update component name=%s", name);
+//                    contentController.refreshComponent(contentApiClient, name)
+//                            .subscribe()
+//                            .with(s -> log.infof("updated name=%s result=%s", name, s), err -> {
+//                                log.error("Error update", err);
+//                                Uni.createFrom().failure(err);
+//                            });
+//                })
+//                .onFailure(err -> {
+//                    log.error("eee", err);
+//                    return false;
+//                }).recoverWithItem("error")
+//                .onItem().transform(name -> new JsonObject().put("gitUrl", gitUrl).put("env", env).put("component", name));
+//    }
 
     protected Multi<JsonObject> updateAllComponents(Website website, String env) {
         String gitUrl = website.getSpec().getGitUrl();

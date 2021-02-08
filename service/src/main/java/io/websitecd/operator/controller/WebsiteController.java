@@ -56,7 +56,6 @@ public class WebsiteController {
 
     public void initWebsiteCrd() {
         watch();
-        ready = true;
     }
 
     public void watch() {
@@ -85,8 +84,10 @@ public class WebsiteController {
             @Override
             public void onClose(WatcherException cause) {
                 log.error("onClose", cause);
+                ready = false;
             }
         });
+        ready = true;
     }
 
     public void websiteAdded(Website website) {

@@ -135,7 +135,7 @@ public class ContentController {
                         continue;
                     }
 
-                    final String mountPath = "/var/www/html/" + component.getContext().substring(1);  // remove starting /
+                    final String mountPath = "/var/www/html/" + component.getComponentName();
                     VolumeMountBuilder vmb = new VolumeMountBuilder()
                             .withName("data")
                             .withMountPath(mountPath);
