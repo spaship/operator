@@ -20,6 +20,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,6 +70,16 @@ public class GitWebsiteConfigService {
             log.infof("git url set for %s components", applied);
         }
         return config;
+    }
+
+    public void deleteRepo(Website website) throws IOException {
+        GitInfo gitInfo = repos.get(website.getSpec().getGitUrl());
+        File gitDir = new File(gitInfo.getDir());
+        log.infof("Deleting gitDir=%s", gitDir.getAbsolutePath());
+        Files.walk(gitDir.toPath())
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
     }
 
     public WebsiteConfig updateRepo(Website website) throws GitAPIException, IOException {

@@ -89,7 +89,7 @@ public class IngressController {
                 .withSpec(new IngressSpecBuilder().withRules(rule).build());
 
         Ingress ingress = builder.build();
-        log.infof("Ingress: %s", ingress);
+        log.tracef("Ingress: %s", ingress);
 
         client.inNamespace(namespace).network().v1().ingresses().createOrReplace(ingress);
     }

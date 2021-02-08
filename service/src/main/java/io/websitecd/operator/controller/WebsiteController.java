@@ -13,6 +13,7 @@ import io.websitecd.operator.crd.WebsiteList;
 import io.websitecd.operator.crd.WebsiteSpec;
 import io.websitecd.operator.openshift.GitWebsiteConfigService;
 import io.websitecd.operator.openshift.OperatorService;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -94,7 +95,7 @@ public class WebsiteController {
     }
 
     public void websiteAdded(Website website) {
-        log.infof("Website added, website=%s", website);
+        log.infof("Website added, websiteId=%s", website.getId());
 
         try {
             WebsiteConfig config = gitWebsiteConfigService.cloneRepo(website);
@@ -108,15 +109,20 @@ public class WebsiteController {
     }
 
     public void websiteModified(Website website) {
-        log.infof("Website modified, website=%s", website);
-
-        WebsiteConfig oldConfig = websiteRepository.getWebsite(website.getId()).getConfig();
-        // TODO: Check if gitUrl or branch changed then create a new environment and delete old one
+        log.infof("Website modified, websiteId=%s", website.getId());
 
         try {
-            WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
+            Website oldWebsite = websiteRepository.getWebsite(website.getId());
+            WebsiteConfig newConfig;
+            if (websiteSpecChanged(oldWebsite.getSpec(), website.getSpec())) {
+                log.infof("Spec changed. Refreshing setup");
+                gitWebsiteConfigService.deleteRepo(oldWebsite);
+                newConfig = gitWebsiteConfigService.cloneRepo(website);
+            } else {
+                newConfig = gitWebsiteConfigService.updateRepo(website);
+            }
             website.setConfig(newConfig);
-            if (WebsiteController.deploymentChanged(oldConfig, newConfig)) {
+            if (WebsiteController.deploymentChanged(oldWebsite.getConfig(), newConfig)) {
                 websiteRepository.addWebsite(website);
                 operatorService.initInfrastructure(website, true, false);
             }
@@ -125,8 +131,14 @@ public class WebsiteController {
         }
     }
 
+    public static boolean websiteSpecChanged(WebsiteSpec oldSpec, WebsiteSpec newSpec) {
+        return (!StringUtils.equals(oldSpec.getGitUrl(), newSpec.getGitUrl())
+                || !StringUtils.equals(oldSpec.getBranch(), newSpec.getBranch())
+                || !StringUtils.equals(oldSpec.getDir(), newSpec.getDir()));
+    }
+
     public void websiteDeleted(Website website) {
-        log.infof("Website deleted, website=%s", website);
+        log.infof("Website deleted, websiteId=%s", website.getId());
         try {
             WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
             website.setConfig(newConfig);
