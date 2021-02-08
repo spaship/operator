@@ -1,4 +1,60 @@
 ---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: websites.websitecd.io
+spec:
+  group: websitecd.io
+  scope: Namespaced
+  names:
+    kind: Website
+    singular: website
+    plural: websites
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                gitUrl:
+                  type: string
+                branch:
+                  type: string
+                dir:
+                  type: string
+                  default: .
+                sslVerify:
+                  type: boolean
+                  default: true
+                webhookSecret:
+                  type: string
+              required:
+                - gitUrl
+                - branch
+                - webhookSecret
+      additionalPrinterColumns:
+        - name: Git URL
+          type: string
+          description: Website Git URL
+          jsonPath: .spec.gitUrl
+        - name: Branch
+          type: string
+          description: Git branch
+          jsonPath: .spec.branch
+        - name: Dir
+          type: string
+          description: Sub directory within git repo
+          jsonPath: .spec.dir
+        - name: SSL Verify
+          type: string
+          description: Performs SSL verification
+          jsonPath: .spec.sslVerify
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -20,9 +76,6 @@ rules:
   - apiGroups: [ "websitecd.io" ]
     resources: [ "websites" ]
     verbs: [ "watch", "list" ]
-  - apiGroups: [ "apiextensions.k8s.io" ]
-    resources: [ "customresourcedefinitions" ]
-    verbs: [ "create", "update", "get", "watch", "list" ]
   - apiGroups: [ "networking.k8s.io" ]
     resources: [  "ingresses" ]
     verbs: [ "create", "update", "get", "watch", "list" ]

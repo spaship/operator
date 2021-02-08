@@ -1,9 +1,5 @@
 package io.websitecd.operator.controller;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
@@ -23,9 +19,6 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 @ApplicationScoped
 public class WebsiteController {
@@ -52,7 +45,7 @@ public class WebsiteController {
 
     private boolean ready = false;
 
-    void onStart(@Observes StartupEvent ev) throws IOException {
+    void onStart(@Observes StartupEvent ev) {
         if (!crdEnabled) {
             ready = true;
             return;
@@ -61,36 +54,9 @@ public class WebsiteController {
         initWebsiteCrd();
     }
 
-    public void initWebsiteCrd() throws IOException {
-        registerCrd();
+    public void initWebsiteCrd() {
         watch();
         ready = true;
-    }
-
-    public void registerCrd() throws IOException {
-        CustomResourceDefinitionList crds = client.apiextensions().v1().customResourceDefinitions().list();
-        List<CustomResourceDefinition> crdsItems = crds.getItems();
-        log.debugf("Found %s CRD(s)", crdsItems.size());
-        CustomResourceDefinition websiteCRD = null;
-        final String websiteCRDName = CustomResource.getCRDName(Website.class);
-        for (CustomResourceDefinition crd : crdsItems) {
-            ObjectMeta metadata = crd.getMetadata();
-            if (metadata != null) {
-                String name = metadata.getName();
-                if (websiteCRDName.equals(name)) {
-                    websiteCRD = crd;
-                }
-            }
-        }
-        if (websiteCRD != null) {
-            log.infof("Found CRD: %s", websiteCRD.getMetadata());
-        } else {
-            try (InputStream is = WebsiteController.class.getResourceAsStream("/openshift/website-crd.yaml")) {
-                websiteCRD = client.apiextensions().v1().customResourceDefinitions().load(is).get();
-                client.apiextensions().v1().customResourceDefinitions().create(websiteCRD);
-            }
-            log.infof("Created CRD name=%s", websiteCRD.getMetadata().getName());
-        }
     }
 
     public void watch() {

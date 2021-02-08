@@ -69,7 +69,7 @@ More examples: https://github.com/websitecd/websitecd-examples.git
 Operator:
 ```shell
 kubectl create namespace websitecd
-kubectl apply -n websitecd -f deployment/stable/websitecd-kubernetes.yaml
+kubectl apply -n websitecd -f deployment/latest/websitecd.yaml
 ```
 
 Website:
