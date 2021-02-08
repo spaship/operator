@@ -31,7 +31,6 @@ class GitlabWebHookStaticUpdateAnotherWebTest extends GitlabWebhookTestCommon {
 
         websiteRepository.reset();
         WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website);
-        website.getSpec().setGitUrl("another url");
         websiteConfig.getComponents().get(0).getSpec().setUrl("COMPONENT_URL");
         websiteConfig.getComponents().get(1).getSpec().setUrl("COMPONENT2_URL");
 
