@@ -8,6 +8,7 @@ import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
+import io.websitecd.operator.crd.Website;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -27,13 +28,15 @@ public class RouterController {
     @ConfigProperty(name = "app.operator.website.domain")
     protected Optional<String> domain;
 
-    public void updateWebsiteRoutes(String targetEnv, String namespace, WebsiteConfig config) {
+    public void updateWebsiteRoutes(String targetEnv, Website website) {
         if (domain.isEmpty()) {
             log.infof("No Router created. Missing domain configuration.");
             return;
         }
+        String namespace = website.getMetadata().getNamespace();
+        WebsiteConfig config = website.getConfig();
         final String hostSuffix = "-" + namespace + "." + domain.get();
-        final String websiteName = Utils.getWebsiteName(config);
+        final String websiteName = Utils.getWebsiteName(website);
         final String host = websiteName + "-" + targetEnv + hostSuffix;
         // TODO: It's not needed to create all routes for sub pathes when root path is present
         for (ComponentConfig component : config.getComponents()) {

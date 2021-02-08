@@ -11,8 +11,8 @@ import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteList;
 import io.websitecd.operator.crd.WebsiteSpec;
+import io.websitecd.operator.openshift.GitWebsiteConfigService;
 import io.websitecd.operator.openshift.OperatorService;
-import io.websitecd.operator.openshift.WebsiteConfigService;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -32,7 +32,7 @@ public class WebsiteController {
     OperatorService operatorService;
 
     @Inject
-    WebsiteConfigService websiteConfigService;
+    GitWebsiteConfigService gitWebsiteConfigService;
 
     @Inject
     WebsiteRepository websiteRepository;
@@ -89,30 +89,36 @@ public class WebsiteController {
         });
     }
 
-    public void websiteAdded(Website resource) {
-        log.infof("Website added, resource=%s", resource);
+    public void websiteAdded(Website website) {
+        log.infof("Website added, website=%s", website);
 
         try {
-            websiteRepository.addWebsite(resource);
-            operatorService.initServices(resource);
+            WebsiteConfig config = gitWebsiteConfigService.cloneRepo(website);
+            website.setConfig(config);
+
+            websiteRepository.addWebsite(website);
+            operatorService.initNewWebsite(website);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void websiteModified(Website resource) {
-        log.infof("Website modified, resource=%s", resource);
-        websiteRepository.addWebsite(resource);
+    public void websiteModified(Website website) {
+        log.infof("Website modified, website=%s", website);
 
-        WebsiteConfig oldConfig = websiteConfigService.getConfig(resource);
+        WebsiteConfig oldConfig = websiteRepository.getWebsite(website.getId()).getConfig();
+        // TODO: Check if gitUrl or branch changed then create a new environment and delete old one
+
         try {
-            WebsiteConfig newConfig = websiteConfigService.updateRepo(resource);
+            WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
             if (WebsiteController.deploymentChanged(oldConfig, newConfig)) {
-                operatorService.processConfig(resource, true, false);
+                websiteRepository.addWebsite(website);
+                operatorService.initInfrastructure(website, true, false);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
     }
 
     public static boolean deploymentChanged(WebsiteConfig oldConfig, WebsiteConfig newConfig) {

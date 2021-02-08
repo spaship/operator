@@ -33,7 +33,7 @@ public class OperatorService {
     ContentController contentController;
 
     @Inject
-    WebsiteConfigService websiteConfigService;
+    GitWebsiteConfigService gitWebsiteConfigService;
 
     @Inject
     RouterController routerController;
@@ -53,9 +53,9 @@ public class OperatorService {
 
         String gitUrl = website.getSpec().getGitUrl();
         try {
-            websiteConfigService.cloneRepo(website);
+            gitWebsiteConfigService.cloneRepo(website);
 
-            processConfig(website, false, true);
+            initInfrastructure(website, false, true);
         } catch (Exception e) {
             log.error("Cannot init core services for gitUrl=" + gitUrl, e);
             throw e;
@@ -69,11 +69,16 @@ public class OperatorService {
         return env.getNamespace().equals(namespace);
     }
 
-    public void processConfig(Website website, boolean redeploy, boolean createClients) {
-        WebsiteConfig config = websiteConfigService.getConfig(website);
+    public void initNewWebsite(Website website) {
+        initInfrastructure(website, false, true);
+    }
+
+    public void initInfrastructure(Website website, boolean redeploy, boolean createClients) {
+        log.infof("Init infrastructure for website=%s", website);
+
+        WebsiteConfig config = website.getConfig();
         String namespace = website.getMetadata().getNamespace();
 
-        String gitUrl = website.getSpec().getGitUrl();
         Map<String, Environment> envs = config.getEnvs();
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
             String env = envEntry.getKey();
@@ -83,28 +88,29 @@ public class OperatorService {
             }
             log.infof("Processing env=%s", env);
             if (createClients) {
-                contentController.createClient(gitUrl, env, config);
+                contentController.createClient(env, website);
             }
 
             // TODO: Create it in working thread or async
-            setupCoreServices(env, config);
+            setupCoreServices(env, website);
             if (redeploy) {
-                contentController.redeploy(env, config);
+                contentController.redeploy(env, website);
             }
         }
     }
 
-    public void setupCoreServices(String env, WebsiteConfig config) {
-        String namespace = config.getEnvironment(env).getNamespace();
-        final String websiteName = Utils.getWebsiteName(config);
+    public void setupCoreServices(String env, Website website) {
+        WebsiteConfig config = website.getConfig();
+        String namespace = website.getMetadata().getNamespace();
+        final String websiteName = Utils.getWebsiteName(website);
         log.infof("Create core services websiteName=%s env=%s namespace=%s", websiteName, env, namespace);
-        contentController.updateConfigs(env, namespace, config);
+        contentController.updateConfigs(env, namespace, website);
         contentController.deploy(env, namespace, websiteName, config);
 
         if (StringUtils.equals(routerMode, "ingress")) {
-            ingressController.updateIngress(env, namespace, config);
+            ingressController.updateIngress(env, website);
         } else if (StringUtils.equals(routerMode, "openshift")) {
-            routerController.updateWebsiteRoutes(env, namespace, config);
+            routerController.updateWebsiteRoutes(env, website);
         } else {
             log.infof("No routing created");
         }

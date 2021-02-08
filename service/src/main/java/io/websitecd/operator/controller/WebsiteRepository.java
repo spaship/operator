@@ -16,6 +16,9 @@ public class WebsiteRepository {
     private Map<String, Website> websites = new HashMap<>();
 
     public Website addWebsite(Website website) {
+        if (website.getConfig() == null) {
+            throw new RuntimeException("Cannot register new website without configuration");
+        }
         websites.put(website.getId(), website);
         return website;
     }

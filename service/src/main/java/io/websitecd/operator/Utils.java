@@ -1,6 +1,7 @@
 package io.websitecd.operator;
 
 import io.websitecd.operator.config.model.WebsiteConfig;
+import io.websitecd.operator.crd.Website;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -17,8 +18,8 @@ public class Utils {
         return labels;
     }
 
-    public static String getWebsiteName(WebsiteConfig config) {
-        return StringUtils.defaultIfBlank(config.getWebsiteName(), "web");
+    public static String getWebsiteName(Website website) {
+        return StringUtils.defaultIfBlank(website.getConfig().getWebsiteName(), website.getMetadata().getName());
     }
 
 }

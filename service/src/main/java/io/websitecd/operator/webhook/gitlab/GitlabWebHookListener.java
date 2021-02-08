@@ -11,8 +11,8 @@ import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.controller.WebsiteController;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
+import io.websitecd.operator.openshift.GitWebsiteConfigService;
 import io.websitecd.operator.openshift.OperatorService;
-import io.websitecd.operator.openshift.WebsiteConfigService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.gitlab4j.api.GitLabApiException;
@@ -36,7 +36,7 @@ public class GitlabWebHookListener {
 
 
     @Inject
-    WebsiteConfigService websiteConfigService;
+    GitWebsiteConfigService gitWebsiteConfigService;
 
     @Inject
     WebsiteRepository websiteRepository;
@@ -77,12 +77,12 @@ public class GitlabWebHookListener {
         List<Publisher<JsonObject>> updates = new ArrayList<>();
         for (Website website : websites) {
             log.infof("Update website=%s", website);
-            WebsiteConfig websiteConfig = websiteConfigService.getConfig(website);
+            WebsiteConfig websiteConfig = website.getConfig();
             if (isWebsite && isRolloutNeeded(event, websiteYamlName)) {
                 try {
-                    WebsiteConfig newConfig = websiteConfigService.updateRepo(website);
+                    WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
                     if (WebsiteController.deploymentChanged(websiteConfig, newConfig)) {
-                        operatorService.processConfig(website, true, false);
+                        operatorService.initInfrastructure(website, true, false);
                         rollout = true;
                         resultObject.put("website", new JsonObject().put("name", newConfig.getWebsiteName()).put("gitUrl", gitUrl));
                     }
@@ -98,7 +98,7 @@ public class GitlabWebHookListener {
                         log.debugf("Env is not enabled");
                         continue;
                     }
-                    Multi<JsonObject> update = updateAllComponents(gitUrl, envEntry.getKey());
+                    Multi<JsonObject> update = updateAllComponents(website, envEntry.getKey());
                     updates.add(update);
                 }
             }
@@ -113,13 +113,13 @@ public class GitlabWebHookListener {
     }
 
 
-    protected Multi<JsonObject> updateAllComponents(String gitUrl, String env) {
-        String clientId = gitUrl + "-" + env;
-        WebClient contentApiClient = contentController.getContentApiClient(clientId);
+    protected Multi<JsonObject> updateAllComponents(Website website, String env) {
+        String gitUrl = website.getSpec().getGitUrl();
+        WebClient contentApiClient = contentController.getContentApiClient(website, env);
         if (contentApiClient == null) {
-            throw new RuntimeException("contentApiClient not defined for gitUrl=" + clientId);
+            throw new RuntimeException("contentApiClient not defined for gitUrl=" + gitUrl);
         }
-        log.infof("Update all components on clientId=%s ", clientId);
+        log.infof("Update all components on websiteId=%s env=%s", website.getId(), env);
         return contentController.listComponents(contentApiClient)
                 .invoke(name -> {
                     log.debugf("Going to update component name=%s", name);

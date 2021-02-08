@@ -2,6 +2,7 @@ package io.websitecd.operator.openshift;
 
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
+import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
@@ -52,6 +53,9 @@ public class WebsiteConfigEnvProvider {
     @Inject
     WebsiteRepository websiteRepository;
 
+    @Inject
+    GitWebsiteConfigService gitWebsiteConfigService;
+
     void onStart(@Observes StartupEvent ev) {
         if (!providerEnabled.orElse(false)) {
             log.infof("No Git URL Defined in env variable. Skipping");
@@ -60,14 +64,15 @@ public class WebsiteConfigEnvProvider {
         // TODO validate input values
         WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.get(), configDir.orElse(null), sslVerify.orElse(true), secret.get());
         Website website = WebsiteRepository.createWebsite(websiteName.get(), websiteSpec, namespace.get());
-
-        websiteRepository.addWebsite(website);
-
+        
         log.infof("Registering INIT EnvProvider with delay=%s website=%s", initDelay, websiteSpec);
         vertx.setTimer(initDelay, e -> {
             vertx.executeBlocking(future -> {
                 try {
-                    operatorService.initServices(website);
+                    WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website);
+                    website.setConfig(websiteConfig);
+                    websiteRepository.addWebsite(website);
+                    operatorService.initNewWebsite(website);
                 } catch (Exception ex) {
                     future.fail(ex);
                 }

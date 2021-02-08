@@ -1,7 +1,6 @@
 package io.websitecd.operator.openshift;
 
 import io.websitecd.operator.config.OperatorConfigUtils;
-import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
@@ -25,17 +24,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ApplicationScoped
-public class WebsiteConfigService {
+public class GitWebsiteConfigService {
 
-    private static final Logger log = Logger.getLogger(WebsiteConfigService.class);
-
+    private static final Logger log = Logger.getLogger(GitWebsiteConfigService.class);
 
     String workDir = System.getProperty("user.dir");
 
     @ConfigProperty(name = "app.operator.website.config.filenames")
     String[] configFilename;
-
-    Map<String, WebsiteConfig> websites = new HashMap<>();
 
     Map<String, GitInfo> repos = new HashMap<>();
 
@@ -70,18 +66,7 @@ public class WebsiteConfigService {
         if (applied > 0) {
             log.infof("git url set for %s components", applied);
         }
-        registerWebsiteConfig(website, config);
         return config;
-    }
-
-    private void registerWebsiteConfig(Website website, WebsiteConfig config) {
-        String id = createWebsiteConfigId(website);
-        log.infof("Registering config under id=%s", id);
-        websites.put(id, config);
-    }
-
-    public String createWebsiteConfigId(Website website) {
-        return website.getMetadata().getNamespace() + "-" + website.getMetadata().getName() + "-" + website.getSpec().getGitUrl();
     }
 
     public WebsiteConfig updateRepo(Website website) throws GitAPIException, IOException {
@@ -101,7 +86,6 @@ public class WebsiteConfigService {
         if (applied > 0) {
             log.infof("git url set for %s components", applied);
         }
-        registerWebsiteConfig(website, config);
         return config;
     }
 
@@ -135,31 +119,6 @@ public class WebsiteConfigService {
 
     public static String getGitDirName(String workDir, String gitUrl) {
         return workDir + "/" + gitUrl.replace(".", "_").replace("/", "").replace(":", "_");
-    }
-
-    public boolean isKnownWebsite(String gitUrl) {
-        return websites.containsKey(gitUrl);
-    }
-
-    public boolean isKnownComponent(String gitUrl) {
-        for (WebsiteConfig config : websites.values()) {
-            for (ComponentConfig component : config.getComponents()) {
-                if (component.isKindGit()) {
-                    if (StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    public WebsiteConfig getConfig(Website website) {
-        return websites.get(createWebsiteConfigId(website));
-    }
-
-    public Map<String, WebsiteConfig> getWebsites() {
-        return websites;
     }
 
     public static class GitInfo {

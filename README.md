@@ -75,7 +75,10 @@ kubectl apply -n websitecd -f https://raw.githubusercontent.com/websitecd/operat
 Website:
 ```shell
 kubectl create namespace websitecd-examples
+# Advanced:
 kubectl apply -n websitecd-examples -f https://raw.githubusercontent.com/websitecd/websitecd-examples/main/websites/02-advanced/deployment-advanced-preprodonly.yaml
+# Simple:
+kubectl apply -n websitecd-examples -f https://raw.githubusercontent.com/websitecd/websitecd-examples/main/websites/01-simple/deployment-simple-allenvs.yaml
 ```
 
 ## Contact

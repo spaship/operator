@@ -18,6 +18,7 @@ import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.DeploymentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
+import io.websitecd.operator.crd.Website;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -60,30 +61,34 @@ public class ContentController {
     @ConfigProperty(name = "app.operator.website.config.sslverify")
     boolean sslVerify;
 
-    public String getContentHost(String env, WebsiteConfig config) {
+    public String getContentHost(String env, Website config) {
         if (contentApiHost.isPresent()) {
             return contentApiHost.get();
         }
         String serviceName = Utils.getWebsiteName(config) + "-content-" + env;
-        String namespace = config.getEnvironment(env).getNamespace();
+        String namespace = config.getMetadata().getNamespace();
         return serviceName + "." + namespace + ".svc.cluster.local";
     }
 
-    public void createClient(String gitUrl, String env, WebsiteConfig config) {
+    protected static String getClientId(Website website, String env) {
+        return website.getMetadata().getNamespace() + "_" + website.getMetadata().getName() + "_" + env;
+    }
+
+    public void createClient(String env, Website config) {
         String host = getContentHost(env, config);
         WebClient websiteClient = WebClient.create(vertx, new WebClientOptions()
                 .setDefaultHost(host)
                 .setDefaultPort(staticContentApiPort)
                 .setTrustAll(true));
-        String clientId = gitUrl + "-" + env;
+        String clientId = getClientId(config, env);
         clients.put(clientId, websiteClient);
         log.infof("Content client API created. clientId=%s host=%s port=%s", clientId, host, staticContentApiPort);
     }
 
-    public void updateConfigs(String env, String namespace, WebsiteConfig websiteConfig) {
-        ContentConfig config = GitContentUtils.createConfig(env, websiteConfig, rootContext);
+    public void updateConfigs(String env, String namespace, Website website) {
+        ContentConfig config = GitContentUtils.createConfig(env, website.getConfig(), rootContext);
         String data = new Yaml().dumpAsMap(config);
-        final String configName = Utils.getWebsiteName(websiteConfig) + CONFIG_INIT + env;
+        final String configName = Utils.getWebsiteName(website) + CONFIG_INIT + env;
         updateConfigMap(configName, namespace, data);
     }
 
@@ -181,9 +186,9 @@ public class ContentController {
         return deployment;
     }
 
-    public void redeploy(String env, WebsiteConfig config) {
-        String componentName = Utils.getWebsiteName(config) + "-content-" + env;
-        String ns = config.getEnvironment(env).getNamespace();
+    public void redeploy(String env, Website website) {
+        String componentName = Utils.getWebsiteName(website) + "-content-" + env;
+        String ns = website.getMetadata().getNamespace();
         client.inNamespace(ns).apps().deployments().withName(componentName).rolling().restart();
         log.infof("deployment rollout name=%s", componentName);
     }
@@ -198,6 +203,7 @@ public class ContentController {
                 }).map(resp -> resp.bodyAsString());
     }
 
+    @SuppressWarnings(value = "unchecked")
     public Multi<String> listComponents(WebClient webClient) {
         log.infof("List components");
 
@@ -208,7 +214,8 @@ public class ContentController {
                 });
     }
 
-    public WebClient getContentApiClient(String clientId) {
+    public WebClient getContentApiClient(Website website, String env) {
+        String clientId = getClientId(website, env);
         return clients.get(clientId);
     }
 

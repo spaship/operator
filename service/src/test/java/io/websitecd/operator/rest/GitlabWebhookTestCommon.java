@@ -1,9 +1,11 @@
 package io.websitecd.operator.rest;
 
 import io.websitecd.operator.QuarkusTestBase;
+import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
+import io.websitecd.operator.openshift.GitWebsiteConfigService;
 import io.websitecd.operator.openshift.OperatorService;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -29,15 +31,18 @@ public class GitlabWebhookTestCommon extends QuarkusTestBase {
 
     @Inject
     OperatorService operatorService;
-
     @Inject
     WebsiteRepository websiteRepository;
+    @Inject
+    GitWebsiteConfigService gitWebsiteConfigService;
 
 
     public void registerSimpleWeb() throws GitAPIException, IOException, URISyntaxException {
         websiteRepository.reset();
+        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(SIMPLE_WEBSITE);
+        SIMPLE_WEBSITE.setConfig(websiteConfig);
         websiteRepository.addWebsite(SIMPLE_WEBSITE);
-        operatorService.initServices(SIMPLE_WEBSITE);
+        operatorService.initNewWebsite(SIMPLE_WEBSITE);
     }
 
     public void registerAdvancedWeb() throws GitAPIException, IOException, URISyntaxException {
@@ -48,8 +53,11 @@ public class GitlabWebhookTestCommon extends QuarkusTestBase {
         if (reset) {
             websiteRepository.reset();
         }
+        websiteRepository.reset();
+        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(ADVANCED_WEBSITE);
+        ADVANCED_WEBSITE.setConfig(websiteConfig);
         websiteRepository.addWebsite(ADVANCED_WEBSITE);
-        operatorService.initServices(ADVANCED_WEBSITE);
+        operatorService.initNewWebsite(ADVANCED_WEBSITE);
     }
 
 }
