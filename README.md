@@ -19,10 +19,6 @@ Operator covers common enterprise use cases like:
 ```yaml
 apiVersion: 1
 
-# Metadata
-metadata:
-  name: simple                         # website name
-
 # Environments
 envs:
   dev:
