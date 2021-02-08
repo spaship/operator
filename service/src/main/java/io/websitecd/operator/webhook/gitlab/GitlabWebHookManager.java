@@ -53,7 +53,7 @@ public class GitlabWebHookManager extends WebHookManager {
             return Future.failedFuture(new GitLabApiException(message));
         }
 
-        log.infof("handleEvent: X-Gitlab-Event=%s", eventName);
+        log.infof("handleEvent: X-Gitlab-Event=%s remote_address=%s", eventName, request.remoteAddress());
         switch (eventName) {
 
             case IssueEvent.X_GITLAB_EVENT:
@@ -109,7 +109,7 @@ public class GitlabWebHookManager extends WebHookManager {
                 return listener.onTagPushEvent((TagPushEvent) event);
             default:
                 String message = "Unsupported event object_kind, object_kind=" + event.getObjectKind();
-                log.info(message);
+                log.warn(message);
                 return Future.failedFuture(new GitLabApiException(message));
         }
     }
