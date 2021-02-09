@@ -6,6 +6,9 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.websitecd.operator.config.model.WebsiteConfig;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Version("v1")
 @Group("websitecd.io")
 public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implements Namespaced {
@@ -33,5 +36,33 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
 
     public void setConfig(WebsiteConfig config) {
         this.config = config;
+    }
+
+    public Set<String> getEnvs(boolean enabled) {
+        return getConfig().getEnvs().keySet().stream().filter(s -> enabled ? isEnvEnabled(s) : !isEnvEnabled(s)).collect(Collectors.toSet());
+    }
+
+    public boolean isEnvEnabled(String env) {
+        if (getSpec() == null || getSpec().getEnvs() == null) {
+            return true;
+        }
+        WebsiteEnvs envs = getSpec().getEnvs();
+        if (envs.getIncluded() != null) {
+            for (String include : envs.getIncluded()) {
+                if (env.matches(include)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (envs.getExcluded() != null) {
+            for (String exclude : envs.getExcluded()) {
+                if (env.matches(exclude)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return true;
     }
 }

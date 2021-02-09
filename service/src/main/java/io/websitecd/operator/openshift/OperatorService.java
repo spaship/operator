@@ -40,13 +40,6 @@ public class OperatorService {
     @Inject
     DefaultOpenShiftClient client;
 
-    public boolean isEnvEnabled(Environment env, String namespace) {
-        if (namespace == null) {
-            return true;
-        }
-        return env.getNamespace().equals(namespace);
-    }
-
     public void initNewWebsite(Website website) {
         initInfrastructure(website, false, true);
     }
@@ -60,7 +53,7 @@ public class OperatorService {
         Map<String, Environment> envs = config.getEnvs();
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
             String env = envEntry.getKey();
-            if (!isEnvEnabled(envEntry.getValue(), namespace)) {
+            if (!website.isEnvEnabled(env)) {
                 log.infof("environment ignored env=%s namespace=%s", env, namespace);
                 continue;
             }
@@ -104,7 +97,7 @@ public class OperatorService {
         final String websiteName = Utils.getWebsiteName(website);
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
             String env = envEntry.getKey();
-            if (!isEnvEnabled(envEntry.getValue(), namespace)) {
+            if (!website.isEnvEnabled(env)) {
                 log.infof("environment ignored env=%s namespace=%s", env, namespace);
                 continue;
             }

@@ -156,7 +156,7 @@ public class GitlabWebHookListener {
         Map<String, Environment> envs = websiteConfig.getEnvs();
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
             String env = envEntry.getKey();
-            if (!operatorService.isEnvEnabled(envEntry.getValue(), website.getMetadata().getNamespace())) {
+            if (!website.isEnvEnabled(env)) {
                 log.debug("Env is not enabled");
                 continue;
             }

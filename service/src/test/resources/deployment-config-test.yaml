@@ -2,9 +2,9 @@ apiVersion: 1
 
 envs:
   dev:
-    namespace: ns-1
+    branch: dev
   prod:
-    namespace: ns-3
+    branch: prod
     deployment:
       replicas: 5
       init:

@@ -9,6 +9,7 @@ public class WebsiteSpec {
     String dir;
     Boolean sslVerify = true;
     String webhookSecret;
+    WebsiteEnvs envs;
 
     public WebsiteSpec() {
     }
@@ -61,13 +62,23 @@ public class WebsiteSpec {
         this.webhookSecret = webhookSecret;
     }
 
+    public WebsiteEnvs getEnvs() {
+        return envs;
+    }
+
+    public void setEnvs(WebsiteEnvs envs) {
+        this.envs = envs;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("WebsiteSpec{");
         sb.append("gitUrl='").append(gitUrl).append('\'');
         sb.append(", branch='").append(branch).append('\'');
         sb.append(", dir='").append(dir).append('\'');
-        sb.append(", sslVerify='").append(sslVerify).append('\'');
+        sb.append(", sslVerify=").append(sslVerify);
+        sb.append(", webhookSecret='").append(webhookSecret).append('\'');
+        sb.append(", envs=").append(envs);
         sb.append('}');
         return sb.toString();
     }
@@ -77,7 +88,7 @@ public class WebsiteSpec {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WebsiteSpec that = (WebsiteSpec) o;
-        return gitUrl.equals(that.gitUrl) && Objects.equals(branch, that.branch) && Objects.equals(dir, that.dir) && Objects.equals(sslVerify, that.sslVerify) && Objects.equals(webhookSecret, that.webhookSecret);
+        return Objects.equals(gitUrl, that.gitUrl) && Objects.equals(branch, that.branch) && Objects.equals(dir, that.dir) && Objects.equals(sslVerify, that.sslVerify) && Objects.equals(webhookSecret, that.webhookSecret) && Objects.equals(envs, that.envs);
     }
 
     @Override

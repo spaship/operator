@@ -33,6 +33,17 @@ spec:
                   default: true
                 webhookSecret:
                   type: string
+                envs:
+                  type: object
+                  properties:
+                    included:
+                      type: array
+                      items:
+                        type: string
+                    excluded:
+                      type: array
+                      items:
+                        type: string
               required:
                 - gitUrl
                 - branch

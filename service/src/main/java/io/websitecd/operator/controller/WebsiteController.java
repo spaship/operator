@@ -104,6 +104,7 @@ public class WebsiteController {
             websiteRepository.addWebsite(website);
             operatorService.initNewWebsite(website);
         } catch (Exception e) {
+            log.error("Error on CRD added", e);
             throw new RuntimeException(e);
         }
     }
@@ -127,6 +128,7 @@ public class WebsiteController {
                 operatorService.initInfrastructure(website, true, false);
             }
         } catch (Exception e) {
+            log.error("Error on CRD modified", e);
             throw new RuntimeException(e);
         }
     }
@@ -145,6 +147,7 @@ public class WebsiteController {
             websiteRepository.removeWebsite(website);
             operatorService.deleteInfrastructure(website);
         } catch (Exception e) {
+            log.error("Error on CRD deleted", e);
             throw new RuntimeException(e);
         }
     }

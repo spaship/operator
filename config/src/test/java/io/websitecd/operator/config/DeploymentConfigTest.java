@@ -18,9 +18,8 @@ public class DeploymentConfigTest {
     public void testDeployment() throws IOException {
         WebsiteConfig config = TestUtils.loadConfig(testedFile);
 
-        assertEquals(3, config.getEnvs().size());
+        assertEquals(2, config.getEnvs().size());
         Environment dev = config.getEnvironment("dev");
-        Environment stage = config.getEnvironment("stage");
         Environment prod = config.getEnvironment("prod");
 
         assertEquals(Integer.valueOf(1), dev.getDeployment().getReplicas());
