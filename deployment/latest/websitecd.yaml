@@ -3,6 +3,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: websites.websitecd.io
+  labels:
+    websitecd: operator
 spec:
   group: websitecd.io
   scope: Namespaced
@@ -70,6 +72,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: websitecd-operator-config
+  labels:
+    websitecd: operator
 data:
   APP_OPERATOR_ROUTER_MODE: 'ingress'
   APP_OPERATOR_WEBSITE_DOMAIN: 'minikube.info'
@@ -83,6 +87,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: websitecd-operator
+  labels:
+    websitecd: operator
 rules:
   - apiGroups: [ "websitecd.io" ]
     resources: [ "websites" ]
@@ -91,7 +97,7 @@ rules:
     resources: [  "ingresses" ]
     verbs: [ "create", "update", "get", "watch", "list" ]
   - apiGroups: [ "" ]
-    resources: [  "configmaps", "services", "namespaces" ]
+    resources: [  "configmaps", "services" ]
     verbs: [ "create", "update", "get", "watch", "list" ]
   - apiGroups: [ "apps" ]
     resources: [ "deployments" ]
@@ -101,6 +107,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: websitecd-operator
+  labels:
+    websitecd: operator
 roleRef:
   kind: ClusterRole
   name: websitecd-operator
@@ -115,28 +123,34 @@ kind: Service
 metadata:
   name: websitecd-operator
   labels:
-    app: websitecd-operator
+    websitecd: operator
 spec:
   type: NodePort
   ports:
     - port: 8080
       name: http
   selector:
-    app: websitecd-operator
+    websitecd: operator
+    websitecd-operator-layer: service
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: websitecd-operator
+  labels:
+    app: websitecd-operator
+    websitecd: operator
 spec:
   selector:
     matchLabels:
-      app: websitecd-operator
+      websitecd: operator
+      websitecd-operator-layer: service
   replicas: 1
   template:
     metadata:
       labels:
-        app: websitecd-operator
+        websitecd: operator
+        websitecd-operator-layer: service
     spec:
       serviceAccountName: websitecd-operator
       containers:

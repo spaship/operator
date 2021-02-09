@@ -36,7 +36,7 @@ kubectl create namespace websitecd-examples
 ### Logs
 
 ```shell
-kubectl -n websitecd logs --selector=app=websitecd-operator --tail 10 -f
+kubectl -n websitecd logs --selector=websitecd-operator-layer=service --tail 10 -f
 ```
 
 ## Local Development
