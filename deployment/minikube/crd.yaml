@@ -31,7 +31,7 @@ spec:
                 sslVerify:
                   type: boolean
                   default: true
-                webhookSecret:
+                secretToken:
                   type: string
                 envs:
                   type: object

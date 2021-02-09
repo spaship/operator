@@ -83,7 +83,7 @@ public class GitlabWebHookListener {
         for (Map.Entry<String, Website> entry : websiteRepository.getWebsites().entrySet()) {
             Website website = entry.getValue();
             WebsiteSpec spec = website.getSpec();
-            if (!requestSecretToken.equals(spec.getWebhookSecret())) {
+            if (!requestSecretToken.equals(spec.getSecretToken())) {
                 log.debugf("skipping website id=%s", website.getId());
                 continue;
             }

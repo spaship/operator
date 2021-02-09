@@ -43,7 +43,7 @@ public class WebsiteRepository {
         List<Website> result = new ArrayList<>();
         for (Map.Entry<String, Website> entry : websites.entrySet()) {
             WebsiteSpec spec = entry.getValue().getSpec();
-            if (gitUrl.equals(spec.getGitUrl()) && webhookSecretToken.equals(spec.getWebhookSecret())) {
+            if (gitUrl.equals(spec.getGitUrl()) && webhookSecretToken.equals(spec.getSecretToken())) {
                 result.add(entry.getValue());
             }
         }
