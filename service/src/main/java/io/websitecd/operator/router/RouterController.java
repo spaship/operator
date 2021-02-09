@@ -29,16 +29,18 @@ public class RouterController {
     protected Optional<String> domain;
 
     public void updateWebsiteRoutes(String targetEnv, Website website) {
-        if (domain.isEmpty()) {
-            log.infof("No Router created. Missing domain configuration.");
-            return;
-        }
         String namespace = website.getMetadata().getNamespace();
         WebsiteConfig config = website.getConfig();
-        final String hostSuffix = "-" + namespace + "." + domain.get();
         final String websiteName = Utils.getWebsiteName(website);
-        final String host = websiteName + "-" + targetEnv + hostSuffix;
+
+        String host = null;
+        if (domain.isPresent()) {
+            final String hostSuffix = "-" + namespace + "." + domain.get();
+            host = websiteName + "-" + targetEnv + hostSuffix;
+        }
+
         // TODO: It's not needed to create all routes for sub pathes when root path is present
+
         for (ComponentConfig component : config.getComponents()) {
             String context = component.getContext();
             if (!OperatorConfigUtils.isComponentEnabled(config, targetEnv, context)) {
@@ -54,13 +56,15 @@ public class RouterController {
                 targetReference.withName(component.getSpec().getServiceName());
                 routePortBuilder.withTargetPort(getIntOrString(component.getSpec().getTargetPort()));
             }
-
             RouteSpecBuilder spec = new RouteSpecBuilder()
-                    .withHost(host)
                     .withPath(context)
                     .withTo(targetReference.build())
                     .withPort(routePortBuilder.build())
                     .withTls(new TLSConfigBuilder().withNewTermination("edge").withInsecureEdgeTerminationPolicy("Redirect").build());
+
+            if (domain.isPresent()) {
+                spec.withHost(host);
+            }
 
             String sanityContext = sanityContext(context);
             String name = getRouteName(websiteName, sanityContext, targetEnv);
@@ -98,11 +102,14 @@ public class RouterController {
         routePortBuilder.withTargetPort(new IntOrString("http-api"));
 
         RouteSpecBuilder spec = new RouteSpecBuilder()
-                .withHost(host)
                 .withPath(context)
                 .withTo(targetReference.build())
                 .withPort(routePortBuilder.build())
                 .withTls(new TLSConfigBuilder().withNewTermination("edge").withInsecureEdgeTerminationPolicy("Redirect").build());
+
+        if (StringUtils.isNotEmpty(host)) {
+            spec.withHost(host);
+        }
 
         String name = getRouteName(websiteName, "websiteinfo", targetEnv);
 
