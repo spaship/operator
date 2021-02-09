@@ -39,11 +39,11 @@ public class WebsiteRepository {
         return website;
     }
 
-    public List<Website> getByGitUrl(String gitUrl, String webhookSecretToken) {
+    public List<Website> getByGitUrl(String gitUrl, String secretToken) {
         List<Website> result = new ArrayList<>();
         for (Map.Entry<String, Website> entry : websites.entrySet()) {
             WebsiteSpec spec = entry.getValue().getSpec();
-            if (gitUrl.equals(spec.getGitUrl()) && webhookSecretToken.equals(spec.getSecretToken())) {
+            if (gitUrl.equals(spec.getGitUrl()) && secretToken.equals(spec.getSecretToken())) {
                 result.add(entry.getValue());
             }
         }

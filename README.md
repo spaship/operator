@@ -22,10 +22,8 @@ apiVersion: 1
 # Environments
 envs:
   dev:
-    namespace: websitecd-examples      # k8s namespace / openshift project
     branch: main                       # dev git branch (can be git tag)
   prod:
-    namespace: websitecd-examples
     branch: prod                       # prod git branch (can be git tag e.g. "1.0.0")
     deployment:
       replicas: 2                      # per environment deployment configuration
@@ -56,7 +54,7 @@ spec:
   gitUrl: https://github.com/websitecd/websitecd-examples.git
   branch: main
   dir: websites/01-simple              # Relative path to your website.yaml
-  webhookSecret: TOKENSIMPLE
+  secretToken: TOKENSIMPLE
 ```   
 
 Apply it
