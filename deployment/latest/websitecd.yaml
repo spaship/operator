@@ -75,8 +75,7 @@ metadata:
   labels:
     websitecd: operator
 data:
-  APP_OPERATOR_ROUTER_MODE: 'ingress'
-  APP_OPERATOR_WEBSITE_DOMAIN: 'minikube.info'
+  APP_OPERATOR_ROUTER_MODE: 'openshift'
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -93,6 +92,9 @@ rules:
   - apiGroups: [ "websitecd.io" ]
     resources: [ "websites" ]
     verbs: [ "watch", "list" ]
+  - apiGroups: [ "route.openshift.io" ]
+    resources: [  "routes" ]
+    verbs: [ "create", "update", "get", "watch", "list", "delete" ]
   - apiGroups: [ "networking.k8s.io" ]
     resources: [  "ingresses" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
