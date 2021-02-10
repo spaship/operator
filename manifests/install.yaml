@@ -69,15 +69,6 @@ spec:
           jsonPath: .spec.sslVerify
 ---
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: websitecd-operator-config
-  labels:
-    websitecd: operator
-data:
-  APP_OPERATOR_ROUTER_MODE: 'openshift'
----
-apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: websitecd-operator
@@ -89,9 +80,6 @@ metadata:
   labels:
     websitecd: operator
 rules:
-  - apiGroups: [ "websitecd.io" ]
-    resources: [ "websites" ]
-    verbs: [ "watch", "list" ]
   - apiGroups: [ "route.openshift.io" ]
     resources: [  "routes" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
@@ -106,6 +94,17 @@ rules:
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: websitecd-website
+  labels:
+    websitecd: user
+rules:
+  - apiGroups: [ "websitecd.io" ]
+    resources: [ "websites" ]
+    verbs: [ "create", "update", "get", "watch", "list", "delete" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: websitecd-operator
@@ -114,6 +113,21 @@ metadata:
 roleRef:
   kind: ClusterRole
   name: websitecd-operator
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: websitecd-operator
+    namespace: websitecd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: websitecd-website
+  labels:
+    websitecd: operator
+roleRef:
+  kind: ClusterRole
+  name: websitecd-website
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount

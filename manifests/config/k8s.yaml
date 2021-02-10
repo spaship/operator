@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: websitecd-operator-config
+  labels:
+    websitecd: operator
+data:
+  APP_OPERATOR_ROUTER_MODE: 'ingress'
+#  APP_OPERATOR_WEBSITE_DOMAIN: 'minikube.info'
+#######################
+# For Namespace install
+#######################
+#  APP_OPERATOR_NAMESPACE: 'websitecd-examples'
+#  APP_OPERATOR_WEBSITE_CONFIG_SSLVERIFY: 'true'
+#  WEBSITE_GITURL: 'https://github.com/websitecd/websitecd-examples.git'
+#  WEBSITE_BRANCH: 'main'
+#  WEBSITE_CONFIG_DIR: 'websites/02-advanced'
+#  WEBSITE_WEBHOOK_SECRET: 'CHANGEIT'

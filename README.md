@@ -84,7 +84,8 @@ More examples: https://github.com/websitecd/websitecd-examples.git
 Operator:
 ```shell
 kubectl create namespace websitecd
-kubectl apply -n websitecd -f https://raw.githubusercontent.com/websitecd/operator/main/deployment/latest/websitecd.yaml
+kubectl apply -n websitecd -f https://raw.githubusercontent.com/websitecd/operator/main/manifests/config/k8s.yaml
+kubectl apply -n websitecd -f https://raw.githubusercontent.com/websitecd/operator/main/manifests/install.yaml
 ```
 
 Website:
