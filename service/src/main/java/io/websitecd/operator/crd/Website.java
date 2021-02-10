@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.websitecd.operator.config.model.WebsiteConfig;
 
 import java.util.Set;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 @Version("v1")
 @Group("websitecd.io")
+@RegisterForReflection
 public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implements Namespaced {
 
     public Website() {

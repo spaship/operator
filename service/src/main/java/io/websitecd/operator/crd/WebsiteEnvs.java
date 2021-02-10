@@ -1,7 +1,10 @@
 package io.websitecd.operator.crd;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 import java.util.List;
 
+@RegisterForReflection
 public class WebsiteEnvs {
 
     List<String> included;
