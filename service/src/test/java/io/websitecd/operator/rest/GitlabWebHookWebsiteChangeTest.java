@@ -24,7 +24,7 @@ class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
     ContentController contentController;
 
     @Test
-    public void gitPushWebsiteChange() throws Exception {
+    public void gitPushWebsiteChangeNoConfigChange() throws Exception {
         ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
 
         Vertx vertx = Vertx.vertx();
@@ -55,7 +55,7 @@ class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
                 .log().ifValidationFails()
                 .statusCode(200)
                 .body("status", is("SUCCESS"))
-                .body("websites[0].name", is("simple"));
+                .body("websites.size()", is(0));
 
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(0, apiMock.getApiUpdateTest1());

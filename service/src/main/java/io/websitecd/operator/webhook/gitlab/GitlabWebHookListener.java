@@ -128,18 +128,21 @@ public class GitlabWebHookListener {
 
         JsonArray updatedSites = new JsonArray();
         for (Website website : websites) {
-            log.infof("Update website=%s", website);
+            log.debugf("Check website=%s", website);
             WebsiteConfig websiteConfig = website.getConfig();
             try {
                 WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
-                if (!websiteConfig.equals(newConfig)) {
-                    website.setConfig(newConfig);
-                    websiteRepository.addWebsite(website);
-
-                    operatorService.initInfrastructure(website, true);
-
-                    updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
+                if (websiteConfig.equals(newConfig)) {
+                    log.debugf("config has not changed. ignoring");
+                    continue;
                 }
+                website.setConfig(newConfig);
+                websiteRepository.addWebsite(website);
+
+                operatorService.initInfrastructure(website, true);
+
+                log.debugf("Website updated websiteId=%s", website.getId());
+                updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
             } catch (Exception e) {
                 return Future.failedFuture(e);
             }
