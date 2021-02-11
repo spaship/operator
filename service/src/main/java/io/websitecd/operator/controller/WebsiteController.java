@@ -1,9 +1,8 @@
 package io.websitecd.operator.controller;
 
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.WatcherException;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
@@ -20,6 +19,7 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
 public class WebsiteController {
@@ -41,6 +41,9 @@ public class WebsiteController {
     @ConfigProperty(name = "app.operator.provider.crd.enabled")
     boolean crdEnabled;
 
+    @ConfigProperty(name = "app.operator.provider.crd.watch.resyncPeriodSec")
+    int resyncPeriodSec;
+
     @Inject
     Vertx vertx;
 
@@ -51,46 +54,41 @@ public class WebsiteController {
             ready = true;
             return;
         }
-        log.infof("CRD enabled. Going to register CRD");
         initWebsiteCrd();
     }
 
     public void initWebsiteCrd() {
+        log.infof("CRD enabled. Going to register CRD watch");
         watch();
     }
 
     public void watch() {
-        NonNamespaceOperation<Website, WebsiteList, Resource<Website>> websiteClient = client.inAnyNamespace().customResources(Website.class, WebsiteList.class);
+        SharedInformerFactory sharedInformerFactory = client.informers();
+        SharedIndexInformer<Website> podInformer = sharedInformerFactory.sharedIndexInformerFor(
+                Website.class, WebsiteList.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
 
-        websiteClient.watch(new Watcher<>() {
+        podInformer.addEventHandler(new ResourceEventHandler<>() {
             @Override
-            public void eventReceived(Watcher.Action action, Website resource) {
-                log.debugf("==> %s for %s", action, resource);
-                WebsiteSpec websiteSpec = resource.getSpec();
-                if (websiteSpec == null) {
-                    log.errorf("No Spec for resource=%s", resource);
+            public void onAdd(Website website) {
+                // TODO Check if resources are successfully deployed and anything is needed to be redeployed
+                websiteAdded(website);
+            }
+
+            @Override
+            public void onUpdate(Website oldWebsite, Website newWebsite) {
+                if (oldWebsite.getMetadata().getResourceVersion().equals(newWebsite.getMetadata().getResourceVersion())) {
                     return;
                 }
-                switch (action) {
-                    case ADDED:
-                        // TODO Check if resources are succesfully deployed and anything is needed to be redeployed
-                        websiteAdded(resource);
-                        break;
-                    case MODIFIED:
-                        websiteModified(resource);
-                        break;
-                    case DELETED:
-                        websiteDeleted(resource);
-                        break;
-                }
+                websiteModified(oldWebsite, newWebsite);
             }
 
             @Override
-            public void onClose(WatcherException cause) {
-                log.error("onClose", cause);
-                ready = false;
+            public void onDelete(Website website, boolean deletedFinalStateUnknown) {
+                websiteDeleted(website);
             }
         });
+        sharedInformerFactory.startAllRegisteredInformers();
+
         ready = true;
     }
 
@@ -109,23 +107,23 @@ public class WebsiteController {
         }
     }
 
-    public void websiteModified(Website website) {
-        log.infof("Website modified, websiteId=%s", website.getId());
+    public void websiteModified(Website oldWebsite, Website newWebsite) {
+        log.infof("Website modified, websiteId=%s", newWebsite.getId());
 
         try {
-            Website oldWebsite = websiteRepository.getWebsite(website.getId());
+//            Website oldWebsite = websiteRepository.getWebsite(website.getId());
             WebsiteConfig newConfig;
-            if (websiteSpecChanged(oldWebsite.getSpec(), website.getSpec())) {
+            if (websiteSpecGitChanged(oldWebsite.getSpec(), newWebsite.getSpec())) {
                 log.infof("Spec changed. Refreshing setup");
                 gitWebsiteConfigService.deleteRepo(oldWebsite);
-                newConfig = gitWebsiteConfigService.cloneRepo(website);
+                newConfig = gitWebsiteConfigService.cloneRepo(newWebsite);
             } else {
-                newConfig = gitWebsiteConfigService.updateRepo(website);
+                newConfig = gitWebsiteConfigService.updateRepo(newWebsite);
             }
-            website.setConfig(newConfig);
+            newWebsite.setConfig(newConfig);
             if (WebsiteController.deploymentChanged(oldWebsite.getConfig(), newConfig)) {
-                websiteRepository.addWebsite(website);
-                operatorService.initInfrastructure(website, true, false);
+                websiteRepository.addWebsite(newWebsite);
+                operatorService.initInfrastructure(newWebsite, true, false);
             }
         } catch (Exception e) {
             log.error("Error on CRD modified", e);
@@ -133,19 +131,21 @@ public class WebsiteController {
         }
     }
 
-    public static boolean websiteSpecChanged(WebsiteSpec oldSpec, WebsiteSpec newSpec) {
+    public static boolean websiteSpecGitChanged(WebsiteSpec oldSpec, WebsiteSpec newSpec) {
         return (!StringUtils.equals(oldSpec.getGitUrl(), newSpec.getGitUrl())
                 || !StringUtils.equals(oldSpec.getBranch(), newSpec.getBranch())
                 || !StringUtils.equals(oldSpec.getDir(), newSpec.getDir()));
     }
 
-    public void websiteDeleted(Website website) {
-        log.infof("Website deleted, websiteId=%s", website.getId());
+    public void websiteDeleted(Website websiteToDelete) {
+        log.infof("Website deleted, websiteId=%s", websiteToDelete.getId());
         try {
-            WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
-            website.setConfig(newConfig);
-            websiteRepository.removeWebsite(website);
-            operatorService.deleteInfrastructure(website);
+            Website website = websiteRepository.getWebsite(websiteToDelete.getId());
+            if (website != null) {
+                gitWebsiteConfigService.deleteRepo(websiteToDelete);
+                operatorService.deleteInfrastructure(website);
+                websiteRepository.removeWebsite(website.getId());
+            }
         } catch (Exception e) {
             log.error("Error on CRD deleted", e);
             throw new RuntimeException(e);

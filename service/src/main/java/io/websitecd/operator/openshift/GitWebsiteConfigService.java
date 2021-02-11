@@ -63,23 +63,17 @@ public class GitWebsiteConfigService {
         }
         repos.put(gitUrl, new GitInfo(branch, gitDir.getAbsolutePath(), websiteSpec.getDir()));
 
-        File configFile = getWebsiteConfigPath(gitDir, websiteSpec.getDir());
-        WebsiteConfig config = loadConfig(configFile);
-        int applied = OperatorConfigUtils.applyDefaultGirUrl(config, gitUrl);
-        if (applied > 0) {
-            log.infof("git url set for %s components", applied);
-        }
-        return config;
+        return getConfig(website);
     }
 
     public void deleteRepo(Website website) throws IOException {
         GitInfo gitInfo = repos.get(website.getSpec().getGitUrl());
         File gitDir = new File(gitInfo.getDir());
-        log.infof("Deleting gitDir=%s", gitDir.getAbsolutePath());
         Files.walk(gitDir.toPath())
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
                 .forEach(File::delete);
+        log.infof("Git dir deleted gitDir=%s", gitDir.getAbsolutePath());
     }
 
     public WebsiteConfig updateRepo(Website website) throws GitAPIException, IOException {
@@ -92,6 +86,14 @@ public class GitWebsiteConfigService {
         }
         FetchResult fetchResult = pullResult.getFetchResult();
         log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, fetchResult.getMessages());
+
+        return getConfig(website);
+    }
+
+    public WebsiteConfig getConfig(Website website) throws IOException {
+        String gitUrl = website.getSpec().getGitUrl();
+        GitInfo gitInfo = repos.get(gitUrl);
+        File gitDir = new File(gitInfo.getDir());
 
         File configFile = getWebsiteConfigPath(gitDir, gitInfo.getConfigDir());
         WebsiteConfig config = loadConfig(configFile);

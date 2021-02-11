@@ -1,6 +1,5 @@
 package io.websitecd.operator.openshift;
 
-import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
@@ -21,7 +20,6 @@ public class OperatorService {
 
     private static final Logger log = Logger.getLogger(OperatorService.class);
 
-
     @ConfigProperty(name = "app.operator.router.mode")
     String routerMode;
 
@@ -29,23 +27,17 @@ public class OperatorService {
     ContentController contentController;
 
     @Inject
-    GitWebsiteConfigService gitWebsiteConfigService;
-
-    @Inject
     RouterController routerController;
 
     @Inject
     IngressController ingressController;
-
-    @Inject
-    DefaultOpenShiftClient client;
 
     public void initNewWebsite(Website website) {
         initInfrastructure(website, false, true);
     }
 
     public void initInfrastructure(Website website, boolean redeploy, boolean createClients) {
-        log.infof("Init infrastructure for website=%s", website);
+        log.infof("Init infrastructure for websiteId=%s, envs=%s", website.getId(), website.getSpec().getEnvs());
 
         WebsiteConfig config = website.getConfig();
         String namespace = website.getMetadata().getNamespace();
@@ -57,12 +49,11 @@ public class OperatorService {
                 log.infof("environment ignored env=%s namespace=%s", env, namespace);
                 continue;
             }
-            log.infof("Processing env=%s", env);
+            log.debugf("Processing env=%s", env);
             if (createClients) {
                 contentController.createClient(env, website);
             }
 
-            // TODO: Create it in working thread or async
             setupCoreServices(env, website);
             if (redeploy) {
                 contentController.redeploy(env, website);
@@ -88,7 +79,7 @@ public class OperatorService {
     }
 
     public void deleteInfrastructure(Website website) {
-        log.infof("Delete infrastructure for website=%s", website);
+        log.infof("Delete infrastructure for websiteId=%s", website.getId());
 
         WebsiteConfig config = website.getConfig();
         String namespace = website.getMetadata().getNamespace();
@@ -98,7 +89,7 @@ public class OperatorService {
         for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
             String env = envEntry.getKey();
             if (!website.isEnvEnabled(env)) {
-                log.infof("environment ignored env=%s namespace=%s", env, namespace);
+                log.debugf("environment ignored env=%s namespace=%s", env, namespace);
                 continue;
             }
             contentController.deleteDeployment(env, namespace, websiteName);

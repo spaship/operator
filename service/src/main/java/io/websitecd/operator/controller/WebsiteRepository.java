@@ -23,8 +23,8 @@ public class WebsiteRepository {
         return website;
     }
 
-    public void removeWebsite(Website website) {
-        websites.remove(website.getId());
+    public void removeWebsite(String id) {
+        websites.remove(id);
     }
 
     public Website getWebsite(String id) {

@@ -162,7 +162,7 @@ public class ContentController {
                     vmb.withSubPath(subPath);
                     httpdContainer.getVolumeMounts().add(vmb.build());
                 }
-                log.infof("VolumeMounts=%s", httpdContainer.getVolumeMounts());
+                log.tracef("VolumeMounts=%s", httpdContainer.getVolumeMounts());
 
                 client.inNamespace(namespace).apps().deployments().createOrReplace((Deployment) item);
             }

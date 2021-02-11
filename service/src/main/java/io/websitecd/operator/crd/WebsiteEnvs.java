@@ -3,6 +3,7 @@ package io.websitecd.operator.crd;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.util.List;
+import java.util.Objects;
 
 @RegisterForReflection
 public class WebsiteEnvs {
@@ -34,5 +35,18 @@ public class WebsiteEnvs {
         sb.append(", excluded=").append(excluded);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WebsiteEnvs that = (WebsiteEnvs) o;
+        return Objects.equals(included, that.included) && Objects.equals(excluded, that.excluded);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(included, excluded);
     }
 }
