@@ -83,7 +83,7 @@ public class WebsiteController {
                 if (oldWebsite.getMetadata().getResourceVersion().equals(newWebsite.getMetadata().getResourceVersion())) {
                     return;
                 }
-                websiteModified(oldWebsite, newWebsite);
+                websiteModified(newWebsite);
             }
 
             @Override
@@ -111,11 +111,11 @@ public class WebsiteController {
         }
     }
 
-    public void websiteModified(Website oldWebsite, Website newWebsite) {
+    public void websiteModified(Website newWebsite) {
         log.infof("Website modified, websiteId=%s", newWebsite.getId());
 
         try {
-//            Website oldWebsite = websiteRepository.getWebsite(website.getId());
+            Website oldWebsite = websiteRepository.getWebsite(newWebsite.getId());
             WebsiteConfig newConfig;
             if (websiteSpecGitChanged(oldWebsite.getSpec(), newWebsite.getSpec())) {
                 log.infof("Spec changed. Refreshing setup");
@@ -124,7 +124,7 @@ public class WebsiteController {
             } else {
                 newConfig = gitWebsiteConfigService.updateRepo(newWebsite);
             }
-            boolean configChanged = !oldWebsite.getConfig().equals(newConfig);
+            boolean configChanged = !newConfig.equals(oldWebsite.getConfig());
             if (configChanged) {
                 newWebsite.setConfig(newConfig);
                 websiteRepository.addWebsite(newWebsite);
