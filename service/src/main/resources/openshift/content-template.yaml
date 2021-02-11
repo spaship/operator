@@ -130,8 +130,11 @@ objects:
                 periodSeconds: 10
               resources:
                 requests:
-                  cpu: 100m
+                  cpu: 10m
                   memory: 50Mi
+                limits:
+                  cpu: 100m
+                  memory: 100Mi
               ports:
                 - containerPort: 8090
               env:
