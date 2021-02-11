@@ -1,5 +1,7 @@
 package io.websitecd.operator.config.model;
 
+import java.util.Objects;
+
 public class ComponentConfig {
     String context;
     String kind;
@@ -58,5 +60,18 @@ public class ComponentConfig {
         sb.append(", spec=").append(spec);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ComponentConfig that = (ComponentConfig) o;
+        return Objects.equals(context, that.context) && Objects.equals(kind, that.kind) && Objects.equals(spec, that.spec);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(context, kind, spec);
     }
 }

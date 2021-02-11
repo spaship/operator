@@ -77,12 +77,16 @@ public class ContentController {
     }
 
     public void createClient(String env, Website config) {
+        String clientId = getClientId(config, env);
+        if (clients.containsKey(clientId)) {
+            log.debugf("Client already exists. skipping. clientId=%s", clientId);
+            return;
+        }
         String host = getContentHost(env, config);
         WebClient websiteClient = WebClient.create(vertx, new WebClientOptions()
                 .setDefaultHost(host)
                 .setDefaultPort(staticContentApiPort)
                 .setTrustAll(true));
-        String clientId = getClientId(config, env);
         clients.put(clientId, websiteClient);
         log.infof("Content client API created. clientId=%s host=%s port=%s", clientId, host, staticContentApiPort);
     }

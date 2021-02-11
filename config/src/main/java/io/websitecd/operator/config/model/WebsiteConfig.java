@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class WebsiteConfig {
 
@@ -89,5 +90,18 @@ public class WebsiteConfig {
         sb.append(", components=").append(components);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WebsiteConfig that = (WebsiteConfig) o;
+        return Objects.equals(apiVersion, that.apiVersion) && Objects.equals(metadata, that.metadata) && Objects.equals(labels, that.labels) && Objects.equals(envs, that.envs) && Objects.equals(components, that.components);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(apiVersion, metadata, labels, envs, components);
     }
 }

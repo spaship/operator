@@ -1,5 +1,6 @@
 package io.websitecd.operator.config.model;
 
+import java.util.Objects;
 import java.util.Set;
 
 public class Environment {
@@ -40,5 +41,18 @@ public class Environment {
         sb.append(", deployment=").append(deployment);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Environment that = (Environment) o;
+        return Objects.equals(branch, that.branch) && Objects.equals(skipContexts, that.skipContexts) && Objects.equals(deployment, that.deployment);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(branch, skipContexts, deployment);
     }
 }

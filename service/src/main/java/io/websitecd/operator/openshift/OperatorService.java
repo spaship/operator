@@ -33,10 +33,10 @@ public class OperatorService {
     IngressController ingressController;
 
     public void initNewWebsite(Website website) {
-        initInfrastructure(website, false, true);
+        initInfrastructure(website, false);
     }
 
-    public void initInfrastructure(Website website, boolean redeploy, boolean createClients) {
+    public void initInfrastructure(Website website, boolean redeploy) {
         log.infof("Init infrastructure for websiteId=%s, envs=%s", website.getId(), website.getSpec().getEnvs());
 
         WebsiteConfig config = website.getConfig();
@@ -50,9 +50,7 @@ public class OperatorService {
                 continue;
             }
             log.debugf("Processing env=%s", env);
-            if (createClients) {
-                contentController.createClient(env, website);
-            }
+            contentController.createClient(env, website);
 
             setupCoreServices(env, website);
             if (redeploy) {

@@ -7,6 +7,7 @@ import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
 import io.websitecd.operator.config.model.WebsiteConfig;
+import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteList;
 import io.websitecd.operator.crd.WebsiteSpec;
@@ -31,6 +32,9 @@ public class WebsiteController {
 
     @Inject
     OperatorService operatorService;
+
+    @Inject
+    ContentController contentController;
 
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
@@ -120,10 +124,11 @@ public class WebsiteController {
             } else {
                 newConfig = gitWebsiteConfigService.updateRepo(newWebsite);
             }
-            newWebsite.setConfig(newConfig);
-            if (WebsiteController.deploymentChanged(oldWebsite.getConfig(), newConfig)) {
+            boolean configChanged = !oldWebsite.getConfig().equals(newConfig);
+            if (configChanged) {
+                newWebsite.setConfig(newConfig);
                 websiteRepository.addWebsite(newWebsite);
-                operatorService.initInfrastructure(newWebsite, true, false);
+                operatorService.initInfrastructure(newWebsite, true);
             }
         } catch (Exception e) {
             log.error("Error on CRD modified", e);
@@ -150,11 +155,6 @@ public class WebsiteController {
             log.error("Error on CRD deleted", e);
             throw new RuntimeException(e);
         }
-    }
-
-    public static boolean deploymentChanged(WebsiteConfig oldConfig, WebsiteConfig newConfig) {
-        // TODO: Compare old and new config and consider if deployment has changed
-        return true;
     }
 
     public boolean isReady() {

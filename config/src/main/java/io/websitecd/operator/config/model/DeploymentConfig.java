@@ -2,6 +2,8 @@ package io.websitecd.operator.config.model;
 
 import io.fabric8.kubernetes.api.model.Container;
 
+import java.util.Objects;
+
 public class DeploymentConfig {
     Integer replicas;
     Container init;
@@ -49,5 +51,18 @@ public class DeploymentConfig {
         sb.append(", api=").append(api);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DeploymentConfig that = (DeploymentConfig) o;
+        return Objects.equals(replicas, that.replicas) && Objects.equals(init, that.init) && Objects.equals(httpd, that.httpd) && Objects.equals(api, that.api);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(replicas, init, httpd, api);
     }
 }

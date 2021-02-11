@@ -1,6 +1,7 @@
 package io.websitecd.operator.config.model;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class ComponentSpec {
     String url;
@@ -71,5 +72,18 @@ public class ComponentSpec {
         sb.append(", envs=").append(envs);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ComponentSpec that = (ComponentSpec) o;
+        return Objects.equals(url, that.url) && Objects.equals(dir, that.dir) && Objects.equals(branch, that.branch) && Objects.equals(serviceName, that.serviceName) && Objects.equals(targetPort, that.targetPort) && Objects.equals(envs, that.envs);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url, dir, branch, serviceName, targetPort, envs);
     }
 }

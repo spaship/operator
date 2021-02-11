@@ -11,7 +11,6 @@ import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
-import io.websitecd.operator.controller.WebsiteController;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
@@ -39,7 +38,6 @@ import static io.websitecd.operator.webhook.WebhookService.STATUS_SUCCESS;
 public class GitlabWebHookListener {
 
     private static final Logger log = Logger.getLogger(GitlabWebHookListener.class);
-
 
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
@@ -134,12 +132,13 @@ public class GitlabWebHookListener {
             WebsiteConfig websiteConfig = website.getConfig();
             try {
                 WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
-                if (WebsiteController.deploymentChanged(websiteConfig, newConfig)) {
-                    operatorService.initInfrastructure(website, true, false);
-                    updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
-
+                if (!websiteConfig.equals(newConfig)) {
+                    website.setConfig(newConfig);
                     websiteRepository.addWebsite(website);
-                    website.setConfig(websiteConfig);
+
+                    operatorService.initInfrastructure(website, true);
+
+                    updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
                 }
             } catch (Exception e) {
                 return Future.failedFuture(e);
