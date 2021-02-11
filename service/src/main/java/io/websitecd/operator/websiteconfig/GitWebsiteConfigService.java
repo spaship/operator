@@ -1,4 +1,4 @@
-package io.websitecd.operator.openshift;
+package io.websitecd.operator.websiteconfig;
 
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.WebsiteConfig;
@@ -43,7 +43,7 @@ public class GitWebsiteConfigService {
         log.infof("Initializing website config spec=%s", websiteSpec);
         String gitUrl = websiteSpec.getGitUrl();
         String branch = websiteSpec.getBranch();
-        File gitDir = new File(getGitDirName(workDir, gitUrl));
+        File gitDir = new File(getGitDirName(workDir, website.getId()));
         if (!gitDir.exists()) {
             Git git = Git.init().setDirectory(gitDir).call();
             git.remoteAdd().setName("origin").setUri(new URIish(gitUrl)).call();
@@ -61,24 +61,26 @@ public class GitWebsiteConfigService {
         } else {
             log.infof("Website config already cloned. skipping dir=%s", gitDir);
         }
-        repos.put(gitUrl, new GitInfo(branch, gitDir.getAbsolutePath(), websiteSpec.getDir()));
+        GitInfo gitInfo = new GitInfo(website.getSpec().getBranch(), gitDir.getAbsolutePath(), website.getSpec().getDir());
+        repos.put(website.getId(), gitInfo);
 
         return getConfig(website);
     }
 
     public void deleteRepo(Website website) throws IOException {
-        GitInfo gitInfo = repos.get(website.getSpec().getGitUrl());
+        final String id = website.getId();
+        GitInfo gitInfo = repos.get(id);
         File gitDir = new File(gitInfo.getDir());
         Files.walk(gitDir.toPath())
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
                 .forEach(File::delete);
+        repos.remove(id);
         log.infof("Git dir deleted gitDir=%s", gitDir.getAbsolutePath());
     }
 
     public WebsiteConfig updateRepo(Website website) throws GitAPIException, IOException {
-        String gitUrl = website.getSpec().getGitUrl();
-        GitInfo gitInfo = repos.get(gitUrl);
+        GitInfo gitInfo = repos.get(website.getId());
         File gitDir = new File(gitInfo.getDir());
         PullResult pullResult = Git.open(gitDir).pull().setRemoteBranchName(gitInfo.getBranch()).call();
         if (!pullResult.isSuccessful()) {
@@ -90,9 +92,12 @@ public class GitWebsiteConfigService {
         return getConfig(website);
     }
 
+    protected void registerNewGitRepo(Website website, String gitDirPath) {
+    }
+
     public WebsiteConfig getConfig(Website website) throws IOException {
+        GitInfo gitInfo = repos.get(website.getId());
         String gitUrl = website.getSpec().getGitUrl();
-        GitInfo gitInfo = repos.get(gitUrl);
         File gitDir = new File(gitInfo.getDir());
 
         File configFile = getWebsiteConfigPath(gitDir, gitInfo.getConfigDir());
@@ -132,32 +137,8 @@ public class GitWebsiteConfigService {
         return null;
     }
 
-    public static String getGitDirName(String workDir, String gitUrl) {
-        return workDir + "/" + gitUrl.replace(".", "_").replace("/", "").replace(":", "_");
-    }
-
-    public static class GitInfo {
-        String branch;
-        String dir;
-        String configDir;
-
-        public GitInfo(String branch, String dir, String configDir) {
-            this.branch = branch;
-            this.dir = dir;
-            this.configDir = configDir;
-        }
-
-        public String getBranch() {
-            return branch;
-        }
-
-        public String getDir() {
-            return dir;
-        }
-
-        public String getConfigDir() {
-            return configDir;
-        }
+    public static String getGitDirName(String workDir, String websiteId) {
+        return workDir + "/git-website_" + websiteId.replace(".", "_").replace("/", "").replace(":", "_");
     }
 
 }

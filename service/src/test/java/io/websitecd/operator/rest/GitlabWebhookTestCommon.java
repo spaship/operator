@@ -5,8 +5,8 @@ import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
-import io.websitecd.operator.openshift.GitWebsiteConfigService;
 import io.websitecd.operator.openshift.OperatorService;
+import io.websitecd.operator.websiteconfig.GitWebsiteConfigService;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import javax.inject.Inject;
