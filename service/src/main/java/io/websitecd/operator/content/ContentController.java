@@ -29,6 +29,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.InternalServerErrorException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -232,8 +233,10 @@ public class ContentController {
     }
 
     public Future<JsonObject> refreshComponent(Website website, String env, String name) {
-        log.infof("Update components on websiteId=%s env=%s, name=%s", website.getId(), env, name);
-        WebClient webClient = getContentApiClient(website, env);
+        String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
+        log.infof("Update components on %s", componentDesc);
+        String clientId = getClientId(website, env);
+        WebClient webClient = clients.get(clientId);
 
         Promise<JsonObject> promise = Promise.promise();
         webClient.get("/api/update/" + name)
@@ -249,7 +252,9 @@ public class ContentController {
                                 .put("env", env);
                         promise.tryComplete(new JsonObject().put("component", result));
                     } else {
-                        promise.tryFail(ar.cause());
+                        String message = String.format("Cannot update content on %s clientId=%s", componentDesc, clientId);
+                        log.error(message, ar.cause());
+                        promise.tryFail(new InternalServerErrorException(message));
                     }
                 });
         return promise.future();
@@ -271,11 +276,6 @@ public class ContentController {
             }
         });
         return promise.future();
-    }
-
-    public WebClient getContentApiClient(Website website, String env) {
-        String clientId = getClientId(website, env);
-        return clients.get(clientId);
     }
 
     public int getStaticContentApiPort() {

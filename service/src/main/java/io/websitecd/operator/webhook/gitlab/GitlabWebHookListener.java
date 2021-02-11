@@ -105,13 +105,13 @@ public class GitlabWebHookListener {
 
         Promise<JsonObject> promise = Promise.promise();
         CompositeFuture.join(updates)
+                .onFailure(promise::fail)
                 .onSuccess(e -> {
                     if (e.result().list() != null) {
                         resultObject.put("components", e.result().list());
                     }
-                })
-                .onComplete(ar -> promise.complete(resultObject))
-                .onFailure(promise::fail);
+                    promise.complete(resultObject);
+                });
         return promise.future();
     }
 

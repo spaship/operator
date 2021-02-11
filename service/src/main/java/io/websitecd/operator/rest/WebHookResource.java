@@ -12,7 +12,7 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
+import javax.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,8 +52,11 @@ public class WebHookResource {
         }
         result.onSuccess(ar -> rc.response().end(ar.toBuffer()))
                 .onFailure(err -> {
-                    if (err instanceof BadRequestException) {
-                        rc.response().setStatusCode(400).end(err.getMessage());
+                    if (err instanceof WebApplicationException) {
+                        WebApplicationException exc = (WebApplicationException) err;
+                        rc.response()
+                                .setStatusCode(exc.getResponse().getStatus())
+                                .end(exc.getMessage());
                     } else {
                         rc.fail(err);
                     }
