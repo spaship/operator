@@ -36,7 +36,7 @@ public class RouterController {
         String host = null;
         if (domain.isPresent()) {
             final String hostSuffix = "-" + namespace + "." + domain.get();
-            host = websiteName + "-" + targetEnv + hostSuffix;
+            host = "http://" + websiteName + "-" + targetEnv + hostSuffix;
         }
 
         // TODO: It's not needed to create all routes for sub pathes when root path is present

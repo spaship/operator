@@ -81,6 +81,9 @@ metadata:
     websitecd: operator
 rules:
   - apiGroups: [ "route.openshift.io" ]
+    resources: [ "custom-host" ]
+    verbs: [ "create" ]
+  - apiGroups: [ "route.openshift.io" ]
     resources: [  "routes" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
   - apiGroups: [ "networking.k8s.io" ]
