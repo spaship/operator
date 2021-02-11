@@ -65,7 +65,7 @@ public class OperatorService {
         final String websiteName = Utils.getWebsiteName(website);
         log.infof("Create core services websiteName=%s env=%s namespace=%s", websiteName, env, namespace);
         contentController.updateConfigs(env, namespace, website);
-        contentController.deploy(env, namespace, websiteName, config);
+        contentController.deploy(env, namespace, websiteName, website);
 
         if (StringUtils.equals(routerMode, "ingress")) {
             ingressController.updateIngress(env, website);

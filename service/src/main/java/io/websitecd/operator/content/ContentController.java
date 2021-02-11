@@ -61,9 +61,6 @@ public class ContentController {
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
 
-    @ConfigProperty(name = "app.operator.website.config.sslverify")
-    boolean sslVerify;
-
     public String getContentHost(String env, Website config) {
         if (contentApiHost.isPresent()) {
             return contentApiHost.get();
@@ -126,11 +123,13 @@ public class ContentController {
         client.inNamespace(namespace).configMaps().createOrReplace(config.build());
     }
 
-    public void deploy(String env, String namespace, String websiteName, WebsiteConfig config) {
+    public void deploy(String env, String namespace, String websiteName, Website website) {
+        WebsiteConfig config = website.getConfig();
+
         Map<String, String> params = new HashMap<>();
         params.put("ENV", env);
         params.put("NAME", websiteName);
-        params.put("GIT_SSL_NO_VERIFY", Boolean.toString(!sslVerify));
+        params.put("GIT_SSL_NO_VERIFY", Boolean.toString(!website.getSpec().getSslVerify()));
 
         KubernetesList result = processTemplate(namespace, params);
 
@@ -217,7 +216,6 @@ public class ContentController {
         Map<String, String> params = new HashMap<>();
         params.put("ENV", env);
         params.put("NAME", websiteName);
-        params.put("GIT_SSL_NO_VERIFY", Boolean.toString(!sslVerify));
 
         KubernetesList result = processTemplate(namespace, params);
 
