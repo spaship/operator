@@ -77,7 +77,6 @@ public class GitlabWebHookListener {
         log.debugf("Trying to find websites with same token but gitUrl may be used as component");
 
         List<Future> updates = new ArrayList<>();
-        boolean websiteFound = false;
         for (Map.Entry<String, Website> entry : websiteRepository.getWebsites().entrySet()) {
             Website website = entry.getValue();
             WebsiteSpec spec = website.getSpec();
@@ -85,7 +84,6 @@ public class GitlabWebHookListener {
                 log.debugf("skipping website id=%s", website.getId());
                 continue;
             }
-            websiteFound = true;
             boolean componentFound = false;
             for (ComponentConfig component : website.getConfig().getComponents()) {
                 if (StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
@@ -97,8 +95,8 @@ public class GitlabWebHookListener {
                 updates.addAll(getComponentUpdates(website, gitUrl));
             }
         }
-        if (!websiteFound) {
-            return Future.failedFuture(new BadRequestException("no matched website"));
+        if (updates.size() == 0) {
+            return Future.failedFuture(new BadRequestException("no matched website or components"));
         }
 
         JsonObject resultObject = new JsonObject().put("status", STATUS_SUCCESS).put("components", new JsonArray());

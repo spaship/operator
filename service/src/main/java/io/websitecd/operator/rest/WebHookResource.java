@@ -1,11 +1,9 @@
 package io.websitecd.operator.rest;
 
 import io.quarkus.vertx.web.Route;
-import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.websitecd.operator.webhook.WebhookService;
 import org.jboss.logging.Logger;
@@ -43,24 +41,23 @@ public class WebHookResource {
             return;
         }
 
-        Future<JsonObject> result;
         if (provider.equals(WebhookService.GIT_PROVIDER.GITLAB)) {
-            result = webhookService.handleGitlab(request, body);
+            webhookService.handleGitlab(request, body)
+                    .onSuccess(ar -> rc.response().end(ar.toBuffer()))
+                    .onFailure(err -> {
+                        if (err instanceof WebApplicationException) {
+                            WebApplicationException exc = (WebApplicationException) err;
+                            rc.response()
+                                    .setStatusCode(exc.getResponse().getStatus())
+                                    .end(exc.getMessage());
+                        } else {
+                            rc.fail(err);
+                        }
+                    });
         } else {
             rc.response().setStatusCode(400).end("Unknown provider");
-            return;
         }
-        result.onSuccess(ar -> rc.response().end(ar.toBuffer()))
-                .onFailure(err -> {
-                    if (err instanceof WebApplicationException) {
-                        WebApplicationException exc = (WebApplicationException) err;
-                        rc.response()
-                                .setStatusCode(exc.getResponse().getStatus())
-                                .end(exc.getMessage());
-                    } else {
-                        rc.fail(err);
-                    }
-                });
+
     }
 
 }
