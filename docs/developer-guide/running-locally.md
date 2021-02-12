@@ -1,24 +1,4 @@
-# Development
-
-## Maven
-
-### Modules
-1. config
-2. service
-
-### Repository
-
-Maven artefacts are pushed to [jboss.org repository](https://repository.jboss.org/nexus/#nexus-search;quick~io.websitecd).
-
-If other project depends on e.g. operator-config artefact
-Add this repository to pom.xml: `https://repository.jboss.org/nexus/content/repositories/DXP/` and dependency:
-```xml
-<dependency>
-  <groupId>io.websitecd.operator</groupId>
-  <artifactId>operator-config</artifactId>
-  <version>1.0.0</version>
-</dependency>
-```
+# Running Website CD Locally
 
 ## Minikube
 
@@ -48,7 +28,7 @@ mvn clean install
 ```
 
 ### Run Operator Locally
-Default values for dev mode are stored in [application.properties](../service/src/main/resources/application.properties)
+Default values for dev mode are stored in [application.properties](../../service/src/main/resources/application.properties)
 in section `# DEV`
 
 ```shell
@@ -80,6 +60,7 @@ WEBHOOK_URL=http://operator-websitecd.minikube.info/api/webhook
 curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-Event: Push Hook" -H "X-Gitlab-Token: TOKENSIMPLE" --data-binary "@src/test/resources/gitlab-push.json" 
 curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-Event: Push Hook" -H "X-Gitlab-Token: TOKENSIMPLE" --data-binary "@src/test/resources/gitlab-push-website-changed.json" 
 ```
+
 
 
 ## Build Docker Image

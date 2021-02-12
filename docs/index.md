@@ -8,7 +8,7 @@ Operator covers common enterprise use cases like:
 
 1. Sharing website blocks/components - header, footer, marketing etc.
 2. Website as composition of static content, SPAs and other services (REST API, GraphQL, Drupal etc.)
-3. Multiple environments deployment. Resources configuration per environment. 
+3. Multiple environments deployment. Resources configuration per environment.
 4. Git webhooks integration for continuous Deployment and Delivery
 5. Extendable - ability to provide another repository of content in addition to git (e.g. FTP)
 
