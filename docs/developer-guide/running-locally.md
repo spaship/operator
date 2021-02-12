@@ -36,6 +36,17 @@ cd service
 mvn quarkus:dev
 ```
 
+In few seconds the operator is up and connects to k8s cluster.
+
+To view which context do you use just do
+```shell
+kubectl config current-context
+```
+To switch to minikube context do
+```shell
+kubectl config use-context minikube
+```
+
 ## Webhook API Development
 
 Init websites git repos
@@ -46,7 +57,7 @@ cp config/src/test/resources/gitconfig-test.yaml /tmp/repos/static-content-confi
 docker run --rm -e "CONFIG_PATH=/app/data/static-content-config.yaml" -e "TARGET_DIR=/app/data" -e "GIT_SSL_NO_VERIFY=true" -v "/tmp/repos/:/app/data/" quay.io/websitecd/content-git-init
 ```
 
-Start content-git-api on port 8090
+Start content-git-api on port `8090`
 
 ```shell
 docker run --rm -e "APP_DATA_DIR=/app/data" -v "/tmp/repos/:/app/data/" -p 8090:8090 quay.io/websitecd/content-git-api
@@ -56,12 +67,10 @@ Fire event:
 
 ```shell
 WEBHOOK_URL=http://localhost:8080/api/webhook
-WEBHOOK_URL=http://operator-websitecd.minikube.info/api/webhook
+# WEBHOOK_URL=http://operator-websitecd.minikube.info/api/webhook
 curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-Event: Push Hook" -H "X-Gitlab-Token: TOKENSIMPLE" --data-binary "@src/test/resources/gitlab-push.json" 
 curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-Event: Push Hook" -H "X-Gitlab-Token: TOKENSIMPLE" --data-binary "@src/test/resources/gitlab-push-website-changed.json" 
 ```
-
-
 
 ## Build Docker Image
 
@@ -69,9 +78,4 @@ curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-E
 mvn clean install
 cd service
 docker build -f src/main/docker/Dockerfile.jvm -t websitecd/operator-jvm .
-docker tag websitecd/operator-jvm quay.io/websitecd/operator-jvm
-docker push quay.io/websitecd/operator-jvm
-
-# Restart running operator to pick newest version
-kubectl rollout restart deployment websitecd-operator
 ```

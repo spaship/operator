@@ -1,8 +1,4 @@
-# Contributing
-
-Feel free to create an issue, or a pull request.
-
-## Release process
+# Release
 
 Perform test first
 
