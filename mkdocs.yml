@@ -1,12 +1,13 @@
 # To run docs locally:
 # docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
 # and open http://localhost:8000/
-site_name: Website CD
+site_name: Website Continuous Deployment & Delivery
 theme:
   name: material
 
 nav:
   - Overview: index.md
   - Developer Guide:
-      - developer-guide/index.md
+      - Overview: developer-guide/index.md
       - developer-guide/running-locally.md
+  - support.md
