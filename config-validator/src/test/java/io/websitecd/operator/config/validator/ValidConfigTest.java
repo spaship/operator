@@ -6,8 +6,6 @@ import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,20 +16,18 @@ class ValidConfigTest {
     private static final Logger log = Logger.getLogger(ValidConfigTest.class);
 
     @Inject
-    ValidatorService validatorService;
+    ValidatorMain validatorMain;
 
     @Test
-    void testSimpleConfig() throws IOException {
-        try (InputStream is = ValidConfigTest.class.getResourceAsStream("/valid-simple-website.yaml")) {
-            assertValid(validatorService.validate(is));
-        }
+    void testSimpleConfig() throws Exception {
+        String file = ValidConfigTest.class.getResource("/valid-simple-website.yaml").getFile();
+        validatorMain.validate(file);
     }
 
     @Test
-    void testAdvancedConfig() throws IOException {
-        try (InputStream is = ValidConfigTest.class.getResourceAsStream("/valid-advanced-website.yaml")) {
-            assertValid(validatorService.validate(is));
-        }
+    void testAdvancedConfig() throws Exception {
+        String file = ValidConfigTest.class.getResource("/valid-advanced-website.yaml").getFile();
+        validatorMain.validate(file);
     }
 
 
