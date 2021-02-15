@@ -57,7 +57,7 @@ For example branch name is defined on following places:
 The complete `website.yaml` reference
 
 ```yaml
-apiVersion: 1                      # Website API reference
+apiVersion: v1                     # Website API reference
 
 labels:                            # Labels
   label-key: label-value           # Key is label key, Value is label value

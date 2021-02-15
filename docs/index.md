@@ -17,7 +17,7 @@ Operator covers common enterprise use cases like:
 
 ### Step 1 - Describe your website and push it into your git repo
 ```yaml
-apiVersion: 1
+apiVersion: v1
 
 # Environments
 envs:
