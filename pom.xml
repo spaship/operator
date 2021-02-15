@@ -64,6 +64,7 @@
 
     <modules>
         <module>config</module>
+        <module>config-validator</module>
         <module>service</module>
     </modules>
 

@@ -1,0 +1,630 @@
+{
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "title" : "Website Config",
+  "type" : "object",
+  "additionalProperties" : false,
+  "properties" : {
+    "apiVersion" : {
+      "type" : "string"
+    },
+    "metadata" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "string"
+      }
+    },
+    "labels" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "type" : "string"
+      }
+    },
+    "envs" : {
+      "type" : "object",
+      "additionalProperties" : {
+        "$ref" : "#/definitions/Environment"
+      }
+    },
+    "components" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/definitions/ComponentConfig"
+      }
+    },
+    "websiteName" : {
+      "type" : "string"
+    },
+    "rootComponent" : {
+      "$ref" : "#/definitions/ComponentConfig"
+    }
+  },
+  "definitions" : {
+    "Environment" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "branch" : {
+          "type" : "string"
+        },
+        "skipContexts" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "deployment" : {
+          "$ref" : "#/definitions/DeploymentConfig"
+        }
+      }
+    },
+    "DeploymentConfig" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "replicas" : {
+          "type" : "integer"
+        },
+        "init" : {
+          "$ref" : "#/definitions/Container"
+        },
+        "httpd" : {
+          "$ref" : "#/definitions/Container"
+        },
+        "api" : {
+          "$ref" : "#/definitions/Container"
+        }
+      }
+    },
+    "Container" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "args" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "command" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "env" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/EnvVar"
+          }
+        },
+        "envFrom" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/EnvFromSource"
+          }
+        },
+        "image" : {
+          "type" : "string"
+        },
+        "imagePullPolicy" : {
+          "type" : "string"
+        },
+        "lifecycle" : {
+          "$ref" : "#/definitions/Lifecycle"
+        },
+        "livenessProbe" : {
+          "$ref" : "#/definitions/Probe"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "ports" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/ContainerPort"
+          }
+        },
+        "readinessProbe" : {
+          "$ref" : "#/definitions/Probe"
+        },
+        "resources" : {
+          "$ref" : "#/definitions/ResourceRequirements"
+        },
+        "securityContext" : {
+          "$ref" : "#/definitions/SecurityContext"
+        },
+        "startupProbe" : {
+          "$ref" : "#/definitions/Probe"
+        },
+        "stdin" : {
+          "type" : "boolean"
+        },
+        "stdinOnce" : {
+          "type" : "boolean"
+        },
+        "terminationMessagePath" : {
+          "type" : "string"
+        },
+        "terminationMessagePolicy" : {
+          "type" : "string"
+        },
+        "tty" : {
+          "type" : "boolean"
+        },
+        "volumeDevices" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/VolumeDevice"
+          }
+        },
+        "volumeMounts" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/VolumeMount"
+          }
+        },
+        "workingDir" : {
+          "type" : "string"
+        }
+      }
+    },
+    "EnvVar" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "string"
+        },
+        "valueFrom" : {
+          "$ref" : "#/definitions/EnvVarSource"
+        }
+      }
+    },
+    "EnvVarSource" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "configMapKeyRef" : {
+          "$ref" : "#/definitions/ConfigMapKeySelector"
+        },
+        "fieldRef" : {
+          "$ref" : "#/definitions/ObjectFieldSelector"
+        },
+        "resourceFieldRef" : {
+          "$ref" : "#/definitions/ResourceFieldSelector"
+        },
+        "secretKeyRef" : {
+          "$ref" : "#/definitions/SecretKeySelector"
+        }
+      }
+    },
+    "ConfigMapKeySelector" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "key" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "optional" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "ObjectFieldSelector" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "apiVersion" : {
+          "type" : "string"
+        },
+        "fieldPath" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ResourceFieldSelector" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "containerName" : {
+          "type" : "string"
+        },
+        "divisor" : { },
+        "resource" : {
+          "type" : "string"
+        }
+      }
+    },
+    "SecretKeySelector" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "key" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "optional" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "EnvFromSource" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "configMapRef" : {
+          "$ref" : "#/definitions/ConfigMapEnvSource"
+        },
+        "prefix" : {
+          "type" : "string"
+        },
+        "secretRef" : {
+          "$ref" : "#/definitions/SecretEnvSource"
+        }
+      }
+    },
+    "ConfigMapEnvSource" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "optional" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "SecretEnvSource" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "optional" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "Lifecycle" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "postStart" : {
+          "$ref" : "#/definitions/Handler"
+        },
+        "preStop" : {
+          "$ref" : "#/definitions/Handler"
+        }
+      }
+    },
+    "Handler" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "exec" : {
+          "$ref" : "#/definitions/ExecAction"
+        },
+        "httpGet" : {
+          "$ref" : "#/definitions/HTTPGetAction"
+        },
+        "tcpSocket" : {
+          "$ref" : "#/definitions/TCPSocketAction"
+        }
+      }
+    },
+    "ExecAction" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "command" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "HTTPGetAction" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "host" : {
+          "type" : "string"
+        },
+        "httpHeaders" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/HTTPHeader"
+          }
+        },
+        "path" : {
+          "type" : "string"
+        },
+        "port" : { },
+        "scheme" : {
+          "type" : "string"
+        }
+      }
+    },
+    "HTTPHeader" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    },
+    "TCPSocketAction" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "host" : {
+          "type" : "string"
+        },
+        "port" : { }
+      }
+    },
+    "Probe" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "exec" : {
+          "$ref" : "#/definitions/ExecAction"
+        },
+        "failureThreshold" : {
+          "type" : "integer"
+        },
+        "httpGet" : {
+          "$ref" : "#/definitions/HTTPGetAction"
+        },
+        "initialDelaySeconds" : {
+          "type" : "integer"
+        },
+        "periodSeconds" : {
+          "type" : "integer"
+        },
+        "successThreshold" : {
+          "type" : "integer"
+        },
+        "tcpSocket" : {
+          "$ref" : "#/definitions/TCPSocketAction"
+        },
+        "timeoutSeconds" : {
+          "type" : "integer"
+        }
+      }
+    },
+    "ContainerPort" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "containerPort" : {
+          "type" : "integer"
+        },
+        "hostIP" : {
+          "type" : "string"
+        },
+        "hostPort" : {
+          "type" : "integer"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "protocol" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ResourceRequirements" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "limits" : {
+          "type" : "object",
+          "additionalProperties" : { }
+        },
+        "requests" : {
+          "type" : "object",
+          "additionalProperties" : { }
+        }
+      }
+    },
+    "SecurityContext" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "allowPrivilegeEscalation" : {
+          "type" : "boolean"
+        },
+        "capabilities" : {
+          "$ref" : "#/definitions/Capabilities"
+        },
+        "privileged" : {
+          "type" : "boolean"
+        },
+        "procMount" : {
+          "type" : "string"
+        },
+        "readOnlyRootFilesystem" : {
+          "type" : "boolean"
+        },
+        "runAsGroup" : {
+          "type" : "integer"
+        },
+        "runAsNonRoot" : {
+          "type" : "boolean"
+        },
+        "runAsUser" : {
+          "type" : "integer"
+        },
+        "seLinuxOptions" : {
+          "$ref" : "#/definitions/SELinuxOptions"
+        },
+        "seccompProfile" : {
+          "$ref" : "#/definitions/SeccompProfile"
+        },
+        "windowsOptions" : {
+          "$ref" : "#/definitions/WindowsSecurityContextOptions"
+        }
+      }
+    },
+    "Capabilities" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "add" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "drop" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "SELinuxOptions" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "level" : {
+          "type" : "string"
+        },
+        "role" : {
+          "type" : "string"
+        },
+        "type" : {
+          "type" : "string"
+        },
+        "user" : {
+          "type" : "string"
+        }
+      }
+    },
+    "SeccompProfile" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "localhostProfile" : {
+          "type" : "string"
+        },
+        "type" : {
+          "type" : "string"
+        }
+      }
+    },
+    "WindowsSecurityContextOptions" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "gmsaCredentialSpec" : {
+          "type" : "string"
+        },
+        "gmsaCredentialSpecName" : {
+          "type" : "string"
+        },
+        "runAsUserName" : {
+          "type" : "string"
+        }
+      }
+    },
+    "VolumeDevice" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "devicePath" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "VolumeMount" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "mountPath" : {
+          "type" : "string"
+        },
+        "mountPropagation" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "readOnly" : {
+          "type" : "boolean"
+        },
+        "subPath" : {
+          "type" : "string"
+        },
+        "subPathExpr" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ComponentConfig" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "context" : {
+          "type" : "string"
+        },
+        "kind" : {
+          "type" : "string"
+        },
+        "spec" : {
+          "$ref" : "#/definitions/ComponentSpec"
+        },
+        "componentName" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ComponentSpec" : {
+      "type" : "object",
+      "additionalProperties" : false,
+      "properties" : {
+        "url" : {
+          "type" : "string"
+        },
+        "dir" : {
+          "type" : "string"
+        },
+        "branch" : {
+          "type" : "string"
+        },
+        "serviceName" : {
+          "type" : "string"
+        },
+        "targetPort" : {
+          "type" : "integer"
+        },
+        "envs" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    }
+  }
+}

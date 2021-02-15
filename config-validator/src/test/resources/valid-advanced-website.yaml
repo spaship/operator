@@ -1,0 +1,48 @@
+apiVersion: v1
+
+labels:
+  appcode: WEBADV-001
+
+envs:
+  dev:
+    branch: main
+  prod:
+    branch: prod
+    skipContexts: [ "/search", "/search/api" ]
+    deployment:
+      replicas: 2
+      httpd:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 150Mi
+          limits:
+            cpu: 500m
+            memory: 250Mi
+
+components:
+  - context: /template
+    kind: git
+    spec:
+      url: https://github.com/websitecd/websitecd-examples.git
+      dir: /websites/02-advanced/chrome
+  - context: /shared-components
+    kind: git
+    spec:
+      dir: /websites/shared-components
+      branch: "1.0.0"
+      envs:
+        dev: "2.0.0"
+  - context: /search
+    kind: git
+    spec:
+      dir: /websites/02-advanced/search
+  - context: /search/api
+    kind: service
+    spec:
+      serviceName: searchapi
+      targetPort: 8080
+  - context: /
+    kind: git
+    spec:
+      dir: /websites/02-advanced/home

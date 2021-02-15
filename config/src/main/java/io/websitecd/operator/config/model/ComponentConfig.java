@@ -1,5 +1,7 @@
 package io.websitecd.operator.config.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Objects;
 
 public class ComponentConfig {
@@ -28,10 +30,12 @@ public class ComponentConfig {
         this.context = context;
     }
 
+    @JsonIgnore
     public boolean isKindGit() {
         return "git".equals(kind);
     }
 
+    @JsonIgnore
     public boolean isKindService() {
         return "service".equals(kind);
     }
