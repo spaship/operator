@@ -96,7 +96,3 @@ kubectl apply -n websitecd-examples -f https://raw.githubusercontent.com/website
 # Simple:
 kubectl apply -n websitecd-examples -f https://raw.githubusercontent.com/websitecd/websitecd-examples/main/websites/01-simple/deployment-simple-allenvs.yaml
 ```
-
-## Contact
-
-Feel free to create an [issue](https://github.com/websitecd/operator/issues) or ask a [question](https://github.com/websitecd/operator/discussions).
