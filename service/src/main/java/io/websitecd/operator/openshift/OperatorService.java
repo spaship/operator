@@ -14,6 +14,7 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.Map;
+import java.util.Set;
 
 @ApplicationScoped
 public class OperatorService {
@@ -32,23 +33,15 @@ public class OperatorService {
     @Inject
     IngressController ingressController;
 
-    public void initNewWebsite(Website website) {
-        initInfrastructure(website, false);
+    public Set<String> initNewWebsite(Website website) {
+        return initInfrastructure(website, false);
     }
 
-    public void initInfrastructure(Website website, boolean redeploy) {
-        log.infof("Init infrastructure for websiteId=%s, envs=%s", website.getId(), website.getSpec().getEnvs());
+    public Set<String> initInfrastructure(Website website, boolean redeploy) {
+        Set<String> enabledEnvs = website.getEnvs(true);
+        log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s", website.getId(), enabledEnvs);
 
-        WebsiteConfig config = website.getConfig();
-        String namespace = website.getMetadata().getNamespace();
-
-        Map<String, Environment> envs = config.getEnvs();
-        for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
-            String env = envEntry.getKey();
-            if (!website.isEnvEnabled(env)) {
-                log.infof("environment ignored env=%s namespace=%s", env, namespace);
-                continue;
-            }
+        for (String env : enabledEnvs) {
             log.debugf("Processing env=%s", env);
             contentController.createClient(env, website);
 
@@ -57,6 +50,7 @@ public class OperatorService {
                 contentController.redeploy(env, website);
             }
         }
+        return enabledEnvs;
     }
 
     public void setupCoreServices(String env, Website website) {

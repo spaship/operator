@@ -1,5 +1,7 @@
 package io.websitecd.operator.controller;
 
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
@@ -7,10 +9,11 @@ import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
 import io.websitecd.operator.config.model.WebsiteConfig;
-import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteList;
 import io.websitecd.operator.crd.WebsiteSpec;
+import io.websitecd.operator.crd.WebsiteStatus;
+import io.websitecd.operator.crd.WebsiteStatus.STATUS;
 import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.websiteconfig.GitWebsiteConfigService;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +23,7 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
@@ -32,9 +36,6 @@ public class WebsiteController {
 
     @Inject
     OperatorService operatorService;
-
-    @Inject
-    ContentController contentController;
 
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
@@ -53,6 +54,8 @@ public class WebsiteController {
 
     private boolean ready = false;
 
+    MixedOperation<Website, WebsiteList, Resource<Website>> websiteClient;
+
     void onStart(@Observes StartupEvent ev) {
         if (!crdEnabled) {
             ready = true;
@@ -63,6 +66,7 @@ public class WebsiteController {
 
     public void initWebsiteCrd() {
         log.infof("CRD enabled. Going to register CRD watch");
+        websiteClient = client.customResources(Website.class, WebsiteList.class);
         watch();
     }
 
@@ -83,6 +87,9 @@ public class WebsiteController {
                 if (oldWebsite.getMetadata().getResourceVersion().equals(newWebsite.getMetadata().getResourceVersion())) {
                     return;
                 }
+                if (oldWebsite.getSpec().equals(newWebsite.getSpec())) {
+                    return;
+                }
                 websiteModified(newWebsite);
             }
 
@@ -97,16 +104,27 @@ public class WebsiteController {
     }
 
     public void websiteAdded(Website website) {
-        log.infof("Website added, websiteId=%s", website.getId());
+        log.infof("Website added, websiteId=%s status=%s", website.getId(), website.getStatus());
 
+        Website websiteCrd;
+        websiteCrd = updateStatus(website, STATUS.GIT_CLONING);
         try {
             WebsiteConfig config = gitWebsiteConfigService.cloneRepo(website);
             website.setConfig(config);
 
             websiteRepository.addWebsite(website);
-            operatorService.initNewWebsite(website);
+
+            websiteCrd = updateStatus(websiteCrd, STATUS.CREATING);
+            Set<String> envs = operatorService.initNewWebsite(website);
+
+            websiteCrd.getStatus().setEnvs(envs.toString());
+            websiteCrd.getStatus().setStatus(STATUS.DONE);
+            updateStatus(websiteCrd);
         } catch (Exception e) {
             log.error("Error on CRD added", e);
+            websiteCrd.getStatus().setMessage(e.getMessage());
+            websiteCrd.getStatus().setStatus(STATUS.FAILED);
+            updateStatus(websiteCrd);
             throw new RuntimeException(e);
         }
     }
@@ -114,24 +132,31 @@ public class WebsiteController {
     public void websiteModified(Website newWebsite) {
         log.infof("Website modified, websiteId=%s", newWebsite.getId());
 
+        Website websiteCrd = newWebsite;
         try {
             Website oldWebsite = websiteRepository.getWebsite(newWebsite.getId());
             WebsiteConfig newConfig;
             if (websiteSpecGitChanged(oldWebsite.getSpec(), newWebsite.getSpec())) {
                 log.infof("Spec changed. Refreshing setup");
                 gitWebsiteConfigService.deleteRepo(oldWebsite);
+                websiteCrd = updateStatus(websiteCrd, STATUS.GIT_CLONING);
                 newConfig = gitWebsiteConfigService.cloneRepo(newWebsite);
             } else {
+                websiteCrd = updateStatus(websiteCrd, STATUS.GIT_PULLING);
                 newConfig = gitWebsiteConfigService.updateRepo(newWebsite);
             }
-            boolean configChanged = !newConfig.equals(oldWebsite.getConfig());
-            if (configChanged) {
-                newWebsite.setConfig(newConfig);
-                websiteRepository.addWebsite(newWebsite);
-                operatorService.initInfrastructure(newWebsite, true);
-            }
+            newWebsite.setConfig(newConfig);
+            websiteRepository.addWebsite(newWebsite);
+            websiteCrd = updateStatus(websiteCrd, STATUS.UPDATING);
+            Set<String> envs = operatorService.initInfrastructure(newWebsite, true);
+            websiteCrd.getStatus().setEnvs(envs.toString());
+            websiteCrd.getStatus().setStatus(STATUS.DONE);
+            updateStatus(websiteCrd);
         } catch (Exception e) {
             log.error("Error on CRD modified", e);
+            websiteCrd.getStatus().setMessage(e.getMessage());
+            websiteCrd.getStatus().setStatus(STATUS.FAILED);
+            updateStatus(websiteCrd);
             throw new RuntimeException(e);
         }
     }
@@ -155,6 +180,24 @@ public class WebsiteController {
             log.error("Error on CRD deleted", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public Website updateStatus(Website website, STATUS newStatus) {
+        log.infof("Update Status, websiteId=%s status=%s", website.getId(), newStatus);
+        if (website.getStatus() == null) {
+            website.setStatus(new WebsiteStatus());
+        }
+
+        if (newStatus.compareTo(STATUS.FAILED) != 0) {
+            website.getStatus().setMessage("");
+        }
+        website.getStatus().setStatus(newStatus);
+
+        return updateStatus(website);
+    }
+
+    public Website updateStatus(Website website) {
+        return websiteClient.inNamespace(website.getMetadata().getNamespace()).withName(website.getMetadata().getName()).updateStatus(website);
     }
 
     public boolean isReady() {

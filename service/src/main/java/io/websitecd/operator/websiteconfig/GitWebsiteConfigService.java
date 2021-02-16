@@ -41,13 +41,13 @@ public class GitWebsiteConfigService {
     public WebsiteConfig cloneRepo(Website website) throws GitAPIException, IOException, URISyntaxException {
         WebsiteSpec websiteSpec = website.getSpec();
         log.infof("Initializing website config spec=%s", websiteSpec);
-        String gitUrl = websiteSpec.getGitUrl();
-        String branch = websiteSpec.getBranch();
+        final String gitUrl = websiteSpec.getGitUrl();
+        final String branch = websiteSpec.getBranch();
         File gitDir = new File(getGitDirName(workDir, website.getId()));
-        if (!gitDir.exists()) {
-            Git git = Git.init().setDirectory(gitDir).call();
-            git.remoteAdd().setName("origin").setUri(new URIish(gitUrl)).call();
 
+        Git git = Git.init().setDirectory(gitDir).call();
+        git.remoteAdd().setName("origin").setUri(new URIish(gitUrl)).call();
+        if (!gitDir.exists()) {
             StoredConfig config = git.getRepository().getConfig();
             config.setBoolean("http", null, "sslVerify", websiteSpec.getSslVerify());
             config.save();
@@ -56,11 +56,14 @@ public class GitWebsiteConfigService {
 
             String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
             log.infof("Website config cloned to dir=%s commit_message='%s'", gitDir, lastCommitMessage);
-            git.close();
-
         } else {
-            log.infof("Website config already cloned. skipping dir=%s", gitDir);
+            log.debugf("Website config already cloned. performing git pull dir=%s", gitDir);
+            git.pull().setRemoteBranchName(branch).call();
+
+            String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
+            log.infof("Website config pulled to dir=%s commit_message='%s'", gitDir, lastCommitMessage);
         }
+        git.close();
         GitInfo gitInfo = new GitInfo(website.getSpec().getBranch(), gitDir.getAbsolutePath(), website.getSpec().getDir());
         repos.put(website.getId(), gitInfo);
 
