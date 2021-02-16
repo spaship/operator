@@ -49,9 +49,6 @@ public class ContentController {
 
     Map<String, WebClient> clients = new HashMap<>();
 
-    @ConfigProperty(name = "quarkus.http.root-path")
-    String rootPath;
-
     @ConfigProperty(name = "app.content.git.api.host")
     Optional<String> contentApiHost;
 
@@ -97,7 +94,8 @@ public class ContentController {
         ContentConfig config = GitContentUtils.createConfig(env, website.getConfig(), rootContext);
         String data = new Yaml().dumpAsMap(config);
         final String configName = getInitConfigName(website, env);
-        updateConfigMap(configName, namespace, data);
+        Map<String, String> labels = Utils.defaultLabels(env, website.getConfig());
+        updateConfigMap(configName, namespace, data, labels);
     }
 
     public String getInitConfigName(Website website, String env) {
@@ -109,7 +107,7 @@ public class ContentController {
         client.inNamespace(namespace).configMaps().withName(configName).delete();
     }
 
-    public void updateConfigMap(String name, String namespace, String secretData) {
+    public void updateConfigMap(String name, String namespace, String secretData, Map<String, String> labels) {
         log.infof("Update content-init in namespace=%s, name=%s", namespace, name);
 
         Map<String, String> data = new HashMap<>();
@@ -118,7 +116,7 @@ public class ContentController {
         log.tracef("%s=\n%s", name, data);
 
         ConfigMapBuilder config = new ConfigMapBuilder()
-                .withMetadata(new ObjectMetaBuilder().withName(name).build())
+                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(labels).build())
                 .withData(data);
         client.inNamespace(namespace).configMaps().createOrReplace(config.build());
     }
