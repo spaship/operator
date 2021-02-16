@@ -181,19 +181,31 @@ public class WebsiteController {
         Website website = websiteClient.inNamespace(ns).withName(name).get();
 
         log.infof("Update Status, websiteId=%s status=%s", website.getId(), newStatus);
-        if (website.getStatus() == null) {
-            website.setStatus(new WebsiteStatus());
+        WebsiteStatus status = website.getStatus();
+        if (status == null) {
+            status = new WebsiteStatus();
+            status.setMessage("");
+            status.setEnvs(new ArrayList<>());
+            status.setStatus("");
         }
         if (StringUtils.isNotEmpty(message)) {
-            website.getStatus().setMessage(message);
+            status.setMessage(message);
         }
-        website.getStatus().setStatus(newStatus);
+        status.setStatus(newStatus);
+        website.setStatus(status);
 
-        return websiteClient.inNamespace(ns).withName(name).updateStatus(website);
+        try {
+            return websiteClient.inNamespace(ns).withName(name).updateStatus(website);
+        } catch(Exception e) {
+            log.warn("Cannot update status", e);
+            return website;
+        }
     }
 
     public void updateStatusEnv(String namespace, String name, String envName, String value) {
         Website website = websiteClient.inNamespace(namespace).withName(name).get();
+        if (website == null) return;
+
         List<String> envs = website.getStatus().getEnvs();
         String envValue = envName + value;
         int existingIndex = -1;
