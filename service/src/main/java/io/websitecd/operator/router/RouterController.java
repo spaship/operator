@@ -15,7 +15,10 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class RouterController {
@@ -39,13 +42,26 @@ public class RouterController {
             host = websiteName + "-" + targetEnv + hostSuffix;
         }
 
-        // TODO: It's not needed to create all routes for sub pathes when root path is present
+        Set<ComponentConfig> enabledComponents = config.getComponents().stream()
+                .filter(component -> OperatorConfigUtils.isComponentEnabled(config, targetEnv, component.getContext()))
+                .collect(Collectors.toSet());
+        log.tracef("enabled componets=%s", enabledComponents);
 
-        for (ComponentConfig component : config.getComponents()) {
-            String context = component.getContext();
-            if (!OperatorConfigUtils.isComponentEnabled(config, targetEnv, context)) {
-                continue;
+        ComponentConfig rootComponent = null;
+        for (ComponentConfig c : enabledComponents) {
+            if (c.getContext().equals("/") && c.isKindGit()) {
+                rootComponent = c;
+                break;
             }
+        }
+        if (rootComponent != null) {
+            log.infof("Root component found. Registering only root context");
+            enabledComponents = new HashSet<>(1);
+            enabledComponents.add(rootComponent);
+        }
+
+        for (ComponentConfig component : enabledComponents) {
+            String context = component.getContext();
 
             RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
             RoutePortBuilder routePortBuilder = new RoutePortBuilder();
