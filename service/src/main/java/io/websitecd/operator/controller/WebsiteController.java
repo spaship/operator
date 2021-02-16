@@ -14,7 +14,6 @@ import io.websitecd.operator.crd.WebsiteList;
 import io.websitecd.operator.crd.WebsiteSpec;
 import io.websitecd.operator.crd.WebsiteStatus;
 import io.websitecd.operator.crd.WebsiteStatus.STATUS;
-import io.websitecd.operator.openshift.OperatorService;
 import io.websitecd.operator.websiteconfig.GitWebsiteConfigService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;

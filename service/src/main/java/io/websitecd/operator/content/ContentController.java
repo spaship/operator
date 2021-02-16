@@ -131,10 +131,12 @@ public class ContentController {
 
         KubernetesList result = processTemplate(namespace, params);
 
+        Map<String, String> defaultLabels = Utils.defaultLabels(env, config);
+
         for (HasMetadata item : result.getItems()) {
             log.infof("Deploying kind=%s name=%s", item.getKind(), item.getMetadata().getName());
             // see https://www.javatips.net/api/fabric8-master/components/kubernetes-api/src/main/java/io/fabric8/kubernetes/api/Controller.java#
-            item.getMetadata().getLabels().putAll(Utils.defaultLabels(env, config));
+            item.getMetadata().getLabels().putAll(defaultLabels);
             if (item instanceof Service) {
                 client.inNamespace(namespace).services().createOrReplace((Service) item);
             }

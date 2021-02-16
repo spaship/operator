@@ -1,4 +1,4 @@
-package io.websitecd.operator.openshift;
+package io.websitecd.operator.controller;
 
 import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.model.Environment;

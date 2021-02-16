@@ -3,16 +3,20 @@ package io.websitecd.operator.openshift;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
 import io.websitecd.operator.config.model.WebsiteConfig;
+import io.websitecd.operator.controller.OperatorService;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
 import io.websitecd.operator.websiteconfig.GitWebsiteConfigService;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -70,16 +74,20 @@ public class WebsiteConfigEnvProvider {
         vertx.setTimer(initDelay, e -> {
             vertx.executeBlocking(future -> {
                 try {
-                    WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website);
-                    website.setConfig(websiteConfig);
-                    websiteRepository.addWebsite(website);
-                    operatorService.initNewWebsite(website);
+                    registerWebsite(website);
                 } catch (Exception ex) {
                     future.fail(ex);
                 }
                 future.complete();
             }, res -> log.infof("Initialization completed from ENV provider. success=%s", !res.failed()));
         });
+    }
+
+    public void registerWebsite(Website website) throws IOException, GitAPIException, URISyntaxException {
+        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website);
+        website.setConfig(websiteConfig);
+        websiteRepository.addWebsite(website);
+        operatorService.initNewWebsite(website);
     }
 
 }
