@@ -23,7 +23,8 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
@@ -72,13 +73,12 @@ public class WebsiteController {
 
     public void watch() {
         SharedInformerFactory sharedInformerFactory = client.informers();
-        SharedIndexInformer<Website> podInformer = sharedInformerFactory.sharedIndexInformerFor(
+        SharedIndexInformer<Website> websiteInformer = sharedInformerFactory.sharedIndexInformerFor(
                 Website.class, WebsiteList.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
 
-        podInformer.addEventHandler(new ResourceEventHandler<>() {
+        websiteInformer.addEventHandler(new ResourceEventHandler<>() {
             @Override
             public void onAdd(Website website) {
-                // TODO Check if resources are successfully deployed and anything is needed to be redeployed
                 websiteAdded(website);
             }
 
@@ -114,17 +114,11 @@ public class WebsiteController {
 
             websiteRepository.addWebsite(website);
 
-            websiteCrd = updateStatus(websiteCrd, STATUS.CREATING);
-            Set<String> envs = operatorService.initNewWebsite(website);
-
-            websiteCrd.getStatus().setEnvs(envs.toString());
-            websiteCrd.getStatus().setStatus(STATUS.DONE);
-            updateStatus(websiteCrd);
+            updateStatus(websiteCrd, STATUS.DEPLOYED);
+            operatorService.initNewWebsite(website);
         } catch (Exception e) {
             log.error("Error on CRD added", e);
-            websiteCrd.getStatus().setMessage(e.getMessage());
-            websiteCrd.getStatus().setStatus(STATUS.FAILED);
-            updateStatus(websiteCrd);
+            updateStatus(websiteCrd, STATUS.FAILED, e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -147,16 +141,12 @@ public class WebsiteController {
             }
             newWebsite.setConfig(newConfig);
             websiteRepository.addWebsite(newWebsite);
-            websiteCrd = updateStatus(websiteCrd, STATUS.UPDATING);
-            Set<String> envs = operatorService.initInfrastructure(newWebsite, true);
-            websiteCrd.getStatus().setEnvs(envs.toString());
-            websiteCrd.getStatus().setStatus(STATUS.DONE);
-            updateStatus(websiteCrd);
+
+            updateStatus(websiteCrd, STATUS.DEPLOYED);
+            operatorService.initInfrastructure(newWebsite, true);
         } catch (Exception e) {
             log.error("Error on CRD modified", e);
-            websiteCrd.getStatus().setMessage(e.getMessage());
-            websiteCrd.getStatus().setStatus(STATUS.FAILED);
-            updateStatus(websiteCrd);
+            updateStatus(websiteCrd, STATUS.FAILED, e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -182,22 +172,50 @@ public class WebsiteController {
         }
     }
 
-    public Website updateStatus(Website website, STATUS newStatus) {
+    public Website updateStatus(Website websiteToUpdate, STATUS newStatus) {
+        return updateStatus(websiteToUpdate, newStatus, null);
+    }
+
+    public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message) {
+        String ns = websiteToUpdate.getMetadata().getNamespace();
+        String name = websiteToUpdate.getMetadata().getName();
+        Website website = websiteClient.inNamespace(ns).withName(name).get();
+
         log.infof("Update Status, websiteId=%s status=%s", website.getId(), newStatus);
         if (website.getStatus() == null) {
             website.setStatus(new WebsiteStatus());
         }
-
-        if (newStatus.compareTo(STATUS.FAILED) != 0) {
-            website.getStatus().setMessage("");
+        if (StringUtils.isNotEmpty(message)) {
+            website.getStatus().setMessage(message);
         }
         website.getStatus().setStatus(newStatus);
 
-        return updateStatus(website);
+        return websiteClient.inNamespace(ns).withName(name).updateStatus(website);
     }
 
-    public Website updateStatus(Website website) {
-        return websiteClient.inNamespace(website.getMetadata().getNamespace()).withName(website.getMetadata().getName()).updateStatus(website);
+    public void updateStatusEnv(String namespace, String name, String envName, String value) {
+        Website website = websiteClient.inNamespace(namespace).withName(name).get();
+        List<String> envs = website.getStatus().getEnvs();
+        String envValue = envName + value;
+        int existingIndex = -1;
+        if (envs == null) {
+            envs = new ArrayList<>();
+        } else {
+            for (int i = 0; i < envs.size(); i++) {
+                if (envs.get(i).startsWith(envName)) {
+                    existingIndex = i;
+                    break;
+                }
+            }
+        }
+        if (existingIndex != -1) {
+            envs.set(existingIndex, envValue);
+        } else {
+            envs.add(envValue);
+        }
+
+        website.getStatus().setEnvs(envs);
+        websiteClient.inNamespace(namespace).withName(name).updateStatus(website);
     }
 
     public boolean isReady() {

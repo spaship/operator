@@ -2,6 +2,8 @@ package io.websitecd.operator.crd;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import java.util.List;
+
 @RegisterForReflection
 public class WebsiteStatus {
 
@@ -9,9 +11,8 @@ public class WebsiteStatus {
         GIT_CLONING,
         GIT_PULLING,
         CREATING,
-        UPDATING,
         FAILED,
-        DONE;
+        DEPLOYED;
         @Override
         public String toString() {
             switch (this) {
@@ -21,12 +22,10 @@ public class WebsiteStatus {
                     return "Git Pulling";
                 case CREATING:
                     return "Creating";
-                case UPDATING:
-                    return "Updating";
                 case FAILED:
                     return "Failed";
-                case DONE:
-                    return "Done";
+                case DEPLOYED:
+                    return "Deployed";
                 default:
                     return this.toString();
             }
@@ -37,7 +36,7 @@ public class WebsiteStatus {
 
     String message;
 
-    String envs;
+    List<String> envs;
 
     public String getStatus() {
         return status;
@@ -59,11 +58,11 @@ public class WebsiteStatus {
         this.message = message;
     }
 
-    public String getEnvs() {
+    public List<String> getEnvs() {
         return envs;
     }
 
-    public void setEnvs(String envs) {
+    public void setEnvs(List<String> envs) {
         this.envs = envs;
     }
 

@@ -59,7 +59,9 @@ spec:
                   type: string
                   default: "Pending"
                 envs:
-                  type: string
+                  type: array
+                  items:
+                    type: string
                 message:
                   type: string
       additionalPrinterColumns:
@@ -79,9 +81,9 @@ spec:
           type: string
           description: Performs SSL verification
           jsonPath: .spec.sslVerify
-        - name: Envs
+        - name: Environments
           type: string
-          description: Environments
+          description: Environments with info about ready containers
           jsonPath: .status.envs
         - name: Status
           type: string
