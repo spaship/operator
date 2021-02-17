@@ -172,7 +172,7 @@ public class WebsiteController {
     }
 
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus) {
-        return updateStatus(websiteToUpdate, newStatus, null);
+        return updateStatus(websiteToUpdate, newStatus, "");
     }
 
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message) {
@@ -188,7 +188,7 @@ public class WebsiteController {
             status.setEnvs(new ArrayList<>());
             status.setStatus("");
         }
-        if (StringUtils.isNotEmpty(message)) {
+        if (message != null) {
             status.setMessage(message);
         }
         status.setStatus(newStatus);
