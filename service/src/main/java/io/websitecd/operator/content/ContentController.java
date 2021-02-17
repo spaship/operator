@@ -30,6 +30,7 @@ import org.yaml.snakeyaml.Yaml;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.ServiceUnavailableException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -237,6 +238,13 @@ public class ContentController {
         WebClient webClient = clients.get(clientId);
 
         Promise<JsonObject> promise = Promise.promise();
+        if (webClient == null) {
+            ServiceUnavailableException exception = new ServiceUnavailableException("Client not available clientId=" + clientId);
+            log.error("Content client not found", exception);
+            promise.tryFail(exception);
+            return promise.future();
+        }
+
         webClient.get("/api/update/" + name)
                 .expect(ResponsePredicate.SC_OK)
                 .send(ar -> {
