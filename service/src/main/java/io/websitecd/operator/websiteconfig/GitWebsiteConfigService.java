@@ -44,26 +44,24 @@ public class GitWebsiteConfigService {
         final String gitUrl = websiteSpec.getGitUrl();
         final String branch = websiteSpec.getBranch();
         File gitDir = new File(getGitDirName(workDir, website.getId()));
+        boolean gitDirExists = gitDir.exists();
 
         Git git = Git.init().setDirectory(gitDir).call();
         git.remoteAdd().setName("origin").setUri(new URIish(gitUrl)).call();
-        if (!gitDir.exists()) {
+
+
+        if (!websiteSpec.getSslVerify()) {
             StoredConfig config = git.getRepository().getConfig();
             config.setBoolean("http", null, "sslVerify", websiteSpec.getSslVerify());
             config.save();
-
-            git.pull().setRemoteBranchName(branch).call();
-
-            String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
-            log.infof("Website config cloned to dir=%s commit_message='%s'", gitDir, lastCommitMessage);
-        } else {
-            log.debugf("Website config already cloned. performing git pull dir=%s", gitDir);
-            git.pull().setRemoteBranchName(branch).call();
-
-            String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
-            log.infof("Website config pulled to dir=%s commit_message='%s'", gitDir, lastCommitMessage);
         }
+
+        git.pull().setRemoteBranchName(branch).call();
+
+        String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
+        log.infof("Website repo fetched to dir=%s dir_exists=%s commit_message='%s'", gitDir, gitDirExists, lastCommitMessage);
         git.close();
+
         GitInfo gitInfo = new GitInfo(website.getSpec().getBranch(), gitDir.getAbsolutePath(), website.getSpec().getDir());
         repos.put(website.getId(), gitInfo);
 
