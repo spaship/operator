@@ -58,7 +58,7 @@ class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
                 .body("websites.size()", is(1));
 
         // Wait little bit till non blocking rollout finish
-        Thread.sleep(100);
+        Thread.sleep(500);
 
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(0, apiMock.getApiUpdateTest1());
