@@ -141,13 +141,9 @@ public class GitlabWebHookListener {
     public void rolloutWebsiteNonBlocking(Website website) {
         String websiteId = website.getId();
         vertx.executeBlocking(future -> {
-            log.infof("Check websiteId=%s", websiteId);
+            log.infof("Rollout websiteId=%s", websiteId);
             try {
                 WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
-                if (website.getConfig().equals(newConfig)) {
-                    log.infof("config has not changed. ignoring. websiteId=%s", websiteId);
-                    return;
-                }
                 website.setConfig(newConfig);
                 websiteRepository.addWebsite(website);
 
