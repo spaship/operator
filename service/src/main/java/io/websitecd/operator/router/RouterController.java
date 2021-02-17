@@ -32,6 +32,7 @@ public class RouterController {
     protected Optional<String> domain;
 
     final String WEBSITE_INFO_CONTEXT = "/websiteinfo";
+    final String WEBSITE_INFO_NAME = "websiteinfo";
 
     public Set<ComponentConfig> getComponents(WebsiteConfig config, String targetEnv) {
         Set<ComponentConfig> enabledComponents = config.getComponents().stream()
@@ -134,7 +135,7 @@ public class RouterController {
             spec.withHost(host);
         }
 
-        String name = getRouteName(websiteName, "websiteinfo", targetEnv);
+        String name = getRouteName(websiteName, WEBSITE_INFO_NAME, targetEnv);
 
         RouteBuilder builder = new RouteBuilder()
                 .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, config)).build())
@@ -168,7 +169,7 @@ public class RouterController {
             String name = getRouteName(websiteName, sanityContext, targetEnv);
             client.inNamespace(namespace).routes().withName(name).delete();
         }
-        String name = getRouteName(websiteName, WEBSITE_INFO_CONTEXT, targetEnv);
+        String name = getRouteName(websiteName, WEBSITE_INFO_NAME, targetEnv);
         client.inNamespace(namespace).routes().withName(name).delete();
     }
 
