@@ -140,6 +140,8 @@ objects:
               env:
                 - name: APP_DATA_DIR
                   value: "/app/data/"
+                - name: XDG_CONFIG_HOME
+                  value: "/work"
               volumeMounts:
                 - mountPath: "/app/data/"
                   name: data

@@ -227,6 +227,9 @@ spec:
               memory: 100Mi
           ports:
             - containerPort: 8080
+          env:
+            - name: XDG_CONFIG_HOME
+              value: "/deployments"
           envFrom:
             - configMapRef:
                 name: "websitecd-operator-config"
