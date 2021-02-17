@@ -41,14 +41,24 @@ public class OperatorService {
         Set<String> enabledEnvs = website.getEnvs(true);
         log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s", website.getId(), enabledEnvs);
 
+        RuntimeException exception = null;
         for (String env : enabledEnvs) {
-            log.debugf("Processing env=%s", env);
-            contentController.createClient(env, website);
+            try {
+                log.debugf("Processing env=%s", env);
+                contentController.createClient(env, website);
 
-            setupCoreServices(env, website);
-            if (redeploy) {
-                contentController.redeploy(env, website);
+                setupCoreServices(env, website);
+                if (redeploy) {
+                    contentController.redeploy(env, website);
+                }
+            } catch (RuntimeException ex) {
+                log.error("Error processing env=" + env, ex);
+                exception = ex;
+                // continue with processing other environments and throw exception after loop ends
             }
+        }
+        if (exception != null) {
+            throw exception;
         }
         return enabledEnvs;
     }
