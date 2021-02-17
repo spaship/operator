@@ -72,19 +72,24 @@ public class ContentController {
         return website.getMetadata().getNamespace() + "_" + website.getMetadata().getName() + "_" + env;
     }
 
-    public void createClient(String env, Website config) {
+    public void createClient(String env, Website config, String host, Integer port) {
         String clientId = getClientId(config, env);
         if (clients.containsKey(clientId)) {
             log.debugf("Client already exists. skipping. clientId=%s", clientId);
             return;
         }
-        String host = getContentHost(env, config);
+        if (StringUtils.isEmpty(host)) {
+            host = getContentHost(env, config);
+        }
+        if (port == null) {
+            port = staticContentApiPort;
+        }
         WebClient websiteClient = WebClient.create(vertx, new WebClientOptions()
                 .setDefaultHost(host)
-                .setDefaultPort(staticContentApiPort)
+                .setDefaultPort(port)
                 .setTrustAll(true));
         clients.put(clientId, websiteClient);
-        log.infof("Content client API created. clientId=%s host=%s port=%s", clientId, host, staticContentApiPort);
+        log.infof("Content client API created. clientId=%s host=%s port=%s", clientId, host, port);
     }
 
     public void removeClient(String env, Website config) {

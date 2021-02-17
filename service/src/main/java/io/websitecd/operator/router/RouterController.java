@@ -31,8 +31,7 @@ public class RouterController {
     @ConfigProperty(name = "app.operator.website.domain")
     protected Optional<String> domain;
 
-    final String WEBSITE_INFO_CONTEXT = "/websiteinfo";
-    final String WEBSITE_INFO_NAME = "websiteinfo";
+    final String API_ROUTE_NAME = "api";
 
     public Set<ComponentConfig> getComponents(WebsiteConfig config, String targetEnv) {
         Set<ComponentConfig> enabledComponents = config.getComponents().stream()
@@ -101,8 +100,6 @@ public class RouterController {
 
             client.inNamespace(namespace).routes().createOrReplace(route);
         }
-
-        updateWebsiteInfoRoute(namespace, websiteName, targetEnv, host, config);
     }
 
     public static IntOrString getIntOrString(Integer i) {
@@ -117,34 +114,28 @@ public class RouterController {
         return context.replace("/", "").replace("_", "");
     }
 
-    public void updateWebsiteInfoRoute(String namespace, String websiteName, String targetEnv, String host, WebsiteConfig config) {
-
+    public Route updateApiRoute(String targetEnv, Website website) {
+        final String websiteName = Utils.getWebsiteName(website);
 
         RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
         RoutePortBuilder routePortBuilder = new RoutePortBuilder();
         targetReference.withName(getContentServiceName(websiteName, targetEnv));
         routePortBuilder.withTargetPort(new IntOrString("http-api"));
 
-        RouteSpecBuilder spec = new RouteSpecBuilder()
-                .withPath(WEBSITE_INFO_CONTEXT)
+        RouteSpecBuilder specBuilder = new RouteSpecBuilder()
                 .withTo(targetReference.build())
-                .withPort(routePortBuilder.build())
-                .withTls(new TLSConfigBuilder().withNewTermination("edge").withInsecureEdgeTerminationPolicy("Redirect").build());
+                .withPort(routePortBuilder.build());
 
-        if (StringUtils.isNotEmpty(host)) {
-            spec.withHost(host);
-        }
-
-        String name = getRouteName(websiteName, WEBSITE_INFO_NAME, targetEnv);
+        String name = getRouteName(websiteName, API_ROUTE_NAME, targetEnv);
 
         RouteBuilder builder = new RouteBuilder()
-                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, config)).build())
-                .withSpec(spec.build());
+                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, website.getConfig())).build())
+                .withSpec(specBuilder.build());
 
         Route route = builder.build();
         log.infof("Deploying route=%s", route.getMetadata().getName());
 
-        client.inNamespace(namespace).routes().createOrReplace(route);
+        return client.inNamespace(website.getMetadata().getNamespace()).routes().createOrReplace(route);
     }
 
     public static String getRouteName(String websiteName, String sanityContext, String env) {
@@ -169,7 +160,7 @@ public class RouterController {
             String name = getRouteName(websiteName, sanityContext, targetEnv);
             client.inNamespace(namespace).routes().withName(name).delete();
         }
-        String name = getRouteName(websiteName, WEBSITE_INFO_NAME, targetEnv);
+        String name = getRouteName(websiteName, API_ROUTE_NAME, targetEnv);
         client.inNamespace(namespace).routes().withName(name).delete();
     }
 

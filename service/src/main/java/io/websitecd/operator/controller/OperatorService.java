@@ -1,5 +1,6 @@
 package io.websitecd.operator.controller;
 
+import io.fabric8.openshift.api.model.Route;
 import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
@@ -45,9 +46,23 @@ public class OperatorService {
         for (String env : enabledEnvs) {
             try {
                 log.debugf("Processing env=%s", env);
-                contentController.createClient(env, website);
 
                 setupCoreServices(env, website);
+
+                String host = null;
+                Integer port = null;
+                if (StringUtils.equals(routerMode, "ingress")) {
+                    ingressController.updateIngress(env, website);
+                } else if (StringUtils.equals(routerMode, "openshift")) {
+                    routerController.updateWebsiteRoutes(env, website);
+                    Route apiRoute = routerController.updateApiRoute(env, website);
+                    host = apiRoute.getSpec().getHost();
+                    port = 80;
+                } else {
+                    log.infof("No routing created");
+                }
+                contentController.createClient(env, website, host, port);
+
                 if (redeploy) {
                     contentController.redeploy(env, website);
                 }
@@ -63,21 +78,12 @@ public class OperatorService {
         return enabledEnvs;
     }
 
-    public void setupCoreServices(String env, Website website) {
-        WebsiteConfig config = website.getConfig();
+    private void setupCoreServices(String env, Website website) {
         String namespace = website.getMetadata().getNamespace();
         final String websiteName = Utils.getWebsiteName(website);
         log.infof("Create core services websiteName=%s env=%s namespace=%s", websiteName, env, namespace);
         contentController.updateConfigs(env, namespace, website);
         contentController.deploy(env, namespace, websiteName, website);
-
-        if (StringUtils.equals(routerMode, "ingress")) {
-            ingressController.updateIngress(env, website);
-        } else if (StringUtils.equals(routerMode, "openshift")) {
-            routerController.updateWebsiteRoutes(env, website);
-        } else {
-            log.infof("No routing created");
-        }
     }
 
     public void deleteInfrastructure(Website website) {
