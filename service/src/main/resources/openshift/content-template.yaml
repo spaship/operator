@@ -72,7 +72,7 @@ objects:
           initContainers:
             # Init data
             - name: init
-              image: quay.io/websitecd/content-git-init:1.0.0
+              image: quay.io/websitecd/content-git-init:1.0.2
               imagePullPolicy: IfNotPresent
               resources:
                 requests:
@@ -112,7 +112,7 @@ objects:
                 # Dynamically generated
             # Side car container providing API
             - name: api
-              image: quay.io/websitecd/content-git-api:1.0.0
+              image: quay.io/websitecd/content-git-api:1.0.2
               imagePullPolicy: IfNotPresent
               livenessProbe:
                 httpGet:
@@ -140,8 +140,6 @@ objects:
               env:
                 - name: APP_DATA_DIR
                   value: "/app/data/"
-                - name: XDG_CONFIG_HOME
-                  value: "/work"
               volumeMounts:
                 - mountPath: "/app/data/"
                   name: data
