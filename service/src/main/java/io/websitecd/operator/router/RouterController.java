@@ -31,6 +31,29 @@ public class RouterController {
     @ConfigProperty(name = "app.operator.website.domain")
     protected Optional<String> domain;
 
+    final String WEBSITE_INFO_CONTEXT = "/websiteinfo";
+
+    public Set<ComponentConfig> getComponents(WebsiteConfig config, String targetEnv) {
+        Set<ComponentConfig> enabledComponents = config.getComponents().stream()
+                .filter(component -> OperatorConfigUtils.isComponentEnabled(config, targetEnv, component.getContext()))
+                .collect(Collectors.toSet());
+
+        ComponentConfig rootComponent = null;
+        for (ComponentConfig c : enabledComponents) {
+            if (c.getContext().equals("/") && c.isKindGit()) {
+                rootComponent = c;
+                break;
+            }
+        }
+        if (rootComponent != null) {
+            log.infof("Root component found. Working only with root context");
+            enabledComponents = new HashSet<>(1);
+            enabledComponents.add(rootComponent);
+        }
+        log.tracef("enabled components=%s", enabledComponents);
+        return enabledComponents;
+    }
+
     public void updateWebsiteRoutes(String targetEnv, Website website) {
         String namespace = website.getMetadata().getNamespace();
         WebsiteConfig config = website.getConfig();
@@ -42,23 +65,7 @@ public class RouterController {
             host = websiteName + "-" + targetEnv + hostSuffix;
         }
 
-        Set<ComponentConfig> enabledComponents = config.getComponents().stream()
-                .filter(component -> OperatorConfigUtils.isComponentEnabled(config, targetEnv, component.getContext()))
-                .collect(Collectors.toSet());
-        log.tracef("enabled componets=%s", enabledComponents);
-
-        ComponentConfig rootComponent = null;
-        for (ComponentConfig c : enabledComponents) {
-            if (c.getContext().equals("/") && c.isKindGit()) {
-                rootComponent = c;
-                break;
-            }
-        }
-        if (rootComponent != null) {
-            log.infof("Root component found. Registering only root context");
-            enabledComponents = new HashSet<>(1);
-            enabledComponents.add(rootComponent);
-        }
+        Set<ComponentConfig> enabledComponents = getComponents(config, targetEnv);
 
         for (ComponentConfig component : enabledComponents) {
             String context = component.getContext();
@@ -110,7 +117,7 @@ public class RouterController {
     }
 
     public void updateWebsiteInfoRoute(String namespace, String websiteName, String targetEnv, String host, WebsiteConfig config) {
-        final String context = "/websiteinfo";
+
 
         RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
         RoutePortBuilder routePortBuilder = new RoutePortBuilder();
@@ -118,7 +125,7 @@ public class RouterController {
         routePortBuilder.withTargetPort(new IntOrString("http-api"));
 
         RouteSpecBuilder spec = new RouteSpecBuilder()
-                .withPath(context)
+                .withPath(WEBSITE_INFO_CONTEXT)
                 .withTo(targetReference.build())
                 .withPort(routePortBuilder.build())
                 .withTls(new TLSConfigBuilder().withNewTermination("edge").withInsecureEdgeTerminationPolicy("Redirect").build());
@@ -152,12 +159,17 @@ public class RouterController {
     public void deleteWebsiteRoutes(String targetEnv, Website website) {
         String namespace = website.getMetadata().getNamespace();
         final String websiteName = Utils.getWebsiteName(website);
+        WebsiteConfig config = website.getConfig();
 
-        for (ComponentConfig component : website.getConfig().getComponents()) {
+        Set<ComponentConfig> enabledComponents = getComponents(config, targetEnv);
+
+        for (ComponentConfig component : enabledComponents) {
             String sanityContext = sanityContext(component.getContext());
             String name = getRouteName(websiteName, sanityContext, targetEnv);
             client.inNamespace(namespace).routes().withName(name).delete();
         }
+        String name = getRouteName(websiteName, WEBSITE_INFO_CONTEXT, targetEnv);
+        client.inNamespace(namespace).routes().withName(name).delete();
     }
 
 }
