@@ -105,7 +105,7 @@ public class GitWebsiteConfigService {
         WebsiteConfig config = loadConfig(configFile);
         int applied = OperatorConfigUtils.applyDefaultGirUrl(config, gitUrl);
         if (applied > 0) {
-            log.infof("git url set for %s components", applied);
+            log.debugf("git url set for %s components", applied);
         }
         return config;
     }

@@ -3,6 +3,7 @@ package io.websitecd.operator.webhook.gitlab;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.websitecd.content.git.config.GitContentUtils;
@@ -56,6 +57,9 @@ public class GitlabWebHookListener {
 
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
+
+    @Inject
+    Vertx vertx;
 
     public Future<JsonObject> onPushEvent(PushEvent pushEvent) {
         String gitUrl = pushEvent.getRepository().getGit_http_url();
@@ -124,30 +128,47 @@ public class GitlabWebHookListener {
             return Future.succeededFuture(resultObject);
         }
 
-        JsonArray updatedSites = new JsonArray();
-        for (Website website : websites) {
-            log.debugf("Check website=%s", website);
-            WebsiteConfig websiteConfig = website.getConfig();
-            try {
-                WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
-                if (websiteConfig.equals(newConfig)) {
-                    log.debugf("config has not changed. ignoring");
-                    continue;
+        Promise<JsonObject> promise = Promise.promise();
+        vertx.executeBlocking(future -> {
+            Exception error = null;
+            JsonArray updatedSites = new JsonArray();
+            for (Website website : websites) {
+                String websiteId = website.getId();
+                log.infof("Check websiteId=%s", websiteId);
+                try {
+                    WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
+                    if (website.getConfig().equals(newConfig)) {
+                        log.infof("config has not changed. ignoring. websiteId=%s", websiteId);
+                        continue;
+                    }
+                    website.setConfig(newConfig);
+                    websiteRepository.addWebsite(website);
+
+                    operatorService.initInfrastructure(website, true);
+
+                    log.infof("Website updated websiteId=%s", websiteId);
+                    updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
+                } catch (Exception e) {
+                    log.error("Cannot udpate website, websiteId=" + websiteId, e);
+                    error = e;
                 }
-                website.setConfig(newConfig);
-                websiteRepository.addWebsite(website);
-
-                operatorService.initInfrastructure(website, true);
-
-                log.debugf("Website updated websiteId=%s", website.getId());
-                updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
-            } catch (Exception e) {
-                return Future.failedFuture(e);
             }
-        }
-        resultObject.put("status", STATUS_SUCCESS)
-                .put("websites", updatedSites);
-        return Future.succeededFuture(resultObject);
+            if (error != null) {
+                future.fail(error);
+            } else {
+                future.complete(updatedSites);
+            }
+        }, res -> {
+            if (res.failed()) {
+                promise.fail(res.cause());
+            } else {
+                resultObject.put("status", STATUS_SUCCESS)
+                        .put("websites", res.result());
+                promise.complete(resultObject);
+            }
+        });
+
+        return promise.future();
     }
 
     public List<Future> getComponentUpdates(Website website, String gitUrl) {
