@@ -106,12 +106,18 @@ metadata:
   labels:
     websitecd: operator
 rules:
-  - apiGroups: [ "route.openshift.io" ]
-    resources: [ "custom-host" ]
-    verbs: [ "create" ]
+  - apiGroups: [ "websitecd.io" ]
+    resources: [ "websites/status" ]
+    verbs: [ "get", "patch", "update" ]
   - apiGroups: [ "route.openshift.io" ]
     resources: [  "routes" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
+  # When APP_OPERATOR_WEBSITE_DOMAIN is defined this permission needs to be enabled
+  - apiGroups: [ "route.openshift.io" ]
+    resources:
+      - "routes/custom-host"    # Openshift 4
+      - "custom-host"           # Openshift 3
+    verbs: [ "create" ]
   - apiGroups: [ "networking.k8s.io" ]
     resources: [  "ingresses" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
