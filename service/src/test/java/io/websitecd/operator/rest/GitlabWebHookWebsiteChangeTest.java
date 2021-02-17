@@ -55,7 +55,10 @@ class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
                 .log().ifValidationFails()
                 .statusCode(200)
                 .body("status", is("SUCCESS"))
-                .body("websites.size()", is(0));
+                .body("websites.size()", is(1));
+
+        // Wait little bit till non blocking rollout finish
+        Thread.sleep(100);
 
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(0, apiMock.getApiUpdateTest1());

@@ -128,47 +128,41 @@ public class GitlabWebHookListener {
             return Future.succeededFuture(resultObject);
         }
 
-        Promise<JsonObject> promise = Promise.promise();
+        JsonArray updatedSites = new JsonArray();
+        for (Website website : websites) {
+            rolloutWebsiteNonBlocking(website);
+            updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
+        }
+        resultObject.put("status", STATUS_SUCCESS)
+                .put("websites", updatedSites);
+        return Future.succeededFuture(resultObject);
+    }
+
+    public void rolloutWebsiteNonBlocking(Website website) {
+        String websiteId = website.getId();
         vertx.executeBlocking(future -> {
-            Exception error = null;
-            JsonArray updatedSites = new JsonArray();
-            for (Website website : websites) {
-                String websiteId = website.getId();
-                log.infof("Check websiteId=%s", websiteId);
-                try {
-                    WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
-                    if (website.getConfig().equals(newConfig)) {
-                        log.infof("config has not changed. ignoring. websiteId=%s", websiteId);
-                        continue;
-                    }
-                    website.setConfig(newConfig);
-                    websiteRepository.addWebsite(website);
-
-                    operatorService.initInfrastructure(website, true);
-
-                    log.infof("Website updated websiteId=%s", websiteId);
-                    updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
-                } catch (Exception e) {
-                    log.error("Cannot udpate website, websiteId=" + websiteId, e);
-                    error = e;
+            log.infof("Check websiteId=%s", websiteId);
+            try {
+                WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
+                if (website.getConfig().equals(newConfig)) {
+                    log.infof("config has not changed. ignoring. websiteId=%s", websiteId);
+                    return;
                 }
-            }
-            if (error != null) {
-                future.fail(error);
-            } else {
-                future.complete(updatedSites);
+                website.setConfig(newConfig);
+                websiteRepository.addWebsite(website);
+
+                operatorService.initInfrastructure(website, true);
+                future.complete();
+            } catch (Exception e) {
+                future.fail(e.getMessage());
             }
         }, res -> {
-            if (res.failed()) {
-                promise.fail(res.cause());
+            if (res.succeeded()) {
+                log.infof("Website updated websiteId=%s", websiteId);
             } else {
-                resultObject.put("status", STATUS_SUCCESS)
-                        .put("websites", res.result());
-                promise.complete(resultObject);
+                log.error("Cannot update website, websiteId=" + websiteId, res.cause());
             }
         });
-
-        return promise.future();
     }
 
     public List<Future> getComponentUpdates(Website website, String gitUrl) {
