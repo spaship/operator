@@ -5,7 +5,6 @@ import io.websitecd.operator.controller.WebsiteController;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.NoContentException;
 import javax.ws.rs.core.Response;
 
 @Path("/health")
@@ -22,7 +21,7 @@ public class HealthCheckResource {
 
     @GET
     @Path("ready")
-    public Response ready() throws NoContentException {
+    public Response ready() {
         if (websiteController.isReady()) {
             return Response.ok("ready").build();
         }
