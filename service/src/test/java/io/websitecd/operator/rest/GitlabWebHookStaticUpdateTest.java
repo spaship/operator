@@ -4,7 +4,6 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.restassured.http.ContentType;
-import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.openshift.OperatorServiceTest;
 import org.junit.jupiter.api.Test;
@@ -26,11 +25,6 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
     public void gitPushStaticUpdate() throws Exception {
         registerSimpleWeb();
 
-        ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
-        apiMock.reset();
-
-        vertx.deployVerticle(apiMock);
-
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
@@ -48,18 +42,11 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
         // only dev has same branch
         assertEquals(1, apiMock.getApiUpdateThemeCount());
         assertEquals(1, apiMock.getApiUpdateRootCount());
-
-        apiMock.reset();
     }
 
     @Test
     public void gitPushStaticUpdateAdvanced() throws Exception {
         registerAdvancedWeb();
-
-        ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
-        apiMock.reset();
-
-        vertx.deployVerticle(apiMock);
 
         given()
                 .header("Content-type", "application/json")
@@ -80,18 +67,11 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
         assertEquals(1, apiMock.getApiUpdateSearchCount());
         assertEquals(1, apiMock.getApiUpdateRootCount());
         assertEquals(0, apiMock.getApiUpdateSharedCount());
-
-        apiMock.reset();
     }
 
     @Test
     public void gitPushStaticUpdateAdvancedTag() throws Exception {
         registerAdvancedWeb();
-
-        ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
-        apiMock.reset();
-
-        vertx.deployVerticle(apiMock);
 
         given()
                 .header("Content-type", "application/json")
@@ -113,8 +93,6 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
         assertEquals(0, apiMock.getApiUpdateThemeCount());
         assertEquals(0, apiMock.getApiUpdateSearchCount());
         assertEquals(0, apiMock.getApiUpdateRootCount());
-
-        apiMock.reset();
     }
 
 }

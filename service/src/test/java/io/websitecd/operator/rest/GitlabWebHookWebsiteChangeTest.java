@@ -4,12 +4,8 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
-import io.websitecd.operator.ContentApiMock;
-import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.openshift.OperatorServiceTest;
 import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
@@ -19,15 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
 
-    @Inject
-    ContentController contentController;
-
     @Test
     public void gitPushWebsiteChangeNoConfigChange() throws Exception {
-        ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
-
-        vertx.deployVerticle(apiMock);
-
         mockServer.expect()
                 .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-dev")
                 .andReturn(200, new DeploymentSpecBuilder().build()).always();
@@ -61,8 +50,6 @@ class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(0, apiMock.getApiUpdateThemeCount());
         assertEquals(0, apiMock.getApiUpdateRootCount());
-
-        apiMock.reset();
     }
 
 }

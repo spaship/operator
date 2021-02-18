@@ -4,14 +4,10 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.restassured.http.ContentType;
-import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.config.model.WebsiteConfig;
-import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.openshift.OperatorServiceTest;
 import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
@@ -20,9 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GitlabWebHookStaticUpdateAnotherWebTest extends GitlabWebhookTestCommon {
-
-    @Inject
-    ContentController contentController;
 
     @Test
     public void gitPushStaticUpdateJustComponent() throws Exception {
@@ -36,11 +29,6 @@ class GitlabWebHookStaticUpdateAnotherWebTest extends GitlabWebhookTestCommon {
         website.setConfig(websiteConfig);
         websiteRepository.addWebsite(website);
         operatorService.initNewWebsite(website);
-
-        ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
-        apiMock.reset();
-
-        vertx.deployVerticle(apiMock);
 
         // Pushing component with different secret. It's VALID !!!
         given()
@@ -72,8 +60,6 @@ class GitlabWebHookStaticUpdateAnotherWebTest extends GitlabWebhookTestCommon {
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(2, apiMock.getApiUpdateThemeCount());
         assertEquals(0, apiMock.getApiUpdateRootCount());
-
-        apiMock.reset();
     }
 
 }

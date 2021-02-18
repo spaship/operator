@@ -1,6 +1,7 @@
 package io.websitecd.operator.rest;
 
 import io.vertx.core.Vertx;
+import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.QuarkusTestBase;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.controller.OperatorService;
@@ -9,7 +10,9 @@ import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
 import io.websitecd.operator.websiteconfig.GitWebsiteConfigService;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import javax.inject.Inject;
@@ -39,15 +42,27 @@ public class GitlabWebhookTestCommon extends QuarkusTestBase {
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
 
-    protected Vertx vertx;
+    protected static Vertx vertx;
+    protected static ContentApiMock apiMock;
+
+    @BeforeAll
+    static void beforeAll() {
+        vertx = Vertx.vertx();
+        apiMock = new ContentApiMock(8001);
+        vertx.deployVerticle(apiMock);
+    }
 
     @BeforeEach
     void beforeEach() {
-        vertx = Vertx.vertx();
+        apiMock.reset();
     }
-
     @AfterEach
     void afterEach() {
+        apiMock.reset();
+    }
+
+    @AfterAll
+    static void afterAll() {
         vertx.close();
     }
 
