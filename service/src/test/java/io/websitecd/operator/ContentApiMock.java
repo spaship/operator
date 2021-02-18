@@ -5,7 +5,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import org.jboss.logging.Logger;
 
-public class ContentApiMock  extends AbstractVerticle {
+public class ContentApiMock extends AbstractVerticle {
 
     private static final Logger log = Logger.getLogger(ContentApiMock.class);
 
@@ -13,8 +13,10 @@ public class ContentApiMock  extends AbstractVerticle {
     HttpServer server;
 
     RequestCountHandler apiListCount = RequestCountHandler.create();
-    RequestCountHandler apiUpdate1Count = RequestCountHandler.create();
-    RequestCountHandler apiUpdate2Count = RequestCountHandler.create();
+    RequestCountHandler updateThemeCount = RequestCountHandler.create();
+    RequestCountHandler updateRootCount = RequestCountHandler.create();
+    RequestCountHandler updateSearchCount = RequestCountHandler.create();
+    RequestCountHandler updateSharedCount = RequestCountHandler.create();
 
 
     public ContentApiMock(int port) {
@@ -22,7 +24,7 @@ public class ContentApiMock  extends AbstractVerticle {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start() {
 
         Router router = Router.router(vertx);
 
@@ -32,11 +34,22 @@ public class ContentApiMock  extends AbstractVerticle {
                         .putHeader("content-type", "application/json")
                         .end("[\"test1\", \"test2\"]"));
         router.route("/api/update/theme")
-                .handler(apiUpdate1Count)
+                .handler(updateThemeCount)
+                .handler(ctx -> ctx.response().end("DONE"));
+        router.route("/api/update/template")
+                .handler(updateThemeCount)
+                .handler(ctx -> ctx.response().end("DONE"));
+
+        router.route("/api/update/search")
+                .handler(updateSearchCount)
+                .handler(ctx -> ctx.response().end("DONE"));
+
+        router.route("/api/update/shared-components")
+                .handler(updateSharedCount)
                 .handler(ctx -> ctx.response().end("DONE"));
 
         router.route("/api/update/_root")
-                .handler(apiUpdate2Count)
+                .handler(updateRootCount)
                 .handler(ctx -> ctx.response().end("DONE"));
 
         server = vertx.createHttpServer()
@@ -56,17 +69,29 @@ public class ContentApiMock  extends AbstractVerticle {
     public long getApiListCount() {
         return apiListCount.getCount();
     }
-    public long getApiUpdateTest1() {
-        return apiUpdate1Count.getCount();
+
+    public long getApiUpdateThemeCount() {
+        return updateThemeCount.getCount();
     }
-    public long getApiUpdateTest2() {
-        return apiUpdate2Count.getCount();
+
+    public long getApiUpdateRootCount() {
+        return updateRootCount.getCount();
+    }
+
+    public long getApiUpdateSearchCount() {
+        return updateSearchCount.getCount();
+    }
+
+    public long getApiUpdateSharedCount() {
+        return updateSharedCount.getCount();
     }
 
     public void reset() {
         apiListCount.reset();
-        apiUpdate1Count.reset();
-        apiUpdate2Count.reset();
+        updateThemeCount.reset();
+        updateRootCount.reset();
+        updateSearchCount.reset();
+        updateSharedCount.reset();
     }
 
 }

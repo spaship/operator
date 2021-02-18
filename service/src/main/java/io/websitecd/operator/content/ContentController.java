@@ -261,7 +261,7 @@ public class ContentController {
                                 .put("namespace", website.getMetadata().getNamespace())
                                 .put("website", website.getMetadata().getName())
                                 .put("env", env);
-                        promise.tryComplete(new JsonObject().put("component", result));
+                        promise.tryComplete(result);
                     } else {
                         String message = String.format("Cannot update content on %s clientId=%s", componentDesc, clientId);
                         log.error(message, ar.cause());

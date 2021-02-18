@@ -4,7 +4,6 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.restassured.http.ContentType;
-import io.vertx.core.Vertx;
 import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
@@ -41,9 +40,9 @@ class GitlabWebHookStaticUpdateAnotherWebTest extends GitlabWebhookTestCommon {
         ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
         apiMock.reset();
 
-        Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
 
+        // Pushing component with different secret. It's VALID !!!
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
@@ -52,7 +51,10 @@ class GitlabWebHookStaticUpdateAnotherWebTest extends GitlabWebhookTestCommon {
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(400);
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("status", is("SUCCESS"))
+                .body("components[0].name", is("theme"));
 
         given()
                 .header("Content-type", "application/json")
@@ -65,14 +67,13 @@ class GitlabWebHookStaticUpdateAnotherWebTest extends GitlabWebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
-                .body("components[0].component.name", is("theme"));
+                .body("components[0].name", is("theme"));
 
         assertEquals(0, apiMock.getApiListCount());
-        assertEquals(2, apiMock.getApiUpdateTest1());
-        assertEquals(0, apiMock.getApiUpdateTest2());
+        assertEquals(2, apiMock.getApiUpdateThemeCount());
+        assertEquals(0, apiMock.getApiUpdateRootCount());
 
         apiMock.reset();
-        vertx.close();
     }
 
 }

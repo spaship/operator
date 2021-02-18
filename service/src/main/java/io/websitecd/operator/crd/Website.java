@@ -7,8 +7,10 @@ import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.websitecd.operator.config.model.WebsiteConfig;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Version("v1")
 @Group("websitecd.io")
@@ -38,10 +40,23 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
 
     public void setConfig(WebsiteConfig config) {
         this.config = config;
+        if (config.getEnvs() != null && config.getEnvs().size() > 0) {
+            this.enabledEnvs = getEnvNamesStream(config).collect(Collectors.toSet());
+        } else {
+            this.enabledEnvs = new HashSet<>();
+        }
     }
 
-    public Set<String> getEnvs(boolean enabled) {
-        return getConfig().getEnvs().keySet().stream().filter(s -> enabled ? isEnvEnabled(s) : !isEnvEnabled(s)).collect(Collectors.toSet());
+
+    /* Helper methods */
+    private Set<String> enabledEnvs;
+
+    public Set<String> getEnabledEnvs() {
+        return enabledEnvs;
+    }
+
+    private Stream<String> getEnvNamesStream(WebsiteConfig config) {
+        return config.getEnvs().keySet().stream().filter(this::isEnvEnabled);
     }
 
     public boolean isEnvEnabled(String env) {

@@ -3,7 +3,6 @@ package io.websitecd.operator.rest;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
-import io.vertx.core.Vertx;
 import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.content.ContentController;
 import org.junit.jupiter.api.Test;
@@ -38,21 +37,19 @@ class GitlabWebHookSecurityTest extends GitlabWebhookTestCommon {
         ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
         apiMock.reset();
 
-        Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
 
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
                 .header("X-Gitlab-Token", "BAD_TOKEN")
-                .body(GitlabWebHookSecurityTest.class.getResourceAsStream("/gitlab-push.json"))
+                .body(GitlabWebHookSecurityTest.class.getResourceAsStream("/gitlab-push-website-changed.json"))
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(400);
 
         apiMock.reset();
-        vertx.close();
     }
 
 }

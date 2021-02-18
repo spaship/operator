@@ -2,8 +2,6 @@ package io.websitecd.operator.controller;
 
 import io.fabric8.openshift.api.model.Route;
 import io.websitecd.operator.Utils;
-import io.websitecd.operator.config.model.Environment;
-import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.router.IngressController;
@@ -14,7 +12,6 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.Map;
 import java.util.Set;
 
 @ApplicationScoped
@@ -39,7 +36,7 @@ public class OperatorService {
     }
 
     public Set<String> initInfrastructure(Website website, boolean redeploy) {
-        Set<String> enabledEnvs = website.getEnvs(true);
+        Set<String> enabledEnvs = website.getEnabledEnvs();
         log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s", website.getId(), enabledEnvs);
 
         RuntimeException exception = null;
@@ -89,17 +86,10 @@ public class OperatorService {
     public void deleteInfrastructure(Website website) {
         log.infof("Delete infrastructure for websiteId=%s", website.getId());
 
-        WebsiteConfig config = website.getConfig();
         String namespace = website.getMetadata().getNamespace();
-
-        Map<String, Environment> envs = config.getEnvs();
         final String websiteName = Utils.getWebsiteName(website);
-        for (Map.Entry<String, Environment> envEntry : envs.entrySet()) {
-            String env = envEntry.getKey();
-            if (!website.isEnvEnabled(env)) {
-                log.debugf("environment ignored env=%s namespace=%s", env, namespace);
-                continue;
-            }
+
+        for (String env : website.getEnabledEnvs()) {
             contentController.deleteDeployment(env, namespace, websiteName);
             contentController.deleteConfigs(env, namespace, website);
 

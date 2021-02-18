@@ -4,7 +4,6 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.restassured.http.ContentType;
-import io.vertx.core.Vertx;
 import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.openshift.OperatorServiceTest;
@@ -30,7 +29,6 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
         ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
         apiMock.reset();
 
-        Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
 
         given()
@@ -44,14 +42,79 @@ class GitlabWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
-                .body("components.size()", is(4));
+                .body("components.size()", is(2));
 
         assertEquals(0, apiMock.getApiListCount());
-        assertEquals(2, apiMock.getApiUpdateTest1());
-        assertEquals(2, apiMock.getApiUpdateTest2());
+        // only dev has same branch
+        assertEquals(1, apiMock.getApiUpdateThemeCount());
+        assertEquals(1, apiMock.getApiUpdateRootCount());
 
         apiMock.reset();
-        vertx.close();
+    }
+
+    @Test
+    public void gitPushStaticUpdateAdvanced() throws Exception {
+        registerAdvancedWeb();
+
+        ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
+        apiMock.reset();
+
+        vertx.deployVerticle(apiMock);
+
+        given()
+                .header("Content-type", "application/json")
+                .header("X-Gitlab-Event", "Push Hook")
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET_ADVANCED)
+                .body(GitlabWebHookStaticUpdateTest.class.getResourceAsStream("/gitlab-push.json"))
+                .when().post("/api/webhook")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("status", is("SUCCESS"))
+                .body("components.size()", is(3));  // template, search, _root
+
+        assertEquals(0, apiMock.getApiListCount());
+        // only dev has same branch
+        assertEquals(1, apiMock.getApiUpdateThemeCount());
+        assertEquals(1, apiMock.getApiUpdateSearchCount());
+        assertEquals(1, apiMock.getApiUpdateRootCount());
+        assertEquals(0, apiMock.getApiUpdateSharedCount());
+
+        apiMock.reset();
+    }
+
+    @Test
+    public void gitPushStaticUpdateAdvancedTag() throws Exception {
+        registerAdvancedWeb();
+
+        ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
+        apiMock.reset();
+
+        vertx.deployVerticle(apiMock);
+
+        given()
+                .header("Content-type", "application/json")
+                .header("X-Gitlab-Event", "Push Hook")
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET_ADVANCED)
+                .body(GitlabWebHookStaticUpdateTest.class.getResourceAsStream("/gitlab-push-tag.json"))
+                .when().post("/api/webhook")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("status", is("SUCCESS"))
+                .body("components.size()", is(1))
+                .body("components[0].name", is("shared-components"));
+
+        assertEquals(0, apiMock.getApiListCount());
+        // only dev has same branch
+        assertEquals(1, apiMock.getApiUpdateSharedCount());
+        assertEquals(0, apiMock.getApiUpdateThemeCount());
+        assertEquals(0, apiMock.getApiUpdateSearchCount());
+        assertEquals(0, apiMock.getApiUpdateRootCount());
+
+        apiMock.reset();
     }
 
 }

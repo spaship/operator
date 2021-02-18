@@ -4,7 +4,6 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
-import io.vertx.core.Vertx;
 import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.content.ContentController;
 import io.websitecd.operator.openshift.OperatorServiceTest;
@@ -27,7 +26,6 @@ class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
     public void gitPushWebsiteChangeNoConfigChange() throws Exception {
         ContentApiMock apiMock = new ContentApiMock(contentController.getStaticContentApiPort());
 
-        Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(apiMock);
 
         mockServer.expect()
@@ -61,11 +59,10 @@ class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
         Thread.sleep(500);
 
         assertEquals(0, apiMock.getApiListCount());
-        assertEquals(0, apiMock.getApiUpdateTest1());
-        assertEquals(0, apiMock.getApiUpdateTest2());
+        assertEquals(0, apiMock.getApiUpdateThemeCount());
+        assertEquals(0, apiMock.getApiUpdateRootCount());
 
         apiMock.reset();
-        vertx.close();
     }
 
 }
