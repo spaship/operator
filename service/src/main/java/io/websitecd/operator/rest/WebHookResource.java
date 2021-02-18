@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import io.websitecd.operator.webhook.WebhookService;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -35,29 +36,27 @@ public class WebHookResource {
         Buffer body = rc.getBody();
         HttpServerRequest request = rc.request();
         log.infof("webhook called from url=%s", request.remoteAddress());
-        WebhookService.GIT_PROVIDER provider = webhookService.gitProvider(request);
-        if (provider == null) {
-            rc.response().setStatusCode(400).end("Unknown provider");
-            return;
-        }
 
-        if (provider.equals(WebhookService.GIT_PROVIDER.GITLAB)) {
-            webhookService.handleGitlab(request, body)
-                    .onSuccess(ar -> rc.response().end(ar.toBuffer()))
-                    .onFailure(err -> {
-                        if (err instanceof WebApplicationException) {
-                            WebApplicationException exc = (WebApplicationException) err;
-                            rc.response()
-                                    .setStatusCode(exc.getResponse().getStatus())
-                                    .end(exc.getMessage());
-                        } else {
-                            rc.fail(err);
-                        }
-                    });
-        } else {
-            rc.response().setStatusCode(400).end("Unknown provider");
-        }
+        webhookService.handleRequest(request, body)
+                .onSuccess(ar -> rc.response().end(ar.toBuffer()))
+                .onFailure(err -> {
+                    if (err instanceof WebApplicationException) {
+                        WebApplicationException exc = (WebApplicationException) err;
+                        rc.response()
+                                .setStatusCode(exc.getResponse().getStatus())
+                                .end(exc.getMessage());
+                    } else {
+                        rc.fail(err);
+                    }
+                });
+    }
 
+    public static String getHeader(HttpServerRequest request, String name) {
+        List<String> headers = request.headers().getAll(name);
+        if (headers == null || headers.size() == 0) {
+            return null;
+        }
+        return StringUtils.trimToNull(headers.get(0));
     }
 
 }

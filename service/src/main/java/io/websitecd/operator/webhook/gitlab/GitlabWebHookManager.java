@@ -1,10 +1,12 @@
 package io.websitecd.operator.webhook.gitlab;
 
+import io.quarkus.security.UnauthorizedException;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
-import io.websitecd.operator.webhook.WebhookService;
+import io.websitecd.operator.rest.WebHookResource;
+import org.apache.commons.lang3.StringUtils;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.utils.JacksonJson;
 import org.gitlab4j.api.webhook.*;
@@ -13,6 +15,7 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.List;
 
 @ApplicationScoped
 public class GitlabWebHookManager extends WebHookManager {
@@ -24,8 +27,13 @@ public class GitlabWebHookManager extends WebHookManager {
     @Inject
     GitlabWebHookListener listener;
 
-    public static String getHeader(HttpServerRequest request, String name) {
-        return WebhookService.getHeader(request, name);
+    public boolean isGitlabEvent(HttpServerRequest request) {
+        List<String> eventName = request.headers().getAll("X-Gitlab-Event");
+        log.tracef("X-Gitlab-Event=%s", eventName);
+        if (eventName != null && eventName.size() > 0 && StringUtils.isNotEmpty(eventName.get(0))) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -38,19 +46,23 @@ public class GitlabWebHookManager extends WebHookManager {
      * not contain a webhook event
      */
     public Future<JsonObject> handleRequest(HttpServerRequest request, Buffer postData) {
-
-        String eventName = getHeader(request, "X-Gitlab-Event");
+        String eventName = WebHookResource.getHeader(request, "X-Gitlab-Event");
         if (eventName == null || eventName.trim().isEmpty()) {
             log.warn("X-Gitlab-Event header is missing!");
             return Future.failedFuture(new GitLabApiException("X-Gitlab-Event header is missing!"));
         }
 
-        String secretToken = getHeader(request, "X-Gitlab-Token");
+        String secretToken = WebHookResource.getHeader(request, "X-Gitlab-Token");
+
+        if (StringUtils.isEmpty(secretToken)) {
+            log.warn("X-Gitlab-Token is missing!");
+            return Future.failedFuture(new UnauthorizedException("X-Gitlab-Token missing"));
+        }
 
         if (!isValidSecretToken(secretToken)) {
             String message = "X-Gitlab-Token mismatch!";
             log.warn(message);
-            return Future.failedFuture(new GitLabApiException(message));
+            return Future.failedFuture(new UnauthorizedException(message));
         }
 
         log.infof("handleEvent: X-Gitlab-Event=%s remote_address=%s", eventName, request.remoteAddress());
