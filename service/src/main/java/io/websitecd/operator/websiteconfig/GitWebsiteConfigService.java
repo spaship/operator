@@ -69,7 +69,7 @@ public class GitWebsiteConfigService {
         GitInfo gitInfo = new GitInfo(website.getSpec().getBranch(), gitDir.getAbsolutePath(), website.getSpec().getDir());
         repos.put(website.getId(), gitInfo);
 
-        return getConfig(website);
+        return getConfigFromGitRepo(website);
     }
 
     public void deleteRepo(Website website) throws IOException {
@@ -95,11 +95,11 @@ public class GitWebsiteConfigService {
             FetchResult fetchResult = pullResult.getFetchResult();
             log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, fetchResult.getMessages());
 
-            return getConfig(website);
+            return getConfigFromGitRepo(website);
         }
     }
 
-    public WebsiteConfig getConfig(Website website) throws IOException {
+    private WebsiteConfig getConfigFromGitRepo(Website website) throws IOException {
         GitInfo gitInfo = repos.get(website.getId());
         String gitUrl = website.getSpec().getGitUrl();
         File gitDir = new File(gitInfo.getDir());

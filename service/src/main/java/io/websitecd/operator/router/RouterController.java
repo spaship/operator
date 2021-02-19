@@ -5,7 +5,6 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.websitecd.operator.Utils;
-import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
@@ -15,10 +14,9 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ApplicationScoped
 public class RouterController {
@@ -33,25 +31,18 @@ public class RouterController {
 
     final String API_ROUTE_NAME = "api";
 
-    public Set<ComponentConfig> getComponents(WebsiteConfig config, String targetEnv) {
-        Set<ComponentConfig> enabledComponents = config.getComponents().stream()
-                .filter(component -> OperatorConfigUtils.isComponentEnabled(config, targetEnv, component.getContext()))
-                .collect(Collectors.toSet());
+    public Stream<ComponentConfig> getComponents(WebsiteConfig config, String targetEnv) {
+        Optional<ComponentConfig> rootComponent = config.getEnabledGitComponents(targetEnv)
+                .filter(c -> c.getContext().equals("/"))
+                .findFirst();
 
-        ComponentConfig rootComponent = null;
-        for (ComponentConfig c : enabledComponents) {
-            if (c.getContext().equals("/") && c.isKindGit()) {
-                rootComponent = c;
-                break;
-            }
-        }
-        if (rootComponent != null) {
+        if (rootComponent.isPresent()) {
             log.infof("Root component found. Working only with root context");
-            enabledComponents = new HashSet<>(1);
-            enabledComponents.add(rootComponent);
+            return Stream.of(rootComponent.get());
+        } else {
+//            log.tracef("enabled components=%s", enabledComponents);
+            return config.getEnabledComponents(targetEnv);
         }
-        log.tracef("enabled components=%s", enabledComponents);
-        return enabledComponents;
     }
 
     public void updateWebsiteRoutes(String targetEnv, Website website) {
@@ -61,45 +52,47 @@ public class RouterController {
 
         String host = null;
         if (domain.isPresent()) {
-            final String hostSuffix = "-" + namespace + "." + domain.get();
-            host = websiteName + "-" + targetEnv + hostSuffix;
+            host = websiteName + "-" + targetEnv + "-" + namespace + "." + domain.get();
         }
 
-        Set<ComponentConfig> enabledComponents = getComponents(config, targetEnv);
+        Map<String, String> defaultLabels = Utils.defaultLabels(targetEnv, config);
+        String contentServiceName = getContentServiceName(websiteName, targetEnv);
 
-        for (ComponentConfig component : enabledComponents) {
-            String context = component.getContext();
+        String finalHost = host;
+        getComponents(config, targetEnv)
+                .map(component -> createRouteBuilder(component, contentServiceName, finalHost, websiteName, targetEnv, defaultLabels))
+                .forEach(builder -> {
+                    Route route = builder.build();
+                    log.infof("Deploying route=%s", route.getMetadata().getName());
 
-            RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
-            RoutePortBuilder routePortBuilder = new RoutePortBuilder();
-            if (component.isKindGit()) {
-                targetReference.withName(getContentServiceName(websiteName, targetEnv));
-                routePortBuilder.withTargetPort(new IntOrString("http"));
-            } else {
-                targetReference.withName(component.getSpec().getServiceName());
-                routePortBuilder.withTargetPort(getIntOrString(component.getSpec().getTargetPort()));
-            }
-            RouteSpecBuilder spec = new RouteSpecBuilder()
-                    .withPath(context)
-                    .withTo(targetReference.build())
-                    .withPort(routePortBuilder.build())
-                    .withTls(new TLSConfigBuilder().withNewTermination("edge").withInsecureEdgeTerminationPolicy("Redirect").build());
+                    client.inNamespace(namespace).routes().createOrReplace(route);
+                });
+    }
 
-            if (domain.isPresent()) {
-                spec.withHost(host);
-            }
-
-            String sanityContext = sanityContext(context);
-            String name = getRouteName(websiteName, sanityContext, targetEnv);
-            RouteBuilder builder = new RouteBuilder()
-                    .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, config)).build())
-                    .withSpec(spec.build());
-
-            Route route = builder.build();
-            log.infof("Deploying route=%s", route.getMetadata().getName());
-
-            client.inNamespace(namespace).routes().createOrReplace(route);
+    public RouteBuilder createRouteBuilder(ComponentConfig component, String contentServiceName, String host, String websiteName, String targetEnv, Map<String, String> labels) {
+        RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
+        RoutePortBuilder routePortBuilder = new RoutePortBuilder();
+        if (component.isKindGit()) {
+            targetReference.withName(contentServiceName);
+            routePortBuilder.withTargetPort(new IntOrString("http"));
+        } else {
+            targetReference.withName(component.getSpec().getServiceName());
+            routePortBuilder.withTargetPort(getIntOrString(component.getSpec().getTargetPort()));
         }
+        RouteSpecBuilder spec = new RouteSpecBuilder()
+                .withPath(component.getContext())
+                .withTo(targetReference.build())
+                .withPort(routePortBuilder.build())
+                .withTls(new TLSConfigBuilder().withNewTermination("edge").withInsecureEdgeTerminationPolicy("Redirect").build());
+
+        if (StringUtils.isNotEmpty(host)) {
+            spec.withHost(host);
+        }
+        String sanityContext = sanityContext(component.getContext());
+        String name = getRouteName(websiteName, sanityContext, targetEnv);
+        return new RouteBuilder()
+                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(labels).build())
+                .withSpec(spec.build());
     }
 
     public static IntOrString getIntOrString(Integer i) {
@@ -153,13 +146,15 @@ public class RouterController {
         final String websiteName = Utils.getWebsiteName(website);
         WebsiteConfig config = website.getConfig();
 
-        Set<ComponentConfig> enabledComponents = getComponents(config, targetEnv);
+        getComponents(config, targetEnv)
+                .map(c -> {
+                    String sanityContext = sanityContext(c.getContext());
+                    return getRouteName(websiteName, sanityContext, targetEnv);
+                })
+                .forEach(name -> {
+                    client.inNamespace(namespace).routes().withName(name).delete();
+                });
 
-        for (ComponentConfig component : enabledComponents) {
-            String sanityContext = sanityContext(component.getContext());
-            String name = getRouteName(websiteName, sanityContext, targetEnv);
-            client.inNamespace(namespace).routes().withName(name).delete();
-        }
         String name = getRouteName(websiteName, API_ROUTE_NAME, targetEnv);
         client.inNamespace(namespace).routes().withName(name).delete();
     }

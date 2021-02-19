@@ -4,7 +4,6 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.websitecd.operator.Utils;
-import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
@@ -41,32 +40,9 @@ public class IngressController {
         final String contentService = RouterController.getContentServiceName(websiteName, targetEnv);
 
         List<HTTPIngressPath> paths = new ArrayList<>();
-        for (ComponentConfig c : config.getComponents()) {
-            String context = c.getContext();
-            if (!OperatorConfigUtils.isComponentEnabled(config, targetEnv, context)) {
-                continue;
-            }
-
-            IngressBackendBuilder ingressBackendBuilder = new IngressBackendBuilder();
-
-            if (c.isKindGit()) {
-                ingressBackendBuilder.withService(new IngressServiceBackendBuilder()
-                        .withName(contentService)
-                        .withPort(new ServiceBackendPortBuilder().withName("http").build())
-                        .build());
-            } else if (c.isKindService()) {
-                ingressBackendBuilder.withService(new IngressServiceBackendBuilder()
-                        .withName(c.getSpec().getServiceName())
-                        .withPort(new ServiceBackendPortBuilder().withNumber(c.getSpec().getTargetPort()).build())
-                        .build());
-            }
-
-            HTTPIngressPath path = new HTTPIngressPath();
-            path.setPath(context);
-            path.setPathType("Prefix");
-            path.setBackend(ingressBackendBuilder.build());
-            paths.add(path);
-        }
+        config.getEnabledComponents(targetEnv)
+                .map(component -> createIngressPath(component, contentService))
+                .forEach(path -> paths.add(path));
 
         //websiteinfo
         IngressBackend contentApibackend = new IngressBackendBuilder().withService(new IngressServiceBackendBuilder()
@@ -92,6 +68,28 @@ public class IngressController {
         log.tracef("Ingress: %s", ingress);
 
         client.inNamespace(namespace).network().v1().ingresses().createOrReplace(ingress);
+    }
+
+    public HTTPIngressPath createIngressPath(ComponentConfig c, String contentService) {
+        IngressBackendBuilder ingressBackendBuilder = new IngressBackendBuilder();
+
+        if (c.isKindGit()) {
+            ingressBackendBuilder.withService(new IngressServiceBackendBuilder()
+                    .withName(contentService)
+                    .withPort(new ServiceBackendPortBuilder().withName("http").build())
+                    .build());
+        } else if (c.isKindService()) {
+            ingressBackendBuilder.withService(new IngressServiceBackendBuilder()
+                    .withName(c.getSpec().getServiceName())
+                    .withPort(new ServiceBackendPortBuilder().withNumber(c.getSpec().getTargetPort()).build())
+                    .build());
+        }
+        HTTPIngressPath path = new HTTPIngressPath();
+        path.setPath(c.getContext());
+        path.setPathType("Prefix");
+        path.setBackend(ingressBackendBuilder.build());
+
+        return path;
     }
 
     public void deleteIngress(String targetEnv, Website website) {

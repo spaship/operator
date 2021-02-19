@@ -1,8 +1,6 @@
 package io.websitecd.content.git.config;
 
 import io.websitecd.content.git.config.model.ContentConfig;
-import io.websitecd.operator.config.OperatorConfigUtils;
-import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.ComponentSpec;
 import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
@@ -21,21 +19,21 @@ public class GitContentUtils {
 
     public static ContentConfig createConfig(String targetEnv, WebsiteConfig websiteConfig, String rootContext) {
         ContentConfig config = new ContentConfig();
-        if (!OperatorConfigUtils.isEnvEnabled(websiteConfig, targetEnv)) {
+        if (!isEnvEnabled(websiteConfig, targetEnv)) {
             return config;
         }
-        for (ComponentConfig c : websiteConfig.getComponents()) {
-            ComponentSpec spec = c.getSpec();
-            if (!OperatorConfigUtils.isComponentEnabled(websiteConfig, targetEnv, c.getContext())) {
-                continue;
-            }
 
-            if (c.getKind().equals("git")) {
-                String dir = getDirName(c.getContext(), rootContext);
-                config.addGitComponent(dir, c.getKind(), spec.getUrl(), getRef(websiteConfig, targetEnv, c.getContext()));
-            }
-        }
+        websiteConfig.getEnabledGitComponents(targetEnv)
+                .forEach(c -> {
+                    String dir = getDirName(c.getContext(), rootContext);
+                    config.addGitComponent(dir, c.getKind(), c.getSpec().getUrl(), getRef(websiteConfig, targetEnv, c.getContext()));
+                });
+
         return config;
+    }
+
+    public static boolean isEnvEnabled(WebsiteConfig config, String targetEnv) {
+        return config.getEnvs().containsKey(targetEnv);
     }
 
     public static String getDirName(String context, String rootContext) {
@@ -47,7 +45,6 @@ public class GitContentUtils {
         }
         return StringUtils.replace(dirName, "/", "_");
     }
-
 
     public static String getRef(WebsiteConfig config, String targetEnv, String context) {
         String ref = null;
@@ -65,6 +62,5 @@ public class GitContentUtils {
 
         return ref;
     }
-
 
 }

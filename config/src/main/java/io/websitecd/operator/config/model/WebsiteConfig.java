@@ -1,10 +1,12 @@
 package io.websitecd.operator.config.model;
 
+import io.websitecd.operator.config.OperatorConfigUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public class WebsiteConfig {
 
@@ -42,16 +44,6 @@ public class WebsiteConfig {
         this.labels = labels;
     }
 
-    public String getWebsiteName() {
-        if (metadata != null && metadata.containsKey("name")) {
-            return metadata.get("name");
-        }
-        return null;
-    }
-
-    public ComponentConfig getRootComponent() {
-        return getComponent("/");
-    }
     public ComponentConfig getComponent(String context) {
         for (ComponentConfig component : components) {
             if (StringUtils.equals(component.getContext(), context)) {
@@ -59,6 +51,19 @@ public class WebsiteConfig {
             }
         }
         return null;
+    }
+
+    public Stream<ComponentConfig> getEnabledGitComponents(String targetEnv) {
+        return getEnabledComponents(targetEnv).filter(ComponentConfig::isKindGit);
+    }
+
+    public Stream<ComponentConfig> getEnabledComponents(String targetEnv) {
+        Environment env = getEnvironment(targetEnv);
+        if (env != null && env.getSkipContexts() != null && env.getSkipContexts().size() > 0) {
+            return components.stream()
+                    .filter(c -> OperatorConfigUtils.isComponentEnabled(this, targetEnv, c));
+        }
+        return components.stream();
     }
 
     public List<ComponentConfig> getComponents() {

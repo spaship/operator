@@ -18,6 +18,14 @@ public class OperatorConfigUtils {
         return c;
     }
 
+    /**
+     * Apply to given website config default git url for all "kind: git" components if missing
+     *
+     * @param config
+     * @param gitUrl default git url
+     * @return
+     * @see ComponentSpec#setUrl(String)
+     */
     public static int applyDefaultGirUrl(WebsiteConfig config, String gitUrl) {
         int applied = 0;
         for (ComponentConfig component : config.getComponents()) {
@@ -33,14 +41,19 @@ public class OperatorConfigUtils {
         return applied;
     }
 
-    public static boolean isEnvEnabled(WebsiteConfig config, String targetEnv) {
-        return config.getEnvs().containsKey(targetEnv);
-    }
-
-
-    public static boolean isComponentEnabled(WebsiteConfig config, String targetEnv, String context) {
+    /**
+     * Check if component is enabled for given component and target environment.
+     * Use directly {@link WebsiteConfig#getEnabledComponents(String)}
+     *
+     * @param config
+     * @param targetEnv
+     * @param component checked context
+     * @return
+     * @see WebsiteConfig#getEnabledComponents(String)
+     */
+    public static boolean isComponentEnabled(WebsiteConfig config, String targetEnv, ComponentConfig component) {
         Set<String> skipContexts = config.getEnvironment(targetEnv).getSkipContexts();
-        if (skipContexts != null && skipContexts.contains(context)) {
+        if (skipContexts != null && skipContexts.contains(component.getContext())) {
             return false;
         }
         return true;

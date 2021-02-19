@@ -17,7 +17,6 @@ import io.websitecd.content.git.config.GitContentUtils;
 import io.websitecd.content.git.config.model.ContentConfig;
 import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.KubernetesUtils;
-import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.DeploymentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
@@ -152,26 +151,11 @@ public class ContentController {
                 deployment = overrideDeployment(deployment, config.getEnvironment(env).getDeployment());
 
                 Container httpdContainer = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
-                for (ComponentConfig component : config.getComponents()) {
-                    if (!component.isKindGit()) {
-                        continue;
-                    }
-                    if (!OperatorConfigUtils.isComponentEnabled(config, env, component.getContext())) {
-                        continue;
-                    }
 
-                    final String mountPath = "/var/www/html/" + component.getComponentName();
-                    VolumeMountBuilder vmb = new VolumeMountBuilder()
-                            .withName("data")
-                            .withMountPath(mountPath);
+                config.getEnabledGitComponents(env)
+                        .map(this::createVolumeMountBuilder)
+                        .forEach(vmb -> httpdContainer.getVolumeMounts().add(vmb.build()));
 
-                    String subPath = GitContentUtils.getDirName(component.getContext(), rootContext);
-                    if (StringUtils.isNotEmpty(component.getSpec().getDir())) {
-                        subPath += component.getSpec().getDir();
-                    }
-                    vmb.withSubPath(subPath);
-                    httpdContainer.getVolumeMounts().add(vmb.build());
-                }
                 log.tracef("VolumeMounts=%s", httpdContainer.getVolumeMounts());
 
                 client.inNamespace(namespace).apps().deployments().createOrReplace((Deployment) item);
@@ -181,6 +165,20 @@ public class ContentController {
             }
 
         }
+    }
+
+    protected VolumeMountBuilder createVolumeMountBuilder(ComponentConfig component) {
+        final String mountPath = "/var/www/html/" + component.getComponentName();
+        VolumeMountBuilder vmb = new VolumeMountBuilder()
+                .withName("data")
+                .withMountPath(mountPath);
+
+        String subPath = GitContentUtils.getDirName(component.getContext(), rootContext);
+        if (StringUtils.isNotEmpty(component.getSpec().getDir())) {
+            subPath += component.getSpec().getDir();
+        }
+        vmb.withSubPath(subPath);
+        return vmb;
     }
 
     protected KubernetesList processTemplate(String namespace, Map<String, String> params) {
