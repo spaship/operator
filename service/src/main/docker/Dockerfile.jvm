@@ -9,10 +9,6 @@
 #
 # docker build -f src/main/docker/Dockerfile.jvm -t websitecd/operator-jvm .
 #
-# Then run the container using:
-#
-# docker run -i --rm -e APP_OPERATOR_WEBSITE_URL=http://gitlab.cee.redhat.com/lkrzyzan/ecosystem-catalog-content.git/ -e APP_OPERATOR_NAMESPACE=mwes-swel--websitecd -e APP_OPERATOR_WEBSITE_DOMAIN=int.us-west.dc.preprod.paas.redhat.com -e APP_OPERATOR_WEBSITE_CONFIG_SSLVERIFY=false -p 8080:8080 websitecd/operator-jvm
-#
 # If you want to include the debug port into your docker image
 # you will have to expose the debug port (default 5005) like this :  EXPOSE 8080 5050
 # 

@@ -47,6 +47,19 @@ To switch to minikube context do
 kubectl config use-context minikube
 ```
 
+#### Locally In Docker
+
+Build local docker image (skip this to use the latest from the repository)
+```shell
+docker build -f src/main/docker/Dockerfile.jvm -t websitecd/operator-jvm .
+```
+
+```shell
+docker run -i --rm -e APP_OPERATOR_PROVIDER_ENV_ENABLED=true -e APP_OPERATOR_PROVIDER_CRD_ENABLED=false -e WEBSITE_NAMESPACE=websitecd-examples \
+   -e WEBSITE_NAME=simple -e WEBSITE_GITURL=https://github.com/websitecd/websitecd-examples.git -e WEBSITE_CONFIG_DIR=websites/02-advanced -e WEBSITE_WEBHOOK_SECRET=TOKENSIMPLE \
+   -p 8080:8080 websitecd/operator-jvm
+```
+
 ## Webhook API Development
 
 Init websites git repos
