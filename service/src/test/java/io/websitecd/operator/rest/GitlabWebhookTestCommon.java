@@ -9,6 +9,7 @@ import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
 import io.websitecd.operator.websiteconfig.GitWebsiteConfigService;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -27,6 +28,8 @@ public class GitlabWebhookTestCommon extends QuarkusTestBase {
     public static final String GIT_EXAMPLES_CONFIG_ADVANCED = "websites/02-advanced";
     public static final String SECRET_SIMPLE = "testsecret_simple";
     public static final String SECRET_ADVANCED = "testsecret_advanced";
+    public static final String SECRET_SIMPLE_SIGN = DigestUtils.sha256Hex(SECRET_SIMPLE);
+    public static final String SECRET_ADVANCED_SIGN = DigestUtils.sha256Hex(SECRET_ADVANCED);
 
     public static WebsiteSpec SIMPLE_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_SIMPLE, true, SECRET_SIMPLE);
     public static WebsiteSpec ADVANCED_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_ADVANCED, true, SECRET_ADVANCED);

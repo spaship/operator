@@ -154,8 +154,8 @@ public class OperatorService {
         return updates;
     }
 
-    public Future<JsonObject> rollout(String gitUrl, String requestSecretToken) {
-        List<Website> websites = websiteRepository.getByGitUrl(gitUrl, requestSecretToken);
+    public Future<JsonObject> rollout(String gitUrl, String requestSecretToken, boolean sha256Hex) {
+        List<Website> websites = websiteRepository.getByGitUrl(gitUrl, requestSecretToken, sha256Hex);
         JsonObject resultObject = new JsonObject();
 
         if (websites.size() == 0) {

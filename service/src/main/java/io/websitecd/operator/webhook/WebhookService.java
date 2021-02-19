@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
+import io.websitecd.operator.webhook.github.GithubWebHookManager;
 import io.websitecd.operator.webhook.gitlab.GitlabWebHookManager;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -18,9 +19,14 @@ public class WebhookService {
     @Inject
     GitlabWebHookManager gitlabWebHookManager;
 
+    @Inject
+    GithubWebHookManager githubWebHookManager;
+
     public Future<JsonObject> handleRequest(HttpServerRequest request, Buffer data) {
         if (gitlabWebHookManager.isGitlabEvent(request)) {
             return gitlabWebHookManager.handleRequest(request, data);
+        } else if (githubWebHookManager.isGithubEvent(request)) {
+            return githubWebHookManager.handleRequest(request, data);
         }
 
         return Future.failedFuture(new BadRequestException("unknown provider"));

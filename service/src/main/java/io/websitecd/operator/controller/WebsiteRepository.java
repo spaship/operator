@@ -3,6 +3,7 @@ package io.websitecd.operator.controller;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
@@ -39,15 +40,23 @@ public class WebsiteRepository {
         return website;
     }
 
-    public List<Website> getByGitUrl(String gitUrl, String secretToken) {
+    public List<Website> getByGitUrl(String gitUrl, String secretToken, boolean sha256Hex) {
         List<Website> result = new ArrayList<>();
         for (Map.Entry<String, Website> entry : websites.entrySet()) {
             WebsiteSpec spec = entry.getValue().getSpec();
-            if (gitUrl.equals(spec.getGitUrl()) && secretToken.equals(spec.getSecretToken())) {
+            if (gitUrl.equals(spec.getGitUrl()) && tokensSame(spec.getSecretToken(), secretToken, sha256Hex)) {
                 result.add(entry.getValue());
             }
         }
         return result;
+    }
+
+    boolean tokensSame(String websiteToken, String eventToken, boolean sha256Hex) {
+        if (!sha256Hex) {
+            return websiteToken.equals(eventToken);
+        } else {
+            return DigestUtils.sha256Hex(websiteToken).equals(eventToken);
+        }
     }
 
     public Map<String, Website> getWebsites() {

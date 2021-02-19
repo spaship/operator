@@ -47,7 +47,7 @@ public class GitlabWebHookListener {
     public Future<JsonObject> handleEvent(String gitUrl, String ref, Event event) {
         boolean isRollout = isRolloutNeeded(event, websiteYamlName);
         if (isRollout) {
-            return operatorService.rollout(gitUrl, event.getRequestSecretToken());
+            return operatorService.rollout(gitUrl, event.getRequestSecretToken(), false);
         }
 
         log.infof("Update components with same gitUrl and branch. gitUrl=%s ref=%s", gitUrl, ref);
