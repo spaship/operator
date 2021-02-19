@@ -143,7 +143,7 @@ public class OperatorService {
                 List<Future<JsonObject>> componentsUpdates = website.getEnabledEnvs().stream()
                         .filter(env -> {
                             String componentRef = GitContentUtils.getRef(website.getConfig(), env, component.getContext());
-                            return ref.contains(componentRef);
+                            return ref.endsWith(componentRef);
                         })
                         .map(env -> contentController.refreshComponent(website, env, GitContentUtils.getDirName(component.getContext(), rootContext)))
                         .collect(Collectors.toList());
