@@ -50,7 +50,6 @@ spec:
                         type: string
               required:
                 - gitUrl
-                - branch
                 - secretToken
             status:
               type: object
