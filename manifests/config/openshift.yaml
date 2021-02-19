@@ -6,13 +6,17 @@ metadata:
     websitecd: operator
 data:
   APP_OPERATOR_ROUTER_MODE: 'openshift'
-#  APP_OPERATOR_WEBSITE_DOMAIN: ''
+#  APP_OPERATOR_WEBSITE_DOMAIN: 'minikube.info'
 #######################
 # For Namespace install
+# Configured via ENVs
 #######################
-#  APP_OPERATOR_NAMESPACE: 'websitecd-examples'
-#  APP_OPERATOR_WEBSITE_CONFIG_SSLVERIFY: 'true'
+#  APP_OPERATOR_PROVIDER_ENV_ENABLED: 'true'
+#  APP_OPERATOR_PROVIDER_CRD_ENABLED: 'false'
+#  WEBSITE_NAMESPACE: 'websitecd-examples'
+#  WEBSITE_NAME: 'simple'
 #  WEBSITE_GITURL: 'https://github.com/websitecd/websitecd-examples.git'
-#  WEBSITE_BRANCH: 'main'
-#  WEBSITE_CONFIG_DIR: 'websites/02-advanced'
+#  WEBSITE_SSLVERIFY: 'true'                             # Optional
+#  WEBSITE_BRANCH: 'main'                                # Optional
+#  WEBSITE_CONFIG_DIR: 'websites/02-advanced'            # Optional
 #  WEBSITE_WEBHOOK_SECRET: 'CHANGEIT'
