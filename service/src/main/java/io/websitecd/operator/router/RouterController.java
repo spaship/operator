@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
+
 @ApplicationScoped
 public class RouterController {
 
@@ -72,7 +74,7 @@ public class RouterController {
     public RouteBuilder createRouteBuilder(ComponentConfig component, String contentServiceName, String host, String websiteName, String targetEnv, Map<String, String> labels) {
         RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
         RoutePortBuilder routePortBuilder = new RoutePortBuilder();
-        if (component.isKindGit()) {
+        if (ComponentGitMatcher.test(component)) {
             targetReference.withName(contentServiceName);
             routePortBuilder.withTargetPort(new IntOrString("http"));
         } else {

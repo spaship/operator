@@ -6,11 +6,11 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.websitecd.operator.config.model.WebsiteConfig;
+import io.websitecd.operator.crd.matcher.EnvIncluded;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Version("v1")
 @Group("websitecd.io")
@@ -41,12 +41,13 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
     public void setConfig(WebsiteConfig config) {
         this.config = config;
         if (config.getEnvs() != null && config.getEnvs().size() > 0) {
-            this.enabledEnvs = getEnvNamesStream(config).collect(Collectors.toSet());
+            this.enabledEnvs = config.getEnvs().keySet().stream()
+                    .filter(new EnvIncluded(this))
+                    .collect(Collectors.toSet());
         } else {
             this.enabledEnvs = new HashSet<>();
         }
     }
-
 
     /* Helper methods */
     private Set<String> enabledEnvs;
@@ -55,31 +56,4 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
         return enabledEnvs;
     }
 
-    private Stream<String> getEnvNamesStream(WebsiteConfig config) {
-        return config.getEnvs().keySet().stream().filter(this::isEnvEnabled);
-    }
-
-    public boolean isEnvEnabled(String env) {
-        if (getSpec() == null || getSpec().getEnvs() == null) {
-            return true;
-        }
-        WebsiteEnvs envs = getSpec().getEnvs();
-        if (envs.getIncluded() != null) {
-            for (String include : envs.getIncluded()) {
-                if (env.matches(include)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        if (envs.getExcluded() != null) {
-            for (String exclude : envs.getExcluded()) {
-                if (env.matches(exclude)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return true;
-    }
 }

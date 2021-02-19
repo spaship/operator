@@ -8,7 +8,8 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.InputStream;
-import java.util.Set;
+
+import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
 
 public class OperatorConfigUtils {
 
@@ -29,7 +30,7 @@ public class OperatorConfigUtils {
     public static int applyDefaultGirUrl(WebsiteConfig config, String gitUrl) {
         int applied = 0;
         for (ComponentConfig component : config.getComponents()) {
-            if (!component.isKindGit()) {
+            if (!ComponentGitMatcher.test(component)) {
                 continue;
             }
             ComponentSpec spec = component.getSpec();
@@ -39,24 +40,6 @@ public class OperatorConfigUtils {
             }
         }
         return applied;
-    }
-
-    /**
-     * Check if component is enabled for given component and target environment.
-     * Use directly {@link WebsiteConfig#getEnabledComponents(String)}
-     *
-     * @param config
-     * @param targetEnv
-     * @param component checked context
-     * @return
-     * @see WebsiteConfig#getEnabledComponents(String)
-     */
-    public static boolean isComponentEnabled(WebsiteConfig config, String targetEnv, ComponentConfig component) {
-        Set<String> skipContexts = config.getEnvironment(targetEnv).getSkipContexts();
-        if (skipContexts != null && skipContexts.contains(component.getContext())) {
-            return false;
-        }
-        return true;
     }
 
 }

@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
+import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentServiceMatcher;
+
 @ApplicationScoped
 public class IngressController {
 
@@ -73,12 +76,12 @@ public class IngressController {
     public HTTPIngressPath createIngressPath(ComponentConfig c, String contentService) {
         IngressBackendBuilder ingressBackendBuilder = new IngressBackendBuilder();
 
-        if (c.isKindGit()) {
+        if (ComponentGitMatcher.test(c)) {
             ingressBackendBuilder.withService(new IngressServiceBackendBuilder()
                     .withName(contentService)
                     .withPort(new ServiceBackendPortBuilder().withName("http").build())
                     .build());
-        } else if (c.isKindService()) {
+        } else if (ComponentServiceMatcher.test(c)) {
             ingressBackendBuilder.withService(new IngressServiceBackendBuilder()
                     .withName(c.getSpec().getServiceName())
                     .withPort(new ServiceBackendPortBuilder().withNumber(c.getSpec().getTargetPort()).build())

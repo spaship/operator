@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
 import static io.websitecd.operator.webhook.WebhookService.STATUS_SUCCESS;
 
 @ApplicationScoped
@@ -136,7 +137,7 @@ public class OperatorService {
         for (Website website : websiteRepository.getWebsites().values()) {
             // secret token is not checked
             for (ComponentConfig component : website.getConfig().getComponents()) {
-                if (!component.isKindGit() || !StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
+                if (!ComponentGitMatcher.test(component) || !StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
                     continue;
                 }
                 log.tracef("Component with same gitUrl found. context=%s", component.getContext());
