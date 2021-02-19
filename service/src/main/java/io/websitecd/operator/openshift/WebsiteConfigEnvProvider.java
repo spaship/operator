@@ -67,7 +67,7 @@ public class WebsiteConfigEnvProvider {
             return;
         }
         // TODO validate input values
-        WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.get(), configDir.orElse(null), sslVerify.orElse(true), secret.get());
+        WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.orElse(null), configDir.orElse(null), sslVerify.orElse(true), secret.get());
         Website website = WebsiteRepository.createWebsite(websiteName.get(), websiteSpec, namespace.get());
         
         log.infof("Registering INIT EnvProvider with delay=%s website=%s", initDelay, websiteSpec);
@@ -79,7 +79,13 @@ public class WebsiteConfigEnvProvider {
                     future.fail(ex);
                 }
                 future.complete();
-            }, res -> log.infof("Initialization completed from ENV provider. success=%s", !res.failed()));
+            }, res -> {
+                if (res.succeeded()) {
+                    log.infof("Initialization completed from ENV provider.");
+                } else {
+                    log.error("Cannot init ENV provider", res.cause());
+                }
+            });
         });
     }
 

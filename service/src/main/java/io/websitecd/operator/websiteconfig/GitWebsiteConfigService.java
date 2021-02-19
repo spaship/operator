@@ -5,12 +5,11 @@ import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.jgit.transport.URIish;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -19,7 +18,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -38,29 +36,35 @@ public class GitWebsiteConfigService {
 
     Map<String, GitInfo> repos = new HashMap<>();
 
-    public WebsiteConfig cloneRepo(Website website) throws GitAPIException, IOException, URISyntaxException {
+    public WebsiteConfig cloneRepo(Website website) throws GitAPIException, IOException {
         WebsiteSpec websiteSpec = website.getSpec();
-        log.infof("Initializing website config spec=%s", websiteSpec);
         final String gitUrl = websiteSpec.getGitUrl();
-        final String branch = websiteSpec.getBranch();
         File gitDir = new File(getGitDirName(workDir, website.getId()));
         boolean gitDirExists = gitDir.exists();
+        log.infof("Initializing website config repo in dir=%s gitDirExists=%s websiteSpec=%s", gitDir, gitDirExists, websiteSpec);
 
-        Git git = Git.init().setDirectory(gitDir).call();
-        git.remoteAdd().setName("origin").setUri(new URIish(gitUrl)).call();
-
-
-        if (!websiteSpec.getSslVerify()) {
-            StoredConfig config = git.getRepository().getConfig();
-            config.setBoolean("http", null, "sslVerify", websiteSpec.getSslVerify());
-            config.save();
+        Git git;
+        if (!gitDirExists) {
+            CloneCommand cloneCommand = Git.cloneRepository().setURI(gitUrl).setDirectory(gitDir);
+            if (!websiteSpec.getSslVerify()) {
+                log.debug("ssl verification disabled");
+                cloneCommand.setCredentialsProvider(new GitSSLIgnoreCredentialsProvider());
+            }
+            final String branch = websiteSpec.getBranch();
+            if (StringUtils.isNotEmpty(branch)) {
+                cloneCommand.setBranch(branch);
+            }
+            git = cloneCommand.call();
+        } else {
+            log.debug("Just git pull");
+            git = Git.init().setDirectory(gitDir).call();
+            git.pull().call();
         }
 
-        git.pull().setRemoteBranchName(branch).call();
-
         String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
-        log.infof("Website repo fetched to dir=%s dir_exists=%s commit_message='%s'", gitDir, gitDirExists, lastCommitMessage);
         git.close();
+
+        log.infof("Website repo fetched to dir=%s dir_exists=%s commit_message='%s'", gitDir, gitDirExists, lastCommitMessage);
 
         GitInfo gitInfo = new GitInfo(website.getSpec().getBranch(), gitDir.getAbsolutePath(), website.getSpec().getDir());
         repos.put(website.getId(), gitInfo);
@@ -83,17 +87,16 @@ public class GitWebsiteConfigService {
     public WebsiteConfig updateRepo(Website website) throws GitAPIException, IOException {
         GitInfo gitInfo = repos.get(website.getId());
         File gitDir = new File(gitInfo.getDir());
-        PullResult pullResult = Git.open(gitDir).pull().setRemoteBranchName(gitInfo.getBranch()).call();
-        if (!pullResult.isSuccessful()) {
-            throw new RuntimeException("Cannot pull repo. result=" + pullResult);
+        try (Git git = Git.open(gitDir)) {
+            PullResult pullResult = git.pull().call();
+            if (!pullResult.isSuccessful()) {
+                throw new RuntimeException("Cannot pull repo. result=" + pullResult);
+            }
+            FetchResult fetchResult = pullResult.getFetchResult();
+            log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, fetchResult.getMessages());
+
+            return getConfig(website);
         }
-        FetchResult fetchResult = pullResult.getFetchResult();
-        log.infof("Website config pulled in dir=%s commit_message='%s'", gitDir, fetchResult.getMessages());
-
-        return getConfig(website);
-    }
-
-    protected void registerNewGitRepo(Website website, String gitDirPath) {
     }
 
     public WebsiteConfig getConfig(Website website) throws IOException {
