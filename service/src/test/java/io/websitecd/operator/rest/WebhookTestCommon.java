@@ -20,7 +20,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-public class GitlabWebhookTestCommon extends QuarkusTestBase {
+public class WebhookTestCommon extends QuarkusTestBase {
 
     public static final String GIT_EXAMPLES_URL = "https://github.com/websitecd/websitecd-examples.git";
     public static final String GIT_EXAMPLES_BRANCH = "main";

@@ -13,7 +13,7 @@ import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class GithubWebHookStaticUpdateTest extends GitlabWebhookTestCommon {
+class GithubWebHookStaticUpdateTest extends WebhookTestCommon {
 
     @Test
     public void gitPushStaticUpdate() throws Exception {

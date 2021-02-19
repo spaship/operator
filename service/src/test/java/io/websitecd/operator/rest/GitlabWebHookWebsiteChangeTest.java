@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class GitlabWebHookWebsiteChangeTest extends GitlabWebhookTestCommon {
+class GitlabWebHookWebsiteChangeTest extends WebhookTestCommon {
 
     @Test
     public void gitPushWebsiteChangeNoConfigChange() throws Exception {

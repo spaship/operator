@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class GitlabWebHookStaticUpdateAnotherWebTest extends GitlabWebhookTestCommon {
+class GitlabWebHookStaticUpdateAnotherWebTest extends WebhookTestCommon {
 
     @Test
     public void gitPushStaticUpdateJustComponent() throws Exception {

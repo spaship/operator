@@ -9,7 +9,7 @@ import static io.restassured.RestAssured.given;
 
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class GithubWebHookSecurityTest extends GitlabWebhookTestCommon {
+class GithubWebHookSecurityTest extends WebhookTestCommon {
 
     @Test
     public void testUnauthenticated() {
