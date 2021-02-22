@@ -23,7 +23,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
@@ -165,6 +167,7 @@ public class WebsiteController {
                 operatorService.deleteInfrastructure(website);
                 websiteRepository.removeWebsite(website.getId());
             }
+            removeLock(websiteToDelete.getMetadata().getNamespace(), websiteToDelete.getMetadata().getName());
         } catch (Exception e) {
             log.error("Error on CRD deleted", e);
             throw new RuntimeException(e);
@@ -178,63 +181,92 @@ public class WebsiteController {
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message) {
         String ns = websiteToUpdate.getMetadata().getNamespace();
         String name = websiteToUpdate.getMetadata().getName();
-        Website website = websiteClient.inNamespace(ns).withName(name).get();
+        final String lock = getLock(ns, name);
+        synchronized (lock) {
+            Website website = websiteClient.inNamespace(ns).withName(name).get();
 
-        log.infof("Update Status, websiteId=%s status=%s", website.getId(), newStatus);
-        WebsiteStatus status = website.getStatus();
-        if (status == null) {
-            status = new WebsiteStatus();
-            status.setMessage("");
-            status.setEnvs(new ArrayList<>());
-            status.setStatus("");
-        }
-        if (message != null) {
-            status.setMessage(message);
-        }
-        status.setStatus(newStatus);
-        website.setStatus(status);
+            log.infof("Update Status, websiteId=%s status=%s", website.getId(), newStatus);
+            WebsiteStatus status = website.getStatus();
+            if (status == null) {
+                status = new WebsiteStatus("", "", new ArrayList<>());
+            }
+            if (message != null) {
+                status.setMessage(message);
+            }
+            status.setStatus(newStatus);
+            website.setStatus(status);
 
-        try {
-            return websiteClient.inNamespace(ns).withName(name).updateStatus(website);
-        } catch (Exception e) {
-            log.warn("Cannot update status", e);
-            return website;
+            try {
+                return websiteClient.inNamespace(ns).withName(name).updateStatus(website);
+            } catch (Exception e) {
+                log.warn("Cannot update status", e);
+                return website;
+            }
         }
     }
 
     /**
-     * Update status for given environment. Intentionally synchronized to avoid concurrency problems
+     * Update status for given environment.
      *
      * @param namespace
      * @param name
      * @param envName
      * @param value
      */
-    public synchronized void updateStatusEnv(String namespace, String name, String envName, String value) {
-        Website website = websiteClient.inNamespace(namespace).withName(name).get();
-        if (website == null) return;
+    public void updateStatusEnv(String namespace, String name, String envName, String value) {
+        final String lock = getLock(namespace, name);
+        synchronized (lock) {
+            Website website = websiteClient.inNamespace(namespace).withName(name).get();
+            if (website == null) return;
 
-        List<String> envs = website.getStatus().getEnvs();
-        String envValue = envName + value;
-        int existingIndex = -1;
-        if (envs == null) {
-            envs = new ArrayList<>();
-        } else {
-            for (int i = 0; i < envs.size(); i++) {
-                if (envs.get(i).startsWith(envName)) {
-                    existingIndex = i;
-                    break;
+            List<String> envs = website.getStatus().getEnvs();
+            String envValue = envName + value;
+            int existingIndex = -1;
+            if (envs == null) {
+                envs = new ArrayList<>();
+            } else {
+                for (int i = 0; i < envs.size(); i++) {
+                    if (envs.get(i).startsWith(envName)) {
+                        existingIndex = i;
+                        break;
+                    }
                 }
             }
-        }
-        if (existingIndex != -1) {
-            envs.set(existingIndex, envValue);
-        } else {
-            envs.add(envValue);
-        }
+            if (existingIndex != -1) {
+                envs.set(existingIndex, envValue);
+            } else {
+                envs.add(envValue);
+            }
 
-        website.getStatus().setEnvs(envs);
-        websiteClient.inNamespace(namespace).withName(name).updateStatus(website);
+            log.infof("Website updated env for websiteId=%s, envs=%s", website.getId(), envs);
+
+            website.getStatus().setEnvs(envs);
+            websiteClient.inNamespace(namespace).withName(name).updateStatus(website);
+        }
+    }
+
+
+    /**
+     * Simple lock for each website.
+     */
+    private Map<String, String> locks = new HashMap<>();
+
+    private String getLock(String ns, String name) {
+        final String id = lockId(ns, name);
+        if (locks.containsKey(id)) {
+            return locks.get(id);
+        } else {
+            locks.put(id, id);
+            return id;
+        }
+    }
+
+    private synchronized void removeLock(String ns, String name) {
+        locks.remove(lockId(ns, name));
+    }
+
+    private String lockId(String ns, String name) {
+        return Website.createId(ns, name);
     }
 
     public boolean isReady() {

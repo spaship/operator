@@ -9,6 +9,7 @@ import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
 import io.websitecd.operator.controller.WebsiteController;
+import io.websitecd.operator.crd.Website;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -64,7 +65,11 @@ public class ContentWatcher {
             }
 
             @Override
-            public void onDelete(Deployment resource, boolean deletedFinalStateUnknown) {
+            public void onDelete(Deployment deployment, boolean deletedFinalStateUnknown) {
+                if (!isManagedByOperator(deployment)) return;
+                String websiteName = deployment.getMetadata().getLabels().get("website");
+                String websiteId = Website.createId(deployment.getMetadata().getNamespace(), websiteName);
+                log.infof("Deployment deleted. websiteId=%s deletedFinalStateUnknown=%s", websiteId, deletedFinalStateUnknown);
             }
         });
         sharedInformerFactory.startAllRegisteredInformers();
@@ -90,12 +95,12 @@ public class ContentWatcher {
             throw new RuntimeException(e);
         }
     }
+
     public String defaultZero(Number n) {
         if (n == null) {
             return "0";
         }
         return n.toString();
     }
-
 
 }

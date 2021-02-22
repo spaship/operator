@@ -27,7 +27,10 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
     private WebsiteConfig config;
 
     public String getId() {
-        return getMetadata().getNamespace() + "-" + getMetadata().getName();
+        return createId(getMetadata().getNamespace(), getMetadata().getName());
+    }
+    public static String createId(String namespace, String name) {
+        return namespace + "-" + name;
     }
 
     public boolean specEquals(WebsiteSpec otherSpec) {

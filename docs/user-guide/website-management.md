@@ -7,8 +7,9 @@ kubectl get websites.websitecd.io -n websitecd-examples
 ```
 Output is:
 ```shell
-NAME     GIT URL                                               BRANCH   DIR                    SSL VERIFY
-simple   https://github.com/websitecd/websitecd-examples.git   main     websites/02-advanced   true
+NAME       GIT URL                                               BRANCH   DIR                    SSL VERIFY   ENVIRONMENTS               STATUS     MESSAGE
+advanced   https://github.com/websitecd/websitecd-examples.git            websites/02-advanced   true         ["dev[1/1]"]               Deployed
+simple     https://github.com/websitecd/websitecd-examples.git            websites/01-simple     true         ["prod[1/1]","dev[0/1]"]   Deployed
 ```
 
 ## Register Website in Cluster

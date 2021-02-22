@@ -38,6 +38,15 @@ public class WebsiteStatus {
 
     List<String> envs;
 
+    public WebsiteStatus() {
+    }
+
+    public WebsiteStatus(String status, String message, List<String> envs) {
+        this.status = status;
+        this.message = message;
+        this.envs = envs;
+    }
+
     public String getStatus() {
         return status;
     }
