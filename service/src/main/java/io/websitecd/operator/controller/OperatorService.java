@@ -131,10 +131,10 @@ public class OperatorService {
         }
     }
 
-    public List<Future> updateRelatedComponents(String gitUrl, String ref, List<Website> alreadyUpdated) {
+    public List<Future> updateRelatedComponents(String gitUrl, String ref, Set<String> updatedWebsites) {
         List<Future> updates = new ArrayList<>();
         for (Website website : websiteRepository.getWebsites().values()) {
-            if (alreadyUpdated != null && alreadyUpdated.contains(website)) {
+            if (updatedWebsites != null && updatedWebsites.contains(website.getId())) {
                 continue;
             }
             // secret token is not checked

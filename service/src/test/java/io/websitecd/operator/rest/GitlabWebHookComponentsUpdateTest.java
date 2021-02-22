@@ -32,6 +32,7 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
+                .body("websites.size()", is(0))
                 .body("components.size()", is(2));
 
         assertEquals(0, apiMock.getApiListCount());
@@ -55,6 +56,7 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
+                .body("websites.size()", is(0))
                 .body("components.size()", is(3));  // template, search, _root
 
         assertEquals(0, apiMock.getApiListCount());
@@ -80,6 +82,7 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
+                .body("websites.size()", is(0))
                 .body("components.size()", is(1))
                 .body("components[0].name", is("shared-components"));
 
@@ -116,6 +119,7 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
+                .body("websites.size()", is(0))
                 .body("components[0].name", is("theme"))
                 .body("components[0].status", is("DONE"));
 
@@ -127,6 +131,7 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
+                .body("websites.size()", is(0))
                 .body("components[0].name", is("theme"))
                 .body("components[0].status", is("DONE"));
 

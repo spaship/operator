@@ -5,7 +5,6 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.controller.OperatorService;
 import io.websitecd.operator.crd.Website;
@@ -19,8 +18,10 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class WebhookService {
@@ -52,23 +53,28 @@ public class WebhookService {
 
         JsonObject resultObject = new JsonObject().put("status", STATUS_SUCCESS);
 
-        List<Website> websites;
+        List<JsonObject> updatedSites;
         boolean someWebsitesUpdated;
         try {
             manager.validateRequest(request, data);
 
-            websites = manager.getAuthorizedWebsites(request, data);
+            List<Website> websites = manager.getAuthorizedWebsites(request, data);
 
-            JsonArray updatedSites = handleWebsites(websites);
+            updatedSites = handleWebsites(websites);
             resultObject.put("websites", updatedSites);
             someWebsitesUpdated = updatedSites.size() != 0;
         } catch (Exception e) {
             return Future.failedFuture(e);
         }
 
+        Set<String> updatedWebsiteIds = updatedSites.stream().
+                filter(site -> !STATUS_IGNORED.equals(site.getString("status")))
+                .map(site -> site.getString("namespace") + "-" + site.getString("name"))
+                .collect(Collectors.toSet());
+
         String gitUrl = manager.getGitUrl(data);
         String ref = manager.getRef(data);
-        List<Future> updates = operatorService.updateRelatedComponents(gitUrl, ref, websites);
+        List<Future> updates = operatorService.updateRelatedComponents(gitUrl, ref, updatedWebsiteIds);
         log.infof("Update components with same gitUrl and branch. gitUrl=%s ref=%s matchedComponents=%s", gitUrl, ref, updates.size());
         if (updates.size() == 0 && !someWebsitesUpdated) {
             return Future.failedFuture(new BadRequestException("no matched website or components"));
@@ -87,8 +93,8 @@ public class WebhookService {
         return promise.future();
     }
 
-    protected JsonArray handleWebsites(List<Website> websites) throws GitAPIException, IOException {
-        JsonArray updatedSites = new JsonArray();
+    protected List<JsonObject> handleWebsites(List<Website> websites) throws GitAPIException, IOException {
+        List<JsonObject> updatedSites = new ArrayList<>();
 
         for (Website website : websites) {
             boolean updatePerformed = operatorService.rolloutWebsiteNonBlocking(website, false);

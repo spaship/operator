@@ -30,7 +30,7 @@ class GitlabWebHookWebsiteChangeTest extends WebhookTestCommon {
     }
 
     @Test
-    public void gitPushWebsiteChangeNoConfigChange() throws Exception {
+    public void gitPushWebsiteConfigChange() throws Exception {
         // change local config to simulate website rollout
         Website localWebsite = SIMPLE_WEBSITE;
         localWebsite.getConfig().setLabels(Map.of("newLabel", "newLabelValue"));
@@ -46,10 +46,11 @@ class GitlabWebHookWebsiteChangeTest extends WebhookTestCommon {
                 .body("status", is("SUCCESS"))
                 .body("websites.size()", is(1))
                 .body("websites[0].name", is("simple"))
-                .body("websites[0].status", is("UPDATING"));
+                .body("websites[0].status", is("UPDATING"))
+                .body("components.size()", is(0));
 
         // Wait little bit till non blocking rollout finish
-        Thread.sleep(100);
+        Thread.sleep(50);
 
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(0, apiMock.getApiUpdateThemeCount());
@@ -57,7 +58,7 @@ class GitlabWebHookWebsiteChangeTest extends WebhookTestCommon {
     }
 
     @Test
-    public void gitPushWebsiteNoChange() {
+    public void gitPushWebsiteNoChangeJustComponentUpdate() {
         givenSimpleGitlabWebhookRequest()
                 .body(GitlabWebHookWebsiteChangeTest.class.getResourceAsStream("/gitlab-push.json"))
                 .when().post("/api/webhook")
@@ -67,7 +68,8 @@ class GitlabWebHookWebsiteChangeTest extends WebhookTestCommon {
                 .body("status", is("SUCCESS"))
                 .body("websites.size()", is(1))
                 .body("websites[0].name", is("simple"))
-                .body("websites[0].status", is("IGNORED"));
+                .body("websites[0].status", is("IGNORED"))
+                .body("components.size()", is(2));
     }
 
 }
