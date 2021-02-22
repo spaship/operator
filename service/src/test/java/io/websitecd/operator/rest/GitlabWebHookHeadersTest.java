@@ -6,25 +6,11 @@ import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GitlabWebHookHeadersTest extends WebhookTestCommon {
-
-    @Test
-    public void testUnknownProvider() {
-        String body = new JsonObject().toString();
-        given()
-                .header("Content-type", "application/json")
-                .body(body)
-                .when().post("/api/webhook")
-                .then()
-                .log().ifValidationFails()
-                .statusCode(400)
-                .body(is("unknown provider"));
-    }
 
     @Test
     public void testGitUrlMissing() {

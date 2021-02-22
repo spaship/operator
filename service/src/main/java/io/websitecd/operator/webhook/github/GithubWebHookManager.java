@@ -33,6 +33,13 @@ public class GithubWebHookManager implements GitWebHookManager {
         return false;
     }
 
+    public boolean isPingRequest(JsonObject data) {
+        if (StringUtils.isNotEmpty(data.getString("zen"))) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void validateRequest(HttpServerRequest request, JsonObject data) throws UnauthorizedException, BadRequestException {
         String eventName = WebHookResource.getHeader(request, "X-GitHub-Event");

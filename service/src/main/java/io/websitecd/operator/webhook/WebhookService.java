@@ -31,6 +31,7 @@ public class WebhookService {
     public static final String STATUS_SUCCESS = "SUCCESS";
     public static final String STATUS_IGNORED = "IGNORED";
     public static final String STATUS_UPDATING = "UPDATING";
+    public static final String STATUS_PING = "PING";
 
     @Inject
     GitlabWebHookManager gitlabWebHookManager;
@@ -48,10 +49,19 @@ public class WebhookService {
     }
 
     public Future<JsonObject> handleRequest(HttpServerRequest request, JsonObject data) {
-        GitWebHookManager manager = getManager(request);
-        if (manager == null) return Future.failedFuture(new BadRequestException("unknown provider"));
+        JsonObject resultObject = new JsonObject();
 
-        JsonObject resultObject = new JsonObject().put("status", STATUS_SUCCESS);
+        GitWebHookManager manager = getManager(request);
+        if (manager == null) {
+            if (githubWebHookManager.isPingRequest(data)) {
+                log.infof("Ping event registered. gitUrl=%s", githubWebHookManager.getGitUrl(data));
+                return Future.succeededFuture(resultObject.put("status", STATUS_PING));
+            } else {
+                return Future.failedFuture(new BadRequestException("unknown provider"));
+            }
+        }
+
+        resultObject.put("status", STATUS_SUCCESS);
 
         List<JsonObject> updatedSites;
         boolean someWebsitesUpdated;

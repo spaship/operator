@@ -3,6 +3,7 @@ package io.websitecd.operator.rest;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
+import io.restassured.http.ContentType;
 import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.openshift.OperatorServiceTest;
 import org.junit.jupiter.api.Test;
@@ -12,14 +13,26 @@ import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
 @QuarkusTestResource(KubernetesMockServerTestResource.class)
-class GithubWebHookHeadersTest extends WebhookTestCommon {
+class GithubWebHookBasicTest extends WebhookTestCommon {
 
     @Test
-    public void testUnknownProvider() {
+    public void testEmptyBody() {
         String body = new JsonObject().toString();
         given()
                 .header("Content-type", "application/json")
                 .body(body)
+                .when().post("/api/webhook")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(400)
+                .body(is("Body is empty"));
+    }
+
+    @Test
+    public void testUnknownProvider() {
+        given()
+                .header("Content-type", "application/json")
+                .body(GithubWebHookStaticUpdateTest.class.getResourceAsStream("/gitlab-push.json"))
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
@@ -60,6 +73,22 @@ class GithubWebHookHeadersTest extends WebhookTestCommon {
                 .log().ifValidationFails()
                 .statusCode(400)
                 .body(is("Unsupported Event"));
+    }
+
+    @Test
+    public void githubPing() throws Exception {
+        // Test of Github Ping
+        // https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#ping
+        given()
+                .header("Content-type", "application/json")
+                .body(GithubWebHookStaticUpdateTest.class.getResourceAsStream("/github-ping.json"))
+                .when().post("/api/webhook")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("status", is("PING"));
+
     }
 
 }
