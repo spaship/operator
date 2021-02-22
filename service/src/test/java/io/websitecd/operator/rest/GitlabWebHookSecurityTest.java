@@ -12,7 +12,7 @@ import static io.restassured.RestAssured.given;
 class GitlabWebHookSecurityTest extends WebhookTestCommon {
 
     @Test
-    public void testUnauthenticated() throws Exception {
+    public void testUnauthenticated() {
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
@@ -21,21 +21,6 @@ class GitlabWebHookSecurityTest extends WebhookTestCommon {
                 .then()
                 .log().ifValidationFails()
                 .statusCode(401);
-    }
-
-    @Test
-    public void testBadToken() throws Exception {
-        registerSimpleWeb();
-
-        given()
-                .header("Content-type", "application/json")
-                .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", "BAD_TOKEN")
-                .body(GitlabWebHookSecurityTest.class.getResourceAsStream("/gitlab-push-website-changed.json"))
-                .when().post("/api/webhook")
-                .then()
-                .log().ifValidationFails()
-                .statusCode(400);
     }
 
 }

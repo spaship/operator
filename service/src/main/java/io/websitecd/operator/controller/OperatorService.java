@@ -3,7 +3,6 @@ package io.websitecd.operator.controller;
 import io.fabric8.openshift.api.model.Route;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.websitecd.content.git.config.GitContentUtils;
 import io.websitecd.operator.Utils;
@@ -15,19 +14,19 @@ import io.websitecd.operator.router.IngressController;
 import io.websitecd.operator.router.RouterController;
 import io.websitecd.operator.websiteconfig.GitWebsiteConfigService;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
-import static io.websitecd.operator.webhook.WebhookService.STATUS_SUCCESS;
 
 @ApplicationScoped
 public class OperatorService {
@@ -132,9 +131,12 @@ public class OperatorService {
         }
     }
 
-    public List<Future> updateRelatedComponents(String gitUrl, String ref) {
+    public List<Future> updateRelatedComponents(String gitUrl, String ref, List<Website> alreadyUpdated) {
         List<Future> updates = new ArrayList<>();
         for (Website website : websiteRepository.getWebsites().values()) {
+            if (alreadyUpdated != null && alreadyUpdated.contains(website)) {
+                continue;
+            }
             // secret token is not checked
             for (ComponentConfig component : website.getConfig().getComponents()) {
                 if (!ComponentGitMatcher.test(component) || !StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
@@ -154,30 +156,30 @@ public class OperatorService {
         return updates;
     }
 
-    public Future<JsonObject> rollout(String gitUrl, String requestSecretToken, boolean sha256Hex) {
-        List<Website> websites = websiteRepository.getByGitUrl(gitUrl, requestSecretToken, sha256Hex);
-        JsonObject resultObject = new JsonObject();
-
-        if (websites.size() == 0) {
-            return Future.failedFuture(new BadRequestException("website with given gitUrl and token not found."));
-        }
-
-        JsonArray updatedSites = new JsonArray();
-        for (Website website : websites) {
-            rolloutWebsiteNonBlocking(website);
-            updatedSites.add(new JsonObject().put("name", website.getMetadata().getName()).put("namespace", website.getMetadata().getNamespace()));
-        }
-        resultObject.put("status", STATUS_SUCCESS)
-                .put("websites", updatedSites);
-        return Future.succeededFuture(resultObject);
-    }
-
-    public void rolloutWebsiteNonBlocking(Website website) {
+    /**
+     * Rollout website
+     *
+     * @param website
+     * @param forceRollout if true new and old config is not checked
+     * @return
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    public boolean rolloutWebsiteNonBlocking(Website website, boolean forceRollout) throws GitAPIException, IOException {
         String websiteId = website.getId();
+
+        WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
+        if (!forceRollout) {
+            Website oldWebsite = websiteRepository.getWebsite(website.getId());
+            if (newConfig.equals(oldWebsite.getConfig())) {
+                log.infof("Configs are same for websiteId=%s. No rollout performed", websiteId);
+                return false;
+            }
+        }
+
         vertx.executeBlocking(future -> {
             log.infof("Rollout websiteId=%s", websiteId);
             try {
-                WebsiteConfig newConfig = gitWebsiteConfigService.updateRepo(website);
                 website.setConfig(newConfig);
                 websiteRepository.addWebsite(website);
 
@@ -193,6 +195,7 @@ public class OperatorService {
                 log.error("Cannot update website, websiteId=" + websiteId, res.cause());
             }
         });
+        return true;
     }
 
 }

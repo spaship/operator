@@ -4,7 +4,6 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.restassured.http.ContentType;
-import io.websitecd.operator.openshift.OperatorServiceTest;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -18,11 +17,13 @@ class GitlabWebHookUnknownTest extends WebhookTestCommon {
     public void unknownGitUrlInComponents() throws Exception {
         registerSimpleWeb();
 
+        String body = getGitlabEventBody("UNKNOWN", "main");
+
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE)
-                .body(GitlabWebHookUnknownTest.class.getResourceAsStream("/gitlab-push-giturl-unknown.json"))
+                .header("X-Gitlab-Token", "Avoid rollout update")
+                .body(body)
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
@@ -35,11 +36,13 @@ class GitlabWebHookUnknownTest extends WebhookTestCommon {
     public void unknownGitBranchInComponents() throws Exception {
         registerSimpleWeb();
 
+        String body = getGitlabEventBody(SIMPLE_WEB.getGitUrl(), "UNKNOWN");
+
         given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE)
-                .body(GitlabWebHookUnknownTest.class.getResourceAsStream("/gitlab-push-gitbranch-unknown.json"))
+                .header("X-Gitlab-Token", "Avoid rollout update")
+                .body(body)
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()

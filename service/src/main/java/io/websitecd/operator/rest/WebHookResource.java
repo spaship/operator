@@ -1,9 +1,9 @@
 package io.websitecd.operator.rest;
 
 import io.quarkus.vertx.web.Route;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.websitecd.operator.webhook.WebhookService;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +33,7 @@ public class WebHookResource {
 
     @Route(methods = HttpMethod.POST, path = "/api/webhook", produces = "application/json")
     public void webhook(RoutingContext rc) {
-        Buffer body = rc.getBody();
+        JsonObject body = rc.getBodyAsJson();
         HttpServerRequest request = rc.request();
         log.infof("webhook called from url=%s", request.remoteAddress());
 

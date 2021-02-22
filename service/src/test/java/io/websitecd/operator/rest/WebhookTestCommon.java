@@ -1,6 +1,8 @@
 package io.websitecd.operator.rest;
 
+import io.restassured.specification.RequestSpecification;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.QuarkusTestBase;
 import io.websitecd.operator.config.model.WebsiteConfig;
@@ -8,6 +10,7 @@ import io.websitecd.operator.controller.OperatorService;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
+import io.websitecd.operator.openshift.OperatorServiceTest;
 import io.websitecd.operator.websiteconfig.GitWebsiteConfigService;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -19,6 +22,8 @@ import org.junit.jupiter.api.BeforeEach;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URISyntaxException;
+
+import static io.restassured.RestAssured.given;
 
 public class WebhookTestCommon extends QuarkusTestBase {
 
@@ -87,6 +92,20 @@ public class WebhookTestCommon extends QuarkusTestBase {
         ADVANCED_WEBSITE.setConfig(websiteConfig);
         websiteRepository.addWebsite(ADVANCED_WEBSITE);
         operatorService.initNewWebsite(ADVANCED_WEBSITE);
+    }
+
+    public String getGitlabEventBody(String gitUrl, String branch) {
+        return new JsonObject()
+                .put("ref", "refs/heads/" + branch)
+                .put("repository", new JsonObject().put("git_http_url", gitUrl))
+                .toString();
+    }
+
+    public RequestSpecification givenSimpleGitlabWebhookRequest() {
+        return given()
+                .header("Content-type", "application/json")
+                .header("X-Gitlab-Event", "Push Hook")
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE);
     }
 
 }

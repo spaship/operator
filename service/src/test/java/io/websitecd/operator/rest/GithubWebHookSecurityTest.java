@@ -23,19 +23,4 @@ class GithubWebHookSecurityTest extends WebhookTestCommon {
                 .statusCode(401);
     }
 
-    @Test
-    public void testBadToken() throws Exception {
-        registerSimpleWeb();
-
-        given()
-                .header("Content-type", "application/json")
-                .header("X-GitHub-Event", "Push Hook")
-                .header("X-Hub-Signature-256", "BAD_TOKEN")
-                .body(GithubWebHookSecurityTest.class.getResourceAsStream("/github-push.json"))
-                .when().post("/api/webhook")
-                .then()
-                .log().ifValidationFails()
-                .statusCode(400);
-    }
-
 }
