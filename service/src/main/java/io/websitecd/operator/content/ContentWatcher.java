@@ -17,6 +17,7 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
@@ -61,7 +62,18 @@ public class ContentWatcher {
                 if (oldResource.getMetadata().getResourceVersion().equals(newResource.getMetadata().getResourceVersion()))
                     return;
 
-                deploymentUpdated(newResource);
+                DeploymentStatus oldStatus = oldResource.getStatus();
+                DeploymentStatus newStatus = newResource.getStatus();
+
+                boolean statusUpdateNeeded = true;
+                if (oldStatus != null && newStatus != null &&
+                        Objects.equals(newStatus.getReplicas(), oldStatus.getReplicas()) &&
+                        Objects.equals(newStatus.getReadyReplicas(), oldStatus.getReadyReplicas())) {
+                    statusUpdateNeeded = false;
+                }
+                if (statusUpdateNeeded) {
+                    deploymentUpdated(newResource);
+                }
             }
 
             @Override

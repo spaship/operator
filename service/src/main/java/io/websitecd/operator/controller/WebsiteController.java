@@ -219,6 +219,8 @@ public class WebsiteController {
             Website website = websiteClient.inNamespace(namespace).withName(name).get();
             if (website == null) return;
 
+            log.infof("Website updated env for websiteId=%s envName=%s value=%s", website.getId(), envName, value);
+
             List<String> envs = website.getStatus().getEnvs();
             String envValue = envName + value;
             int existingIndex = -1;
@@ -238,7 +240,6 @@ public class WebsiteController {
                 envs.add(envValue);
             }
 
-            log.infof("Website updated env for websiteId=%s, envs=%s", website.getId(), envs);
 
             website.getStatus().setEnvs(envs);
             websiteClient.inNamespace(namespace).withName(name).updateStatus(website);
