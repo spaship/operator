@@ -61,19 +61,9 @@ public class ContentWatcher {
                 if (!isManagedByOperator(newResource)) return;
                 if (oldResource.getMetadata().getResourceVersion().equals(newResource.getMetadata().getResourceVersion()))
                     return;
+                if (replicasNotChanged(oldResource.getStatus(), newResource.getStatus())) return;
 
-                DeploymentStatus oldStatus = oldResource.getStatus();
-                DeploymentStatus newStatus = newResource.getStatus();
-
-                boolean statusUpdateNeeded = true;
-                if (oldStatus != null && newStatus != null &&
-                        Objects.equals(newStatus.getReplicas(), oldStatus.getReplicas()) &&
-                        Objects.equals(newStatus.getReadyReplicas(), oldStatus.getReadyReplicas())) {
-                    statusUpdateNeeded = false;
-                }
-                if (statusUpdateNeeded) {
-                    deploymentUpdated(newResource);
-                }
+                deploymentUpdated(newResource);
             }
 
             @Override
@@ -91,6 +81,12 @@ public class ContentWatcher {
         return deployment.getMetadata().getLabels() != null
                 && deployment.getMetadata().getLabels().containsKey("managedBy")
                 && StringUtils.equals(deployment.getMetadata().getLabels().get("managedBy"), "websitecd-operator");
+    }
+
+    public boolean replicasNotChanged(DeploymentStatus oldStatus, DeploymentStatus newStatus) {
+        return oldStatus != null && newStatus != null &&
+                Objects.equals(newStatus.getReplicas(), oldStatus.getReplicas()) &&
+                Objects.equals(newStatus.getReadyReplicas(), oldStatus.getReadyReplicas());
     }
 
     private void deploymentUpdated(Deployment deployment) {
