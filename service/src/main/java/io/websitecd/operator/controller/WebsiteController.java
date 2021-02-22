@@ -196,13 +196,21 @@ public class WebsiteController {
 
         try {
             return websiteClient.inNamespace(ns).withName(name).updateStatus(website);
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.warn("Cannot update status", e);
             return website;
         }
     }
 
-    public void updateStatusEnv(String namespace, String name, String envName, String value) {
+    /**
+     * Update status for given environment. Intentionally synchronized to avoid concurrency problems
+     *
+     * @param namespace
+     * @param name
+     * @param envName
+     * @param value
+     */
+    public synchronized void updateStatusEnv(String namespace, String name, String envName, String value) {
         Website website = websiteClient.inNamespace(namespace).withName(name).get();
         if (website == null) return;
 
