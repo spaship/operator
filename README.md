@@ -1,16 +1,17 @@
 # Website CD Operator
 
-Website Continues Deployment & Delivery on Kubernetes as easy as Github pages.
+Website Continues Deployment & Delivery on Kubernetes/Openshift as easy as Github pages.
 
 ## Features
 
-Operator covers common enterprise use cases like:
+Operator provides common enterprise website use cases in GitOps style.
 
-1. Sharing website blocks/components - header, footer, marketing etc.
-2. Website as composition of static content, SPAs and other services (REST API, GraphQL, Drupal etc.)
-3. Multiple environments deployment. Resources configuration per environment. 
+1. Multiple environments deployment and its resources configuration
+2. Sharing common components across all sites - header, footer, search etc.
+3. Multiple SPAs (resp. any content) deployment under different contexts
 4. Git webhooks integration for continuous Deployment and Delivery
-5. Extendable - ability to provide another repository of content in addition to git (e.g. FTP)
+5. GitOps - Control your website deployment and website's content delivery purely by git
+6. Extendable - ability to provide another repository of content in addition to git (e.g. FTP)
 
 
 ## Documentation
