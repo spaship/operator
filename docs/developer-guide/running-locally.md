@@ -21,13 +21,18 @@ kubectl -n websitecd logs --selector=websitecd-operator-layer=service --tail 10 
 
 ## Local Development
 
+The only CRD needs to be registered:
+```shell
+kubectl apply -f manifests/minikube/crd.yaml
+```
+
 ### Build project
 
 ```shell
 mvn clean install
 ```
 
-### Run Operator Locally
+### Dev Mode
 Default values for dev mode are stored in [application.properties](../../service/src/main/resources/application.properties)
 in section `# DEV`
 
@@ -36,29 +41,20 @@ cd service
 mvn quarkus:dev
 ```
 
-In few seconds the operator is up and connects to k8s cluster.
+In few seconds the operator is up and connects to k8s cluster and listening to CRD changes.
 
-To view which context do you use just do
+Register website [simple](https://github.com/websitecd/websitecd-examples/tree/main/websites/01-simple) or [advanced](https://github.com/websitecd/websitecd-examples/tree/main/websites/02-advanced).
+
+#### Setting kubectl context
+To view which context do you use just do:
 ```shell
 kubectl config current-context
 ```
-To switch to minikube context do
+To switch to minikube context do:
 ```shell
 kubectl config use-context minikube
 ```
 
-#### Locally In Docker
-
-Build local docker image (skip this to use the latest from the repository)
-```shell
-docker build -f src/main/docker/Dockerfile.jvm -t websitecd/operator-jvm .
-```
-
-```shell
-docker run -i --rm -e APP_OPERATOR_PROVIDER_ENV_ENABLED=true -e APP_OPERATOR_PROVIDER_CRD_ENABLED=false -e WEBSITE_NAMESPACE=websitecd-examples \
-   -e WEBSITE_NAME=simple -e WEBSITE_GITURL=https://github.com/websitecd/websitecd-examples.git -e WEBSITE_CONFIG_DIR=websites/02-advanced -e WEBSITE_WEBHOOK_SECRET=TOKENSIMPLE \
-   -p 8080:8080 websitecd/operator-jvm
-```
 
 ## Webhook API Development
 
@@ -86,8 +82,18 @@ curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-E
 
 ## Build Docker Image
 
+You don't need to care about building docker images because they're covered by [Github Action](https://github.com/websitecd/content-git/actions/workflows/docker-publish.yaml)
+but for development purposes you can do it locally:
+
 ```shell
 mvn clean install
 cd service
 docker build -f src/main/docker/Dockerfile.jvm -t websitecd/operator-jvm .
+```
+
+Run image:
+```shell
+docker run -i --rm -e APP_OPERATOR_PROVIDER_ENV_ENABLED=true -e APP_OPERATOR_PROVIDER_CRD_ENABLED=false -e WEBSITE_NAMESPACE=websitecd-examples \
+   -e WEBSITE_NAME=simple -e WEBSITE_GITURL=https://github.com/websitecd/websitecd-examples.git -e WEBSITE_CONFIG_DIR=websites/02-advanced -e WEBSITE_WEBHOOK_SECRET=TOKENSIMPLE \
+   -p 8080:8080 websitecd/operator-jvm
 ```

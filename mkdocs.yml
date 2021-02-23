@@ -8,11 +8,17 @@ theme:
 nav:
   - Overview: index.md
   - how-it-works.md
-  - Developer Guide:
-      - Overview: developer-guide/index.md
-      - developer-guide/running-locally.md
   - User Guide:
       - Overview: user-guide/index.md
       - user-guide/website-specification.md
       - user-guide/website-management.md
+  - Developer Guide:
+      - Overview: developer-guide/index.md
+      - developer-guide/project-structure.md
+      - developer-guide/running-locally.md
+      - developer-guide/release.md
   - support.md
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences

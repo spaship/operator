@@ -1,5 +1,6 @@
 # Website Specification
 
+Website is specified in `website.yaml` and covers [Environments](#environments) and [Components](#components).
 
 ## Environments
 
@@ -10,14 +11,24 @@ Each environment defines:
 3. Deployments overrides
 4. Skip Components
 
+Example:
+
+```yaml
+envs:
+  dev:
+    branch: main
+  prod:
+    branch: prod
+```
+
 ## Components
 
 Every component needs to define its `kind`.
-This allows define website as different components resp. their source.
+This allows design a website as different components with their sources.
 
 ### Component `git`
 
-Content stored in git repository and defined `branch` or `tag`.
+Content stored in git repository in particular `branch` or `tag`.
 
 ```yaml
 components:
@@ -46,12 +57,14 @@ components:
 
 ## Defaults and Overrides
 
-The `website.yaml` uses strongly defaults & overrides strategy.
+The `website.yaml` strongly uses defaults & overrides strategy.
 For example branch name is defined on following places:
 
 `Environment` -> `Component` -> `Component's environment`
 
 `envs.<env_name>.branch` -> `components.spec.branch` -> `components.spec.envs.<env_name>`
+
+This offers flexibility to design each environment differently.
 
 ## Complete Spec Reference
 The complete `website.yaml` reference

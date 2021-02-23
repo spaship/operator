@@ -4,13 +4,14 @@ Website Continues Deployment & Delivery on Kubernetes as easy as Github pages.
 
 ## Features
 
-Operator covers common enterprise use cases like:
+Operator provides common enterprise website use cases in GitOps style.
 
-1. Sharing website blocks/components - header, footer, marketing etc.
-2. Website as composition of static content, SPAs and other services (REST API, GraphQL, Drupal etc.)
-3. Multiple environments deployment. Resources configuration per environment.
+1. Multiple environments deployment and its resources configuration
+2. Sharing common components across all sites - header, footer, search etc.
+3. Multiple SPAs (resp. any content) deployment under different contexts
 4. Git webhooks integration for continuous Deployment and Delivery
-5. Extendable - ability to provide another repository of content in addition to git (e.g. FTP)
+5. GitOps - Control your website deployment and website's content delivery purely by git
+6. Extendable - ability to provide another repository of content in addition to git (e.g. FTP)
 
 
 ## The Simplest Use Case
@@ -52,7 +53,6 @@ metadata:
   name: simple
 spec:
   gitUrl: https://github.com/websitecd/websitecd-examples.git
-  branch: main
   dir: websites/01-simple              # Relative path to your website.yaml
   secretToken: TOKENSIMPLE
 ```   
@@ -67,10 +67,11 @@ That's IT!
 
 Operator creates both `dev` and `prod` environment with main `SPA` and `theme` and is ready
 to accept Git webhook events for:
+
 * Continues deployment (changes in environments or components)
 * Continues delivery (changes in `theme` and `main SPA`).
 
-More examples: https://github.com/websitecd/websitecd-examples.git
+More examples: [websitecd-examples](https://github.com/websitecd/websitecd-examples.git)
 
 ## Supported Runtimes
 
