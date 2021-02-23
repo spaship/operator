@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
+import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentServiceMatcher;
 
 public class WebsiteConfig {
 
@@ -59,6 +60,10 @@ public class WebsiteConfig {
     @JsonIgnore
     public Stream<ComponentConfig> getEnabledGitComponents(String targetEnv) {
         return getEnabledComponents(targetEnv).filter(ComponentGitMatcher);
+    }
+    @JsonIgnore
+    public Stream<ComponentConfig> getEnabledServiceComponents(String targetEnv) {
+        return getEnabledComponents(targetEnv).filter(ComponentServiceMatcher);
     }
 
     @JsonIgnore

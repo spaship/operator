@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
+import static io.websitecd.operator.config.matcher.ComponentKindMatcher.ComponentServiceMatcher;
 
 @ApplicationScoped
 public class RouterController {
@@ -33,7 +34,7 @@ public class RouterController {
 
     final String API_ROUTE_NAME = "api";
 
-    public Stream<ComponentConfig> getComponents(WebsiteConfig config, String targetEnv) {
+    public Stream<ComponentConfig> getGitComponents(WebsiteConfig config, String targetEnv) {
         Optional<ComponentConfig> rootComponent = config.getEnabledGitComponents(targetEnv)
                 .filter(c -> c.getContext().equals("/"))
                 .findFirst();
@@ -42,7 +43,6 @@ public class RouterController {
             log.infof("Root component found. Working only with root context");
             return Stream.of(rootComponent.get());
         } else {
-//            log.tracef("enabled components=%s", enabledComponents);
             return config.getEnabledComponents(targetEnv);
         }
     }
@@ -61,12 +61,18 @@ public class RouterController {
         String contentServiceName = getContentServiceName(websiteName, targetEnv);
 
         String finalHost = host;
-        getComponents(config, targetEnv)
+        getGitComponents(config, targetEnv)
                 .map(component -> createRouteBuilder(component, contentServiceName, finalHost, websiteName, targetEnv, defaultLabels))
                 .forEach(builder -> {
                     Route route = builder.build();
-                    log.infof("Deploying route=%s", route.getMetadata().getName());
-
+                    log.infof("Deploying route=%s kind=git", route.getMetadata().getName());
+                    client.inNamespace(namespace).routes().createOrReplace(route);
+                });
+        config.getEnabledServiceComponents(targetEnv)
+                .map(component -> createRouteBuilder(component, contentServiceName, finalHost, websiteName, targetEnv, defaultLabels))
+                .forEach(builder -> {
+                    Route route = builder.build();
+                    log.infof("Deploying route=%s kind=service", route.getMetadata().getName());
                     client.inNamespace(namespace).routes().createOrReplace(route);
                 });
     }
@@ -77,7 +83,7 @@ public class RouterController {
         if (ComponentGitMatcher.test(component)) {
             targetReference.withName(contentServiceName);
             routePortBuilder.withTargetPort(new IntOrString("http"));
-        } else {
+        } else if (ComponentServiceMatcher.test(component)) {
             targetReference.withName(component.getSpec().getServiceName());
             routePortBuilder.withTargetPort(getIntOrString(component.getSpec().getTargetPort()));
         }
@@ -148,14 +154,9 @@ public class RouterController {
         final String websiteName = Utils.getWebsiteName(website);
         WebsiteConfig config = website.getConfig();
 
-        getComponents(config, targetEnv)
-                .map(c -> {
-                    String sanityContext = sanityContext(c.getContext());
-                    return getRouteName(websiteName, sanityContext, targetEnv);
-                })
-                .forEach(name -> {
-                    client.inNamespace(namespace).routes().withName(name).delete();
-                });
+        config.getEnabledComponents(targetEnv)
+                .map(c -> getRouteName(websiteName, sanityContext(c.getContext()), targetEnv))
+                .forEach(name -> client.inNamespace(namespace).routes().withName(name).delete());
 
         String name = getRouteName(websiteName, API_ROUTE_NAME, targetEnv);
         client.inNamespace(namespace).routes().withName(name).delete();
