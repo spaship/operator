@@ -1,7 +1,6 @@
 package io.websitecd.operator.content;
 
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentList;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
@@ -47,7 +46,7 @@ public class ContentWatcher {
         log.info("Registering ContentWatcher");
 
         SharedInformerFactory sharedInformerFactory = client.informers();
-        SharedIndexInformer<Deployment> deploymentInformer = sharedInformerFactory.sharedIndexInformerFor(Deployment.class, DeploymentList.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
+        SharedIndexInformer<Deployment> deploymentInformer = sharedInformerFactory.sharedIndexInformerFor(Deployment.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
         deploymentInformer.addEventHandler(new ResourceEventHandler<>() {
             @Override
             public void onAdd(Deployment resource) {

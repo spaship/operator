@@ -42,7 +42,8 @@
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
 
         <!-- Be sure that mvn clean install and also mvn quarkus:dev works !!! -->
-        <quarkus.platform.version>1.11.1.Final</quarkus.platform.version>
+        <quarkus.platform.version>1.11.3.Final</quarkus.platform.version>
+        <fabric8-client.version>5.1.0</fabric8-client.version>
         <snakeyaml.version>1.27</snakeyaml.version>
         <fabric8.client.version>5.0.1</fabric8.client.version>
 
@@ -51,6 +52,15 @@
     </properties>
     <dependencyManagement>
         <dependencies>
+            <!-- Remove it once client is upgraded to 5.1.0 in quarkus -->
+            <!-- https://github.com/quarkusio/quarkus/issues/15250 -->
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-client-bom</artifactId>
+                <version>${fabric8-client.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-universe-bom</artifactId>

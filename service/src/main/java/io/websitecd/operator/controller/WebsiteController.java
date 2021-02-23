@@ -74,8 +74,7 @@ public class WebsiteController {
 
     public void watch() {
         SharedInformerFactory sharedInformerFactory = client.informers();
-        SharedIndexInformer<Website> websiteInformer = sharedInformerFactory.sharedIndexInformerFor(
-                Website.class, WebsiteList.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
+        SharedIndexInformer<Website> websiteInformer = sharedInformerFactory.sharedIndexInformerFor(Website.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
 
         websiteInformer.addEventHandler(new ResourceEventHandler<>() {
             @Override
