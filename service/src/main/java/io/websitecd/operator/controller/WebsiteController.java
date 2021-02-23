@@ -189,6 +189,9 @@ public class WebsiteController {
             if (status == null) {
                 status = new WebsiteStatus("", "", new ArrayList<>());
             }
+            if (status.getEnvs() == null) {
+                status.setEnvs(new ArrayList<>());
+            }
             if (message != null) {
                 status.setMessage(message);
             }
