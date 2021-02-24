@@ -210,14 +210,14 @@ spec:
             httpGet:
               path: "/health/live"
               port: 8080
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             failureThreshold: 10
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: "/health/ready"
               port: 8080
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             failureThreshold: 5
             periodSeconds: 30
           resources:
