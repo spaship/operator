@@ -18,7 +18,7 @@ public class QuarkusTestBase {
         setupMockServer(mockServer);
     }
 
-    private void setupMockServer(KubernetesMockServer mockServer) {
+    protected void setupMockServer(KubernetesMockServer mockServer) {
         mockServer.expect()
                 .get().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
                 .andReturn(200, new CustomResourceDefinitionBuilder().build())
