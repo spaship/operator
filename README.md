@@ -1,5 +1,7 @@
 # Website CD Operator
 
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/websitecd/operator/Build%20and%20Deploy)
+
 Website Continues Deployment & Delivery on Kubernetes/Openshift as easy as Github pages.
 
 ## Features

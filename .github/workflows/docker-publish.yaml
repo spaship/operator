@@ -1,4 +1,4 @@
-name: Deploy to Registries
+name: Build and Deploy
 
 on:
   push:
