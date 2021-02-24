@@ -1,5 +1,6 @@
 package io.websitecd.operator.webhook;
 
+import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -13,6 +14,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import java.io.IOException;
@@ -40,7 +42,11 @@ public class WebhookService {
     @Inject
     OperatorService operatorService;
 
-    Set<GitWebHookManager> managers = Set.of(gitlabWebHookManager, githubWebHookManager);
+    Set<GitWebHookManager> managers;
+
+    void onStart(@Observes StartupEvent ev) {
+        managers = Set.of(gitlabWebHookManager, githubWebHookManager);
+    }
 
     public Future<JsonObject> handleRequest(HttpServerRequest request, JsonObject data) {
         JsonObject resultObject = new JsonObject();
