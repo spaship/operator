@@ -1,5 +1,6 @@
 package io.websitecd.operator.websiteconfig;
 
+import io.quarkus.runtime.StartupEvent;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
@@ -14,6 +15,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @ApplicationScoped
 public class GitWebsiteConfigService {
@@ -32,9 +35,13 @@ public class GitWebsiteConfigService {
     String workDir = System.getProperty("user.dir");
 
     @ConfigProperty(name = "app.operator.website.config.filenames")
-    String[] configFilename;
+    Set<String> configFilenames;
 
     Map<String, GitInfo> repos = new HashMap<>();
+
+    void onStart(@Observes StartupEvent ev) {
+        log.infof("WebsiteConfig Service init. configFilename=%s", configFilenames);
+    }
 
     public WebsiteConfig cloneRepo(Website website) throws GitAPIException, IOException {
         WebsiteSpec websiteSpec = website.getSpec();
@@ -131,7 +138,7 @@ public class GitWebsiteConfigService {
     }
 
     private File getWebsiteFile(File websiteDir) {
-        for (String filename : configFilename) {
+        for (String filename : configFilenames) {
             File file = new File(websiteDir.getAbsolutePath(), filename);
             if (file.exists()) {
                 log.infof("website config found. path=%s", file.getAbsolutePath());
