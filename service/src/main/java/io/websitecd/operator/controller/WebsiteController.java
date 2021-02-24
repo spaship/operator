@@ -59,6 +59,7 @@ public class WebsiteController {
     MixedOperation<Website, WebsiteList, Resource<Website>> websiteClient;
 
     void onStart(@Observes StartupEvent ev) {
+        log.infof("Website CRD Controller enabled=%s", crdEnabled);
         if (!crdEnabled) {
             ready = true;
             return;
@@ -67,7 +68,6 @@ public class WebsiteController {
     }
 
     public void initWebsiteCrd() {
-        log.infof("CRD enabled. Going to register CRD watch");
         websiteClient = client.customResources(Website.class, WebsiteList.class);
         watch();
     }

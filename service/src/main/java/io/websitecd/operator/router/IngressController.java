@@ -3,6 +3,7 @@ package io.websitecd.operator.router;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.quarkus.runtime.StartupEvent;
 import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
@@ -11,6 +12,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,17 @@ public class IngressController {
 
     @ConfigProperty(name = "app.operator.website.domain")
     protected Optional<String> domain;
+
+    @ConfigProperty(name = "app.operator.router.mode")
+    String routerMode;
+
+    void startup(@Observes StartupEvent event) {
+        log.infof("IngressController enabled=%s", isEnabled());
+    }
+
+    public boolean isEnabled() {
+        return routerMode.equals("ingress");
+    }
 
     public void updateIngress(String targetEnv, Website website) {
         if (domain.isEmpty()) {

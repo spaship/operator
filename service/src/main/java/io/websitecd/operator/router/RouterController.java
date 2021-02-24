@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.*;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.quarkus.runtime.StartupEvent;
 import io.websitecd.operator.Utils;
 import io.websitecd.operator.config.model.ComponentConfig;
 import io.websitecd.operator.config.model.WebsiteConfig;
@@ -13,6 +14,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +35,17 @@ public class RouterController {
     protected Optional<String> domain;
 
     final String API_ROUTE_NAME = "api";
+
+    @ConfigProperty(name = "app.operator.router.mode")
+    String routerMode;
+
+    void startup(@Observes StartupEvent event) {
+        log.infof("RouterController enabled=%s", isEnabled());
+    }
+
+    public boolean isEnabled() {
+        return routerMode.equals("openshift");
+    }
 
     public Stream<ComponentConfig> getGitComponents(WebsiteConfig config, String targetEnv) {
         Optional<ComponentConfig> rootComponent = config.getEnabledGitComponents(targetEnv)

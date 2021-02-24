@@ -62,8 +62,8 @@ public class WebsiteConfigEnvProvider {
     GitWebsiteConfigService gitWebsiteConfigService;
 
     void onStart(@Observes StartupEvent ev) {
+        log.infof("WebsiteConfigEnvProvider enabled=%s", providerEnabled.orElse(false));
         if (!providerEnabled.orElse(false)) {
-            log.infof("No Git URL Defined in env variable. Skipping");
             return;
         }
         // TODO validate input values

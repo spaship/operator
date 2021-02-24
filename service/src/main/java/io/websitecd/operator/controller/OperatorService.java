@@ -1,6 +1,7 @@
 package io.websitecd.operator.controller;
 
 import io.fabric8.openshift.api.model.Route;
+import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -19,6 +20,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,9 +34,6 @@ import static io.websitecd.operator.config.matcher.ComponentKindMatcher.Componen
 public class OperatorService {
 
     private static final Logger log = Logger.getLogger(OperatorService.class);
-
-    @ConfigProperty(name = "app.operator.router.mode")
-    String routerMode;
 
     @Inject
     ContentController contentController;
@@ -57,6 +56,10 @@ public class OperatorService {
     @Inject
     Vertx vertx;
 
+    // eager start
+    void startup(@Observes StartupEvent event) {
+    }
+
     public Set<String> initNewWebsite(Website website) {
         return initInfrastructure(website, false);
     }
@@ -74,9 +77,9 @@ public class OperatorService {
 
                 String host = null;
                 Integer port = null;
-                if (StringUtils.equals(routerMode, "ingress")) {
+                if (ingressController.isEnabled()) {
                     ingressController.updateIngress(env, website);
-                } else if (StringUtils.equals(routerMode, "openshift")) {
+                } else if (routerController.isEnabled()) {
                     routerController.updateWebsiteRoutes(env, website);
                     Route apiRoute = routerController.updateApiRoute(env, website);
                     host = apiRoute.getSpec().getHost();
@@ -119,9 +122,9 @@ public class OperatorService {
             contentController.deleteDeployment(env, namespace, websiteName);
             contentController.deleteConfigs(env, namespace, website);
 
-            if (StringUtils.equals(routerMode, "ingress")) {
+            if (ingressController.isEnabled()) {
                 ingressController.deleteIngress(env, website);
-            } else if (StringUtils.equals(routerMode, "openshift")) {
+            } else if (routerController.isEnabled()) {
                 routerController.deleteWebsiteRoutes(env, website);
             } else {
                 log.infof("No routing deleted");

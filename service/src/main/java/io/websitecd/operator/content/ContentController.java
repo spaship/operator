@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -27,6 +28,7 @@ import org.jboss.logging.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.ServiceUnavailableException;
@@ -57,6 +59,10 @@ public class ContentController {
 
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
+
+    void startup(@Observes StartupEvent event) {
+        log.infof("ContentController init contentApiHost=%s staticContentApiPort=%s rootContext=%s", contentApiHost.orElse("N/A"), staticContentApiPort, rootContext);
+    }
 
     public String getContentHost(String env, Website config) {
         if (contentApiHost.isPresent()) {

@@ -40,6 +40,7 @@ public class ContentWatcher {
     Vertx vertx;
 
     void onStart(@Observes StartupEvent ev) {
+        log.infof("ContentWatcher enabled=%s", crdEnabled);
         if (!crdEnabled) {
             return;
         }
@@ -47,8 +48,6 @@ public class ContentWatcher {
     }
 
     private void initWatcher() {
-        log.info("Going to register ContentWatcher");
-
         SharedInformerFactory sharedInformerFactory = client.informers();
         SharedIndexInformer<Deployment> deploymentInformer = sharedInformerFactory.sharedIndexInformerFor(Deployment.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
         deploymentInformer.addEventHandler(new ResourceEventHandler<>() {
