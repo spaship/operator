@@ -226,9 +226,21 @@ spec:
               memory: 100Mi
           ports:
             - containerPort: 8080
+# CACERTS Volume Mount
+#          volumeMounts:
+#            - mountPath: /deployments/config/cacerts
+#              name: cacerts
           env:
+# JAVA_OPTIONS including CACERTS
+#            - name: JAVA_OPTIONS
+#              value: "-Djavax.net.ssl.trustStore=/deployments/config/cacerts/cacerts"
             - name: XDG_CONFIG_HOME
               value: "/deployments"
           envFrom:
             - configMapRef:
                 name: "websitecd-operator-config"
+# CACERTS Volume
+#      volumes:
+#        - name: cacerts
+#          secret:
+#            secretName: websitecd-operator-cacerts

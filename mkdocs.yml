@@ -8,6 +8,9 @@ theme:
 nav:
   - Overview: index.md
   - how-it-works.md
+  - Operator Manual:
+      - Overview: operator-manual/index.md
+      - operator-manual/configuration.md
   - User Guide:
       - Overview: user-guide/index.md
       - user-guide/website-specification.md
