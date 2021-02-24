@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
+import io.vertx.core.Vertx;
 import io.websitecd.operator.controller.WebsiteController;
 import io.websitecd.operator.crd.Website;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,9 @@ public class ContentWatcher {
 
     private long resyncPeriodSec = 60;
 
+    @Inject
+    Vertx vertx;
+
     void onStart(@Observes StartupEvent ev) {
         if (!crdEnabled) {
             return;
@@ -43,7 +47,7 @@ public class ContentWatcher {
     }
 
     private void initWatcher() {
-        log.info("Registering ContentWatcher");
+        log.info("Going to register ContentWatcher");
 
         SharedInformerFactory sharedInformerFactory = client.informers();
         SharedIndexInformer<Deployment> deploymentInformer = sharedInformerFactory.sharedIndexInformerFor(Deployment.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
@@ -73,6 +77,9 @@ public class ContentWatcher {
                 log.infof("Deployment deleted. websiteId=%s deletedFinalStateUnknown=%s", websiteId, deletedFinalStateUnknown);
             }
         });
+        // slightly wait
+        vertx.setTimer(100, delay -> sharedInformerFactory.startAllRegisteredInformers());
+
         sharedInformerFactory.startAllRegisteredInformers();
     }
 

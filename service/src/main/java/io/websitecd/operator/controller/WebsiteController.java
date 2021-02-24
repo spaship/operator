@@ -98,9 +98,11 @@ public class WebsiteController {
                 websiteDeleted(website);
             }
         });
-        sharedInformerFactory.startAllRegisteredInformers();
-
-        ready = true;
+        // slightly wait
+        vertx.setTimer(100, delay -> {
+            sharedInformerFactory.startAllRegisteredInformers();
+            ready = true;
+        });
     }
 
     public void websiteAdded(Website website) {
