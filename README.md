@@ -1,6 +1,6 @@
 # Website CD Operator
 
-[![GitHub Workflow Status](<https://img.shields.io/github/workflow/status/websitecd/operator/Build%20and%20Deploy>)]((https://github.com/websitecd/operator/actions/workflows/docker-publish.yaml))
+[![GitHub Actions Status](<https://img.shields.io/github/workflow/status/websitecd/operator/Build%20and%20Deploy?logo=GitHub&style=for-the-badge>)](https://github.com/websitecd/operator/actions/workflows/docker-publish.yaml)
 
 Website Continues Deployment & Delivery on Kubernetes/Openshift as easy as Github pages.
 
