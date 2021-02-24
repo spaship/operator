@@ -72,8 +72,8 @@ objects:
           initContainers:
             # Init data
             - name: init
-              image: quay.io/websitecd/content-git-init:1.0.2
-              imagePullPolicy: IfNotPresent
+              image: quay.io/websitecd/content-git-init:1.1.0
+              imagePullPolicy: IfNotPresent       # Always / IfNotPresent
               resources:
                 requests:
                   cpu: 100m
@@ -112,8 +112,8 @@ objects:
                 # Dynamically generated
             # Side car container providing API
             - name: api
-              image: quay.io/websitecd/content-git-api:1.0.2
-              imagePullPolicy: IfNotPresent
+              image: quay.io/websitecd/content-git-api:1.1.0
+              imagePullPolicy: IfNotPresent     # Always / IfNotPresent
               livenessProbe:
                 httpGet:
                   path: "/"
