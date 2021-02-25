@@ -33,19 +33,20 @@ public class ValidatorMain implements QuarkusApplication {
             return 1;
         }
 
+        int returnStatus = 0;
         if (filePath.isPresent()) {
-            validate(filePath.get());
+            returnStatus = validate(filePath.get());
         }
 
         if (args != null) {
             for (String arg : args) {
-                validate(arg);
+                returnStatus += validate(arg);
             }
         }
-        return 0;
+        return returnStatus;
     }
 
-    public void validate(String path) throws Exception {
+    public int validate(String path) throws Exception {
         File configFile = new File(path);
         if (!configFile.exists()) {
             throw new Exception("Config file not exists. path=" + configFile.getAbsolutePath());
@@ -54,12 +55,13 @@ public class ValidatorMain implements QuarkusApplication {
             Set<ValidationMessage> validateMsg = validatorService.validate(is);
             if (validateMsg.isEmpty()) {
                 System.out.println(path + " is valid");
-                return;
+                return 0;
             }
+            System.out.println(path + " is invalid. Errors:");
             for (ValidationMessage msg : validateMsg) {
                 System.out.println(msg);
             }
-            throw new Exception(path + " is invalid");
+            return 1;
         }
     }
 

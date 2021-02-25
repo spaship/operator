@@ -22,10 +22,11 @@ class ValidatorMainTest {
 
     @BeforeAll
     public static void loadFile() {
-        validFile = ValidConfigTest.class.getResource("/valid-simple-website.yaml").getFile();
+        validFile = ValidatorMainTest.class.getResource("/valid-simple-website.yaml").getFile();
+        invalidFile = ValidatorMainTest.class.getResource("/invalid-apiVersion.yaml").getFile();
     }
 
-    static String validFile;
+    static String validFile, invalidFile;
 
     @Test
     void validFilePath() throws Exception {
@@ -45,6 +46,15 @@ class ValidatorMainTest {
     @Test
     void validBoth() throws Exception {
         assertEquals(0, validatorMain.checkAndValidate(Optional.of(validFile), validFile));
+    }
+
+    @Test
+    void invalidOneFile() throws Exception {
+        assertEquals(1, validatorMain.checkAndValidate(Optional.of(invalidFile), null));
+    }
+    @Test
+    void invalidTwoFiles() throws Exception {
+        assertEquals(2, validatorMain.checkAndValidate(Optional.of(invalidFile), invalidFile));
     }
 
 }

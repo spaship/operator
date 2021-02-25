@@ -8,12 +8,12 @@
 
 via parameter (more files to validate)
 ```shell
-java -jar target/operator-config-validator-1.0.1-SNAPSHOT-runner.jar src/test/resources/valid-simple-website.yaml src/test/resources/valid-advanced-website.yaml
+java -jar target/quarkus-app/quarkus-run.jar src/test/resources/valid-simple-website.yaml src/test/resources/valid-advanced-website.yaml
 ```
 
 via env variable
 ```shell
-APP_FILE_PATH=src/test/resources/valid-simple-website.yaml java -jar target/operator-config-validator-1.0.1-SNAPSHOT-runner.jar
+APP_FILE_PATH=src/test/resources/valid-simple-website.yaml java -jar target/quarkus-app/quarkus-run.jar
 ```
 
 ## Docker
