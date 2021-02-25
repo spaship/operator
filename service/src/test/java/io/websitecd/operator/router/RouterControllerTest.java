@@ -1,6 +1,7 @@
 package io.websitecd.operator.router;
 
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
+import io.fabric8.openshift.api.model.Route;
 import io.quarkus.test.junit.QuarkusTest;
 import io.websitecd.operator.QuarkusTestBase;
 import io.websitecd.operator.config.model.ComponentConfig;
@@ -9,6 +10,7 @@ import io.websitecd.operator.config.model.Environment;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.rest.WebhookTestCommon;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +53,8 @@ class RouterControllerTest extends QuarkusTestBase {
 
     @Test
     void testWebsiteRoutes() {
-        controller.updateWebsiteRoutes("test", createTestWebsite(List.of(componentRoot, componentService)));
+        List<Route> routes = controller.updateWebsiteRoutes("test", createTestWebsite(List.of(componentRoot, componentSearch, componentService)));
+        Assertions.assertEquals(2, routes.size());
     }
 
     @Test

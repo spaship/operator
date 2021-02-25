@@ -4,19 +4,19 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.quarkus.test.kubernetes.client.MockServer;
+import io.quarkus.test.kubernetes.client.OpenShiftMockServerTestResource;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
-@QuarkusTestResource(KubernetesMockServerTestResource.class)
+@QuarkusTestResource(OpenShiftMockServerTestResource.class)
 public class QuarkusTestBase {
 
     @MockServer
-    protected KubernetesMockServer mockServer;
+    protected OpenShiftMockServer mockServer;
 
     @BeforeEach
     protected void setupMockServer() {

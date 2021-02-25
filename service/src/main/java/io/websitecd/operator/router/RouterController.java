@@ -16,6 +16,8 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -63,7 +65,7 @@ public class RouterController {
         return config.getEnabledServiceComponents(targetEnv);
     }
 
-    public void updateWebsiteRoutes(String targetEnv, Website website) {
+    public List<Route> updateWebsiteRoutes(String targetEnv, Website website) {
         String namespace = website.getMetadata().getNamespace();
         WebsiteConfig config = website.getConfig();
         final String websiteName = Utils.getWebsiteName(website);
@@ -77,20 +79,24 @@ public class RouterController {
         String contentServiceName = getContentServiceName(websiteName, targetEnv);
 
         String finalHost = host;
+        List<Route> routes = new ArrayList<>();
         getGitComponents(config, targetEnv)
                 .map(component -> createRouteBuilder(component, contentServiceName, finalHost, websiteName, targetEnv, defaultLabels))
                 .forEach(builder -> {
                     Route route = builder.build();
                     log.infof("Deploying route=%s kind=git", route.getMetadata().getName());
-                    client.inNamespace(namespace).routes().createOrReplace(route);
+                    Route r = client.inNamespace(namespace).routes().createOrReplace(route);
+                    routes.add(r);
                 });
         getServiceComponents(config, targetEnv)
                 .map(component -> createRouteBuilder(component, contentServiceName, finalHost, websiteName, targetEnv, defaultLabels))
                 .forEach(builder -> {
                     Route route = builder.build();
                     log.infof("Deploying route=%s kind=service", route.getMetadata().getName());
-                    client.inNamespace(namespace).routes().createOrReplace(route);
+                    Route r = client.inNamespace(namespace).routes().createOrReplace(route);
+                    routes.add(r);
                 });
+        return routes;
     }
 
     public RouteBuilder createRouteBuilder(ComponentConfig component, String contentServiceName, String host, String websiteName, String targetEnv, Map<String, String> labels) {
