@@ -1,8 +1,6 @@
 package io.websitecd.operator.rest;
 
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.restassured.http.ContentType;
 import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
@@ -14,7 +12,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
-@QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
 
     @Test

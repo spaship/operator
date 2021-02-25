@@ -1,9 +1,7 @@
 package io.websitecd.operator.rest;
 
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.websitecd.operator.crd.Website;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +12,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
-@QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GitlabWebHookWebsiteChangeTest extends WebhookTestCommon {
 
     @BeforeEach

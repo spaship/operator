@@ -1,15 +1,12 @@
 package io.websitecd.operator.rest;
 
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
-@QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GitlabWebHookHeadersTest extends WebhookTestCommon {
 
     @Test

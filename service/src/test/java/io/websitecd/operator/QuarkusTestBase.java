@@ -5,20 +5,21 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.quarkus.test.kubernetes.client.MockServer;
 import org.junit.jupiter.api.BeforeEach;
 
+@QuarkusTest
+@QuarkusTestResource(KubernetesMockServerTestResource.class)
 public class QuarkusTestBase {
 
     @MockServer
     protected KubernetesMockServer mockServer;
 
     @BeforeEach
-    public void setupMockServer() {
-        setupMockServer(mockServer);
-    }
-
-    protected void setupMockServer(KubernetesMockServer mockServer) {
+    protected void setupMockServer() {
         mockServer.expect()
                 .get().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
                 .andReturn(200, new CustomResourceDefinitionBuilder().build())

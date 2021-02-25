@@ -43,10 +43,10 @@ public class IngressController {
         return routerMode.equals("ingress");
     }
 
-    public void updateIngress(String targetEnv, Website website) {
+    public Ingress updateIngress(String targetEnv, Website website) {
         if (domain.isEmpty()) {
             log.infof("No Ingress created. Missing domain configuration.");
-            return;
+            return null;
         }
         String namespace = website.getMetadata().getNamespace();
         WebsiteConfig config = website.getConfig();
@@ -81,9 +81,10 @@ public class IngressController {
                 .withSpec(new IngressSpecBuilder().withRules(rule).build());
 
         Ingress ingress = builder.build();
-        log.tracef("Ingress: %s", ingress);
 
-        client.inNamespace(namespace).network().v1().ingresses().createOrReplace(ingress);
+        Ingress created = client.inNamespace(namespace).network().v1().ingresses().createOrReplace(ingress);
+        log.tracef("Ingress: %s", created);
+        return created;
     }
 
     public HTTPIngressPath createIngressPath(ComponentConfig c, String contentService) {

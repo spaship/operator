@@ -56,8 +56,11 @@ public class RouterController {
             log.infof("Root component found. Working only with root context");
             return Stream.of(rootComponent.get());
         } else {
-            return config.getEnabledComponents(targetEnv);
+            return config.getEnabledGitComponents(targetEnv);
         }
+    }
+    public Stream<ComponentConfig> getServiceComponents(WebsiteConfig config, String targetEnv) {
+        return config.getEnabledServiceComponents(targetEnv);
     }
 
     public void updateWebsiteRoutes(String targetEnv, Website website) {
@@ -81,7 +84,7 @@ public class RouterController {
                     log.infof("Deploying route=%s kind=git", route.getMetadata().getName());
                     client.inNamespace(namespace).routes().createOrReplace(route);
                 });
-        config.getEnabledServiceComponents(targetEnv)
+        getServiceComponents(config, targetEnv)
                 .map(component -> createRouteBuilder(component, contentServiceName, finalHost, websiteName, targetEnv, defaultLabels))
                 .forEach(builder -> {
                     Route route = builder.build();

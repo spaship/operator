@@ -1,8 +1,6 @@
 package io.websitecd.operator.rest;
 
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.restassured.http.ContentType;
 import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.openshift.OperatorServiceTest;
@@ -12,7 +10,6 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
-@QuarkusTestResource(KubernetesMockServerTestResource.class)
 class GithubWebHookBasicTest extends WebhookTestCommon {
 
     @Test

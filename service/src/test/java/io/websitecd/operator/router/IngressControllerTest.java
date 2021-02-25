@@ -1,45 +1,41 @@
 package io.websitecd.operator.router;
 
-import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import io.quarkus.test.common.QuarkusTestResource;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.kubernetes.client.KubernetesMockServerTestResource;
 import io.websitecd.operator.QuarkusTestBase;
-import io.websitecd.operator.config.OperatorConfigUtils;
-import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.crd.Website;
-import io.websitecd.operator.rest.WebhookTestCommon;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
+
+import static io.websitecd.operator.rest.WebhookTestCommon.NAMESPACE;
+import static io.websitecd.operator.router.RouterControllerTest.*;
 
 @QuarkusTest
-@QuarkusTestResource(KubernetesMockServerTestResource.class)
 class IngressControllerTest extends QuarkusTestBase {
 
     @Inject
     IngressController controller;
 
-    @Override
-    protected void setupMockServer(KubernetesMockServer mockServer) {
+    @BeforeEach
+    protected void setupNetworking() {
         mockServer.expect()
-                .post().withPath("/apis/networking.k8s.io/v1/namespaces/websitecd-examples/ingresses")
-                .andReturn(200, new IngressBuilder().build()).always();
+                .post().withPath("/apis/networking.k8s.io/v1/namespaces/" + NAMESPACE + "/ingresses")
+                .andReturn(200, new IngressBuilder().withMetadata(new ObjectMetaBuilder().withName("simple-test").build()).build()).always();
     }
 
     @Test
-    void testIngress() throws IOException {
-        Website website = WebhookTestCommon.ADVANCED_WEBSITE;
+    void testIngress() {
+        Website website = createTestWebsite(List.of(componentRoot, componentService));
 
-        try (InputStream is = IngressControllerTest.class.getResourceAsStream("/advanced-website.yaml")) {
-            WebsiteConfig config = OperatorConfigUtils.loadYaml(is);
-            website.setConfig(config);
-        }
+        Ingress ingress = controller.updateIngress("test", website);
 
-        controller.updateIngress("dev", website);
+        Assertions.assertNotNull(ingress);
     }
 
 }

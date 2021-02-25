@@ -13,6 +13,21 @@ public class ComponentSpec {
 
     Map<String, String> envs;
 
+    public static ComponentSpec createServiceSpec(String serviceName, Integer targetPort) {
+        ComponentSpec spec = new ComponentSpec();
+        spec.serviceName = serviceName;
+        spec.targetPort = targetPort;
+        return spec;
+    }
+
+    public static ComponentSpec createGitSpec(String url, String dir, String branch) {
+        ComponentSpec spec = new ComponentSpec();
+        spec.url = url;
+        spec.dir = dir;
+        spec.branch = branch;
+        return spec;
+    }
+
     public String getUrl() {
         return url;
     }
