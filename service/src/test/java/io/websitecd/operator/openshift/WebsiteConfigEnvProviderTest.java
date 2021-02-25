@@ -1,0 +1,55 @@
+package io.websitecd.operator.openshift;
+
+import io.quarkus.test.junit.QuarkusTest;
+import io.websitecd.operator.QuarkusTestBase;
+import io.websitecd.operator.crd.Website;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import javax.inject.Inject;
+import java.util.Optional;
+
+@QuarkusTest
+class WebsiteConfigEnvProviderTest extends QuarkusTestBase {
+
+    @Inject
+    WebsiteConfigEnvProvider envProvider;
+
+    @BeforeEach
+    void setDefaultValues() {
+        envProvider.setGitUrl(Optional.of("https://github.com/websitecd/websitecd-examples.git"));
+        envProvider.setSecret(Optional.of("TOKENSIMPLE"));
+        envProvider.setConfigDir(Optional.of("websites/02-advanced"));
+        envProvider.setWebsiteName(Optional.of("simple"));
+        envProvider.setNamespace(Optional.of("websitecd-examples"));
+
+    }
+
+    @Test
+    void start() throws Exception {
+        Website website = envProvider.createWebsiteFromEnv();
+        envProvider.start(0, website);
+    }
+
+    @Test
+    void missingGitUrl() {
+        envProvider.setGitUrl(Optional.empty());
+        Assertions.assertThrows(WebsiteConfigEnvException.class, envProvider::createWebsiteFromEnv);
+    }
+    @Test
+    void missingSecret() {
+        envProvider.setSecret(Optional.empty());
+        Assertions.assertThrows(WebsiteConfigEnvException.class, envProvider::createWebsiteFromEnv);
+    }
+    @Test
+    void missingWebsiteName() {
+        envProvider.setWebsiteName(Optional.empty());
+        Assertions.assertThrows(WebsiteConfigEnvException.class, envProvider::createWebsiteFromEnv);
+    }
+    @Test
+    void missingNamespace() {
+        envProvider.setNamespace(Optional.empty());
+        Assertions.assertThrows(WebsiteConfigEnvException.class, envProvider::createWebsiteFromEnv);
+    }
+}

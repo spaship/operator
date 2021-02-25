@@ -5,12 +5,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.websitecd.operator.ContentApiMock;
 import io.websitecd.operator.QuarkusTestBase;
-import io.websitecd.operator.config.model.WebsiteConfig;
 import io.websitecd.operator.controller.OperatorService;
 import io.websitecd.operator.controller.WebsiteRepository;
 import io.websitecd.operator.crd.Website;
 import io.websitecd.operator.crd.WebsiteSpec;
 import io.websitecd.operator.openshift.OperatorServiceTest;
+import io.websitecd.operator.openshift.WebsiteConfigEnvProvider;
 import io.websitecd.operator.websiteconfig.GitWebsiteConfigService;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -50,6 +50,8 @@ public class WebhookTestCommon extends QuarkusTestBase {
     WebsiteRepository websiteRepository;
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
+    @Inject
+    WebsiteConfigEnvProvider websiteConfigEnvProvider;
 
     protected static Vertx vertx;
     protected static ContentApiMock apiMock;
@@ -77,10 +79,7 @@ public class WebhookTestCommon extends QuarkusTestBase {
 
     public void registerWeb(Website website) throws IOException, GitAPIException, URISyntaxException {
         websiteRepository.reset();
-        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website);
-        website.setConfig(websiteConfig);
-        websiteRepository.addWebsite(website);
-        operatorService.initNewWebsite(website);
+        websiteConfigEnvProvider.registerWebsite(website);
     }
 
     public void registerSimpleWeb() throws GitAPIException, IOException, URISyntaxException {
@@ -88,11 +87,7 @@ public class WebhookTestCommon extends QuarkusTestBase {
     }
 
     public void registerAdvancedWeb() throws GitAPIException, IOException, URISyntaxException {
-        websiteRepository.reset();
-        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(ADVANCED_WEBSITE);
-        ADVANCED_WEBSITE.setConfig(websiteConfig);
-        websiteRepository.addWebsite(ADVANCED_WEBSITE);
-        operatorService.initNewWebsite(ADVANCED_WEBSITE);
+        registerWeb(ADVANCED_WEBSITE);
     }
 
     public String getGitlabEventBody(String gitUrl, String branch) {

@@ -61,32 +61,54 @@ public class WebsiteConfigEnvProvider {
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
 
-    void onStart(@Observes StartupEvent ev) {
+    void onStart(@Observes StartupEvent ev) throws Exception {
         log.infof("WebsiteConfigEnvProvider enabled=%s", providerEnabled.orElse(false));
         if (!providerEnabled.orElse(false)) {
             return;
         }
-        // TODO validate input values
+        Website website = createWebsiteFromEnv();
+        start(initDelay, website);
+    }
+
+    protected Website createWebsiteFromEnv() throws WebsiteConfigEnvException {
+        if (gitUrl.isEmpty())
+            throw new WebsiteConfigEnvException("gitUrl is missing");
+        if (secret.isEmpty())
+            throw new WebsiteConfigEnvException("secret is missing");
+        if (websiteName.isEmpty())
+            throw new WebsiteConfigEnvException("websiteName is missing");
+        if (namespace.isEmpty())
+            throw new WebsiteConfigEnvException("namespace is missing");
+
         WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.orElse(null), configDir.orElse(null), sslVerify.orElse(true), secret.get());
-        Website website = WebsiteRepository.createWebsite(websiteName.get(), websiteSpec, namespace.get());
-        
-        log.infof("Registering INIT EnvProvider with delay=%s website=%s", initDelay, websiteSpec);
-        vertx.setTimer(initDelay, e -> {
-            vertx.executeBlocking(future -> {
-                try {
-                    registerWebsite(website);
-                } catch (Exception ex) {
-                    future.fail(ex);
-                }
-                future.complete();
-            }, res -> {
-                if (res.succeeded()) {
-                    log.infof("Initialization completed from ENV provider.");
-                } else {
-                    log.error("Cannot init ENV provider", res.cause());
-                }
+        return WebsiteRepository.createWebsite(websiteName.get(), websiteSpec, namespace.get());
+    }
+
+    protected void start(long delay, Website website) throws GitAPIException, IOException, URISyntaxException {
+        log.infof("Registering INIT EnvProvider with delay=%s website=%s", initDelay, website.getSpec());
+        if (delay > 0) {
+            vertx.setTimer(delay, e -> {
+                vertx.executeBlocking(future -> {
+                    try {
+                        registerWebsite(website);
+                        future.complete();
+                    } catch (Exception ex) {
+                        future.fail(ex);
+                    }
+                }, res -> {
+                    if (res.failed()) {
+                        log.error("Cannot init ENV provider", res.cause());
+                    }
+                });
             });
-        });
+        } else {
+            try {
+                registerWebsite(website);
+            } catch (Exception ex) {
+                log.error("Cannot init ENV provider", ex);
+                throw ex;
+            }
+        }
     }
 
     public void registerWebsite(Website website) throws IOException, GitAPIException, URISyntaxException {
@@ -94,6 +116,39 @@ public class WebsiteConfigEnvProvider {
         website.setConfig(websiteConfig);
         websiteRepository.addWebsite(website);
         operatorService.initNewWebsite(website);
+        log.infof("Initialization completed from ENV provider.");
     }
 
+
+    public void setWebsiteName(Optional<String> websiteName) {
+        this.websiteName = websiteName;
+    }
+
+    public void setGitUrl(Optional<String> gitUrl) {
+        this.gitUrl = gitUrl;
+    }
+
+    public void setBranch(Optional<String> branch) {
+        this.branch = branch;
+    }
+
+    public void setSecret(Optional<String> secret) {
+        this.secret = secret;
+    }
+
+    public void setSslVerify(Optional<Boolean> sslVerify) {
+        this.sslVerify = sslVerify;
+    }
+
+    public void setConfigDir(Optional<String> configDir) {
+        this.configDir = configDir;
+    }
+
+    public void setInitDelay(long initDelay) {
+        this.initDelay = initDelay;
+    }
+
+    public void setNamespace(Optional<String> namespace) {
+        this.namespace = namespace;
+    }
 }
