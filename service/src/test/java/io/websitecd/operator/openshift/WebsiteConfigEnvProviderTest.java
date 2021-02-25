@@ -23,7 +23,8 @@ class WebsiteConfigEnvProviderTest extends QuarkusTestBase {
         envProvider.setConfigDir(Optional.of("websites/02-advanced"));
         envProvider.setWebsiteName(Optional.of("simple"));
         envProvider.setNamespace(Optional.of("websitecd-examples"));
-
+        // To test SSL ignore feature
+        envProvider.setSslVerify(Optional.of(false));
     }
 
     @Test
