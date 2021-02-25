@@ -44,10 +44,10 @@ public class ContentWatcher {
         if (!crdEnabled) {
             return;
         }
-        initWatcher();
+        initWatcher(100);
     }
 
-    private void initWatcher() {
+    protected void initWatcher(int delay) {
         SharedInformerFactory sharedInformerFactory = client.informers();
         SharedIndexInformer<Deployment> deploymentInformer = sharedInformerFactory.sharedIndexInformerFor(Deployment.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
         deploymentInformer.addEventHandler(new ResourceEventHandler<>() {
@@ -77,9 +77,11 @@ public class ContentWatcher {
             }
         });
         // slightly wait
-        vertx.setTimer(100, delay -> sharedInformerFactory.startAllRegisteredInformers());
-
-        sharedInformerFactory.startAllRegisteredInformers();
+        if (delay > 0) {
+            vertx.setTimer(delay, value -> sharedInformerFactory.startAllRegisteredInformers());
+        } else {
+            sharedInformerFactory.startAllRegisteredInformers();
+        }
     }
 
     public boolean isManagedByOperator(Deployment deployment) {
@@ -98,15 +100,17 @@ public class ContentWatcher {
         try {
             String websiteName = deployment.getMetadata().getLabels().get("website");
             String env = deployment.getMetadata().getLabels().get("env");
-            DeploymentStatus status = deployment.getStatus();
-            String statusStr = String.format("[%s/%s]",
-                    defaultZero(status.getReadyReplicas()),
-                    defaultZero(status.getReplicas()));
+            String statusStr = getStatusStr(deployment.getStatus());
             websiteController.updateStatusEnv(deployment.getMetadata().getNamespace(), websiteName, env, statusStr);
         } catch (Exception e) {
             log.error("Error on Updating status env", e);
             throw new RuntimeException(e);
         }
+    }
+    protected String getStatusStr(DeploymentStatus status) {
+        return String.format("[%s/%s]",
+                defaultZero(status.getReadyReplicas()),
+                defaultZero(status.getReplicas()));
     }
 
     public String defaultZero(Number n) {
