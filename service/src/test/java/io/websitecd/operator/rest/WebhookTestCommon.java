@@ -28,7 +28,7 @@ import static io.restassured.RestAssured.given;
 public class WebhookTestCommon extends QuarkusTestBase {
 
     public static final String GIT_EXAMPLES_URL = "https://github.com/websitecd/websitecd-examples.git";
-    public static final String GIT_EXAMPLES_BRANCH = "main";
+    public static final String GIT_EXAMPLES_BRANCH = "integration-test";
     public static final String GIT_EXAMPLES_CONFIG_SIMPLE = "websites/01-simple";
     public static final String GIT_EXAMPLES_CONFIG_ADVANCED = "websites/02-advanced";
     public static final String SECRET_SIMPLE = "testsecret_simple";
