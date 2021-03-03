@@ -85,15 +85,21 @@ More examples: [websitecd-examples](https://github.com/websitecd/websitecd-examp
 Operator:
 ```shell
 kubectl create namespace websitecd
-kubectl apply -n websitecd -f https://raw.githubusercontent.com/websitecd/operator/main/manifests/config/k8s.yaml
+# Operator configuration
+kubectl create configmap -n websitecd websitecd-operator-config \
+        --from-literal=APP_OPERATOR_ROUTER_MODE=ingress \
+        --from-literal=APP_OPERATOR_WEBSITE_DOMAIN=minikube.info
+# Operator
 kubectl apply -n websitecd -f https://raw.githubusercontent.com/websitecd/operator/main/manifests/install.yaml
 ```
 
 Website:
 ```shell
 kubectl create namespace websitecd-examples
-# Advanced:
+# Advanced (Static):
 kubectl apply -n websitecd-examples -f https://raw.githubusercontent.com/websitecd/websitecd-examples/main/websites/02-advanced/deployment-advanced-preprodonly.yaml
 # Simple:
 kubectl apply -n websitecd-examples -f https://raw.githubusercontent.com/websitecd/websitecd-examples/main/websites/01-simple/deployment-simple-allenvs.yaml
 ```
+
+[More examples](https://github.com/websitecd/websitecd-examples)
