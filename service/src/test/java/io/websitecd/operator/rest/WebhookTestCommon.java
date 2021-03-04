@@ -36,13 +36,13 @@ public class WebhookTestCommon extends QuarkusTestBase {
     public static final String SECRET_SIMPLE_SIGN = DigestUtils.sha256Hex(SECRET_SIMPLE);
     public static final String SECRET_ADVANCED_SIGN = DigestUtils.sha256Hex(SECRET_ADVANCED);
 
-    public static WebsiteSpec SIMPLE_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_SIMPLE, true, SECRET_SIMPLE);
-    public static WebsiteSpec ADVANCED_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_ADVANCED, true, SECRET_ADVANCED);
+    public static final WebsiteSpec SIMPLE_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_SIMPLE, true, SECRET_SIMPLE);
+    public static final WebsiteSpec ADVANCED_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_ADVANCED, true, SECRET_ADVANCED);
 
     public static final String NAMESPACE = "websitecd-examples";
 
-    public static Website SIMPLE_WEBSITE = WebsiteRepository.createWebsite("simple", SIMPLE_WEB, NAMESPACE);
-    public static Website ADVANCED_WEBSITE = WebsiteRepository.createWebsite("advanced", ADVANCED_WEB, NAMESPACE);
+    public static final Website SIMPLE_WEBSITE = WebsiteRepository.createWebsite("simple", SIMPLE_WEB, NAMESPACE);
+    public static final Website ADVANCED_WEBSITE = WebsiteRepository.createWebsite("advanced", ADVANCED_WEB, NAMESPACE);
 
     @Inject
     OperatorService operatorService;

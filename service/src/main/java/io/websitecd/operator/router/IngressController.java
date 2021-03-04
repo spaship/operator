@@ -58,7 +58,7 @@ public class IngressController {
         List<HTTPIngressPath> paths = new ArrayList<>();
         config.getEnabledComponents(targetEnv)
                 .map(component -> createIngressPath(component, contentService))
-                .forEach(path -> paths.add(path));
+                .forEach(paths::add);
 
         //websiteinfo
         IngressBackend contentApibackend = new IngressBackendBuilder().withService(new IngressServiceBackendBuilder()

@@ -24,9 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTest
 class RouterControllerTest extends QuarkusTestBase {
 
-    public static ComponentConfig componentRoot = new ComponentConfig("/", ComponentConfig.KIND_GIT, ComponentSpec.createGitSpec("url", null, "main"));
-    public static ComponentConfig componentSearch = new ComponentConfig("/search", ComponentConfig.KIND_GIT, ComponentSpec.createGitSpec("url", null, "main"));
-    public static ComponentConfig componentService = new ComponentConfig("/api", ComponentConfig.KIND_SERVICE, ComponentSpec.createServiceSpec("api", 8080));
+    public final static ComponentConfig componentRoot = new ComponentConfig("/", ComponentConfig.KIND_GIT, ComponentSpec.createGitSpec("url", null, "main"));
+    public final static ComponentConfig componentSearch = new ComponentConfig("/search", ComponentConfig.KIND_GIT, ComponentSpec.createGitSpec("url", null, "main"));
+    public final static ComponentConfig componentService = new ComponentConfig("/api", ComponentConfig.KIND_SERVICE, ComponentSpec.createServiceSpec("api", 8080));
 
     @Inject
     RouterController controller;

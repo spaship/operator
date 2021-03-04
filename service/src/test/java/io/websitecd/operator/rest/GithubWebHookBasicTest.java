@@ -73,7 +73,7 @@ class GithubWebHookBasicTest extends WebhookTestCommon {
     }
 
     @Test
-    public void githubPing() throws Exception {
+    public void githubPing() {
         // Test of Github Ping
         // https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#ping
         given()

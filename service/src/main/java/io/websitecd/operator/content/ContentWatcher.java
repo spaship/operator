@@ -34,7 +34,7 @@ public class ContentWatcher {
     @ConfigProperty(name = "app.operator.provider.crd.enabled")
     boolean crdEnabled;
 
-    private long resyncPeriodSec = 60;
+    private final long resyncPeriodSec = 60;
 
     @Inject
     Vertx vertx;

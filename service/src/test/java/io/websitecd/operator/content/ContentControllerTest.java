@@ -9,7 +9,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.websitecd.operator.QuarkusTestBase;
 import io.websitecd.operator.config.OperatorConfigUtils;
 import io.websitecd.operator.config.model.WebsiteConfig;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -19,13 +18,15 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @QuarkusTest
 class ContentControllerTest extends QuarkusTestBase {
 
     @Inject
     ContentController contentController;
 
-    static String testedConfig = "/deployment-config-test.yaml";
+    static final String testedConfig = "/deployment-config-test.yaml";
 
     static WebsiteConfig config;
 
@@ -37,7 +38,7 @@ class ContentControllerTest extends QuarkusTestBase {
     }
 
     @Test
-    void overrideDevResources() throws IOException {
+    void overrideDevResources() {
         String env = "dev";
         Map<String, String> params = new HashMap<>();
         params.put("ENV", env);
@@ -49,11 +50,11 @@ class ContentControllerTest extends QuarkusTestBase {
 
         DeploymentSpec newDeploymentSpec = contentController.overrideDeployment(deployment, config.getEnvironment(env).getDeployment()).getSpec();
 
-        Assert.assertEquals(Integer.valueOf(1), newDeploymentSpec.getReplicas());
+        assertEquals(Integer.valueOf(1), newDeploymentSpec.getReplicas());
     }
 
     @Test
-    void overrideProdResources() throws IOException {
+    void overrideProdResources() {
         String env = "prod";
         Map<String, String> params = new HashMap<>();
         params.put("ENV", env);
@@ -65,25 +66,25 @@ class ContentControllerTest extends QuarkusTestBase {
 
         DeploymentSpec newDeploymentSpec = contentController.overrideDeployment(deployment, config.getEnvironment(env).getDeployment()).getSpec();
 
-        Assert.assertEquals(Integer.valueOf(5), newDeploymentSpec.getReplicas());
+        assertEquals(Integer.valueOf(5), newDeploymentSpec.getReplicas());
 
         ResourceRequirements initResources = newDeploymentSpec.getTemplate().getSpec().getInitContainers().get(0).getResources();
-        Assert.assertEquals("105", initResources.getRequests().get("cpu").getAmount());
-        Assert.assertEquals("110", initResources.getRequests().get("memory").getAmount());
-        Assert.assertEquals("120", initResources.getLimits().get("cpu").getAmount());
-        Assert.assertEquals("130", initResources.getLimits().get("memory").getAmount());
+        assertEquals("105", initResources.getRequests().get("cpu").getAmount());
+        assertEquals("110", initResources.getRequests().get("memory").getAmount());
+        assertEquals("120", initResources.getLimits().get("cpu").getAmount());
+        assertEquals("130", initResources.getLimits().get("memory").getAmount());
 
         ResourceRequirements httpdResources = newDeploymentSpec.getTemplate().getSpec().getContainers().get(0).getResources();
-        Assert.assertEquals("140", httpdResources.getRequests().get("cpu").getAmount());
-        Assert.assertEquals("150", httpdResources.getRequests().get("memory").getAmount());
-        Assert.assertEquals("160", httpdResources.getLimits().get("cpu").getAmount());
-        Assert.assertEquals("170", httpdResources.getLimits().get("memory").getAmount());
+        assertEquals("140", httpdResources.getRequests().get("cpu").getAmount());
+        assertEquals("150", httpdResources.getRequests().get("memory").getAmount());
+        assertEquals("160", httpdResources.getLimits().get("cpu").getAmount());
+        assertEquals("170", httpdResources.getLimits().get("memory").getAmount());
 
         ResourceRequirements apiResources = newDeploymentSpec.getTemplate().getSpec().getContainers().get(1).getResources();
-        Assert.assertEquals("180", apiResources.getRequests().get("cpu").getAmount());
-        Assert.assertEquals("190", apiResources.getRequests().get("memory").getAmount());
-        Assert.assertEquals("200", apiResources.getLimits().get("cpu").getAmount());
-        Assert.assertEquals("210", apiResources.getLimits().get("memory").getAmount());
+        assertEquals("180", apiResources.getRequests().get("cpu").getAmount());
+        assertEquals("190", apiResources.getRequests().get("memory").getAmount());
+        assertEquals("200", apiResources.getLimits().get("cpu").getAmount());
+        assertEquals("210", apiResources.getLimits().get("memory").getAmount());
     }
 
     private Deployment getDeployment(KubernetesList list) {

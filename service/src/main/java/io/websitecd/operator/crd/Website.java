@@ -20,10 +20,6 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
     public Website() {
     }
 
-    public Website(WebsiteConfig config) {
-        this.config = config;
-    }
-
     private WebsiteConfig config;
 
     public String getId() {
@@ -31,10 +27,6 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
     }
     public static String createId(String namespace, String name) {
         return namespace + "-" + name;
-    }
-
-    public boolean specEquals(WebsiteSpec otherSpec) {
-        return getSpec().equals(otherSpec);
     }
 
     public WebsiteConfig getConfig() {

@@ -9,7 +9,7 @@ public class ContentApiMock extends AbstractVerticle {
 
     private static final Logger log = Logger.getLogger(ContentApiMock.class);
 
-    int port;
+    final int port;
     HttpServer server;
 
     RequestCountHandler apiListCount = RequestCountHandler.create();

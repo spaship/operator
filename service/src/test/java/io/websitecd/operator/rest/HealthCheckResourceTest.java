@@ -23,7 +23,7 @@ class HealthCheckResourceTest extends QuarkusTestBase {
     }
 
     @Test
-    void ready() throws InterruptedException {
+    void ready() {
         given()
                 .when().get("/ready")
                 .then()

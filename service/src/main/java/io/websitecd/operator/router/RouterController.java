@@ -165,7 +165,7 @@ public class RouterController {
         StringBuilder routeName = new StringBuilder(websiteName + "-");
         routeName.append(env);
         if (StringUtils.isNotEmpty(sanityContext)) {
-            routeName.append("-" + sanityContext);
+            routeName.append("-").append(sanityContext);
         }
 
         return routeName.toString();

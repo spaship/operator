@@ -87,20 +87,18 @@ public class WebsiteConfigEnvProvider {
     protected void start(long delay, Website website) throws GitAPIException, IOException, URISyntaxException {
         log.infof("Registering INIT EnvProvider with delay=%s website=%s", initDelay, website.getSpec());
         if (delay > 0) {
-            vertx.setTimer(delay, e -> {
-                vertx.executeBlocking(future -> {
-                    try {
-                        registerWebsite(website);
-                        future.complete();
-                    } catch (Exception ex) {
-                        future.fail(ex);
-                    }
-                }, res -> {
-                    if (res.failed()) {
-                        log.error("Cannot init ENV provider", res.cause());
-                    }
-                });
-            });
+            vertx.setTimer(delay, e -> vertx.executeBlocking(future -> {
+                try {
+                    registerWebsite(website);
+                    future.complete();
+                } catch (Exception ex) {
+                    future.fail(ex);
+                }
+            }, res -> {
+                if (res.failed()) {
+                    log.error("Cannot init ENV provider", res.cause());
+                }
+            }));
         } else {
             try {
                 registerWebsite(website);
@@ -111,7 +109,7 @@ public class WebsiteConfigEnvProvider {
         }
     }
 
-    public void registerWebsite(Website website) throws IOException, GitAPIException, URISyntaxException {
+    public void registerWebsite(Website website) throws IOException, GitAPIException {
         WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website);
         website.setConfig(websiteConfig);
         websiteRepository.addWebsite(website);
