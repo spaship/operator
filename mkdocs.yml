@@ -15,6 +15,7 @@ nav:
       - Overview: user-guide/index.md
       - user-guide/website-specification.md
       - user-guide/website-management.md
+      - user-guide/live-website-coding.md
   - Developer Guide:
       - Overview: developer-guide/index.md
       - developer-guide/project-structure.md
