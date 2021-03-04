@@ -1,4 +1,6 @@
-# Website Performance
+# Website Performance Testsuite
+
+This testsuite covers performance of target website environment.
 
 ## Prepare cluster / minikube
 
@@ -39,35 +41,45 @@ minikube dashboard
 
 ## Simple Website Testsuite (no SSI)
 
-Testsuite:
+Run jmeter
 ```shell
 $JMETER/bin/jmeter.sh -t tests/performance/simple/perftest-simple.jmx &
 ```
 
-### 500m CPU, 2 replicas
+Deploy Website
 ```shell
 cd tests/performance/simple/
 kubectl apply -n websitecd-examples -f deployment-simple-dev.yaml
+```
+
+### Configuration
+* 3 requests per test: main page, css, js
+* 100 concurrent requests
+* 100 loops
+
+
+#### 500m CPU, 2 replicas
+```shell
 kubectl apply -n websitecd-examples -f patch-cpu-500m.yaml
 kubectl scale -n websitecd-examples --replicas=2 deployment simple-content-dev
 ```
 
 Website is available under [simple-dev-websitecd-examples.minikube.info](http://simple-dev-websitecd-examples.minikube.info/)
 
-### 500m CPU, 4 replicas
+#### 500m CPU, 4 replicas
 ```shell
 kubectl apply -n websitecd-examples -f patch-cpu-500m.yaml
 kubectl scale -n websitecd-examples --replicas=4 deployment simple-content-dev
 ```
 
-### 1000m CPU, 2 replicas
+#### 1000m CPU, 2 replicas
 
 ```shell
 kubectl apply -n websitecd-examples -f patch-cpu-1000m.yaml
 kubectl scale -n websitecd-examples --replicas=2 deployment simple-content-dev
 ```
 
-### 1000m CPU, 4 replicas
+#### 1000m CPU, 4 replicas
 
 ```shell
 kubectl apply -n websitecd-examples -f patch-cpu-1000m.yaml
@@ -82,36 +94,45 @@ kubectl delete -n websitecd-examples websites.websitecd.io --all
 
 ## Advanced Website Testsuite (SSI used)
 
-Testsuite:
+Run jmeter
 ```shell
 $JMETER/bin/jmeter.sh -t tests/performance/advanced/perftest-advanced.jmx &
 ```
 
-### 500m CPU, 2 replicas
-
+Deploy Website
 ```shell
 cd tests/performance/advanced/
 kubectl apply -n websitecd-examples -f deployment-advanced-dev.yaml
+```
+
+### Configuration
+* 3 requests per test: main page (SSI performed), css, js
+* 100 concurrent requests
+* 100 loops
+
+#### 500m CPU, 2 replicas
+
+```shell
 kubectl apply -n websitecd-examples -f patch-cpu-500m.yaml
 kubectl scale -n websitecd-examples --replicas=2 deployment advanced-content-dev
 ```
 
 Website is available under [advanced-dev-websitecd-examples.minikube.info](http://advanced-dev-websitecd-examples.minikube.info/)
 
-### 500m CPU, 4 replicas
+#### 500m CPU, 4 replicas
 ```shell
 kubectl apply -n websitecd-examples -f patch-cpu-500m.yaml
 kubectl scale -n websitecd-examples --replicas=4 deployment advanced-content-dev
 ```
 
-### 1000m CPU, 2 replicas
+#### 1000m CPU, 2 replicas
 
 ```shell
 kubectl apply -n websitecd-examples -f patch-cpu-1000m.yaml
 kubectl scale -n websitecd-examples --replicas=2 deployment advanced-content-dev
 ```
 
-### 1000m CPU, 4 replicas
+#### 1000m CPU, 4 replicas
 
 ```shell
 kubectl apply -n websitecd-examples -f patch-cpu-1000m.yaml
