@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: advanced-content-dev
+spec:
+  selector:
+    matchLabels:
+      app: advanced-content-dev
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      containers:
+        - name: httpd
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 250Mi

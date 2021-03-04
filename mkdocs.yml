@@ -19,6 +19,7 @@ nav:
       - Overview: developer-guide/index.md
       - developer-guide/project-structure.md
       - developer-guide/running-locally.md
+      - developer-guide/website-performance-tests.md
       - developer-guide/release.md
   - support.md
 

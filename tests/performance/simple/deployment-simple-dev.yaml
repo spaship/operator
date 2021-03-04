@@ -1,0 +1,14 @@
+apiVersion: websitecd.io/v1
+kind: Website
+metadata:
+  name: simple
+spec:
+  gitUrl: https://github.com/websitecd/websitecd-examples.git
+  dir: websites/01-simple
+## Optional values:
+#  branch: main
+#  sslVerify: false
+  secretToken: TOKENSIMPLE
+  envs:
+    included:
+      - "dev"
