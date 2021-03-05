@@ -21,6 +21,7 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
     public Website() {
     }
 
+    @JsonIgnore
     private WebsiteConfig config;
 
     @JsonIgnore
@@ -28,14 +29,17 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
         return createId(getMetadata().getNamespace(), getMetadata().getName());
     }
 
+    @JsonIgnore
     public static String createId(String namespace, String name) {
         return namespace + "-" + name;
     }
 
+    @JsonIgnore
     public WebsiteConfig getConfig() {
         return config;
     }
 
+    @JsonIgnore
     public void setConfig(WebsiteConfig config) {
         this.config = config;
         if (config!= null && config.getEnvs() != null && config.getEnvs().size() > 0) {
@@ -48,8 +52,10 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
     }
 
     /* Helper methods */
+    @JsonIgnore
     private Set<String> enabledEnvs;
 
+    @JsonIgnore
     public Set<String> getEnabledEnvs() {
         return enabledEnvs;
     }
