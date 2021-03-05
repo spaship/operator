@@ -29,8 +29,11 @@ class ContentWatcherTest extends QuarkusTestBase {
     }
 
     @Test
-    void initWatcher() {
+    void initWatcher() throws InterruptedException {
         contentWatcher.initWatcher(0);
+        Thread.sleep(100);
+        assertPathsRequested("/apis/apps/v1/deployments");
+        contentWatcher.stopInformers();
     }
 
     @Test

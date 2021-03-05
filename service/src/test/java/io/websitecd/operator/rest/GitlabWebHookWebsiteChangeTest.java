@@ -1,11 +1,12 @@
 package io.websitecd.operator.rest;
 
-import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.websitecd.operator.crd.Website;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
@@ -14,20 +15,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTest
 class GitlabWebHookWebsiteChangeTest extends WebhookTestCommon {
 
-    @BeforeEach
-    public void updateMock() throws Exception {
-        mockServer.expect()
-                .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-dev")
-                .andReturn(200, new DeploymentSpecBuilder().build()).always();
-        mockServer.expect()
-                .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-prod")
-                .andReturn(200, new DeploymentSpecBuilder().build()).always();
-        registerSimpleWeb();
-
-    }
-
     @Test
     public void gitPushWebsiteConfigChange() throws Exception {
+        registerSimpleWeb();
+
+        mockServer.expect()
+                .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-dev")
+                .andReturn(200, new DeploymentBuilder().withMetadata(new ObjectMetaBuilder().withName("simple-content-dev").build()).build()).always();
+        mockServer.expect()
+                .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-prod")
+                .andReturn(200, new DeploymentBuilder().withMetadata(new ObjectMetaBuilder().withName("simple-content-prod").build()).build()).always();
+
         // change local config to simulate website rollout
         Website localWebsite = SIMPLE_WEBSITE;
         localWebsite.getConfig().setLabels(Map.of("newLabel", "newLabelValue"));
@@ -46,8 +44,13 @@ class GitlabWebHookWebsiteChangeTest extends WebhookTestCommon {
                 .body("websites[0].status", is("UPDATING"))
                 .body("components.size()", is(0));
 
-        // Wait little bit till non blocking rollout finish
-        Thread.sleep(50);
+        List<String> requests = expectedRegisterWebRequests(2);
+        requests.add("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-prod");
+        requests.add("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-prod");
+        requests.add("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-dev");
+        requests.add("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-dev");
+
+        assertPathsRequested(requests);
 
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(0, apiMock.getApiUpdateThemeCount());
@@ -55,7 +58,9 @@ class GitlabWebHookWebsiteChangeTest extends WebhookTestCommon {
     }
 
     @Test
-    public void gitPushWebsiteNoChangeJustComponentUpdate() {
+    public void gitPushWebsiteNoChangeJustComponentUpdate() throws Exception {
+        registerSimpleWeb();
+
         givenSimpleGitlabWebhookRequest()
                 .body(GitlabWebHookWebsiteChangeTest.class.getResourceAsStream("/gitlab-push.json"))
                 .when().post("/api/webhook")

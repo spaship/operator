@@ -135,6 +135,8 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(2, apiMock.getApiUpdateThemeCount());
         assertEquals(0, apiMock.getApiUpdateRootCount());
+
+        assertPathsRequested(expectedRegisterWebRequests(2));
     }
 
 }

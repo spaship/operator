@@ -1,5 +1,6 @@
 package io.websitecd.operator.crd;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
@@ -22,9 +23,11 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
 
     private WebsiteConfig config;
 
+    @JsonIgnore
     public String getId() {
         return createId(getMetadata().getNamespace(), getMetadata().getName());
     }
+
     public static String createId(String namespace, String name) {
         return namespace + "-" + name;
     }
@@ -35,7 +38,7 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
 
     public void setConfig(WebsiteConfig config) {
         this.config = config;
-        if (config.getEnvs() != null && config.getEnvs().size() > 0) {
+        if (config!= null && config.getEnvs() != null && config.getEnvs().size() > 0) {
             this.enabledEnvs = config.getEnvs().keySet().stream()
                     .filter(new EnvIncluded(this))
                     .collect(Collectors.toSet());

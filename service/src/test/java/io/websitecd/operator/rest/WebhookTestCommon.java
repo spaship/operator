@@ -67,6 +67,7 @@ public class WebhookTestCommon extends QuarkusTestBase {
     void beforeEach() {
         apiMock.reset();
     }
+
     @AfterEach
     void afterEach() {
         apiMock.reset();
@@ -77,9 +78,10 @@ public class WebhookTestCommon extends QuarkusTestBase {
         vertx.close();
     }
 
-    public void registerWeb(Website website) throws IOException, GitAPIException, URISyntaxException {
+    public void registerWeb(Website website) throws IOException, GitAPIException {
         websiteRepository.reset();
         websiteConfigEnvProvider.registerWebsite(website);
+        assertPathsRequested(expectedRegisterWebRequests(2));
     }
 
     public void registerSimpleWeb() throws GitAPIException, IOException, URISyntaxException {

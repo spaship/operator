@@ -84,6 +84,10 @@ public class ContentWatcher {
         }
     }
 
+    protected void stopInformers() {
+        client.informers().stopAllRegisteredInformers();
+    }
+
     public boolean isManagedByOperator(Deployment deployment) {
         return deployment.getMetadata().getLabels() != null
                 && deployment.getMetadata().getLabels().containsKey("managedBy")

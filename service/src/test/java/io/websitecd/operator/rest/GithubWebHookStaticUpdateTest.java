@@ -1,6 +1,5 @@
 package io.websitecd.operator.rest;
 
-import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.websitecd.operator.openshift.OperatorServiceTest;
@@ -15,13 +14,6 @@ class GithubWebHookStaticUpdateTest extends WebhookTestCommon {
 
     @Test
     public void gitPushStaticUpdate() throws Exception {
-        mockServer.expect()
-                .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-dev")
-                .andReturn(200, new DeploymentSpecBuilder().build()).always();
-        mockServer.expect()
-                .patch().withPath("/apis/apps/v1/namespaces/websitecd-examples/deployments/simple-content-prod")
-                .andReturn(200, new DeploymentSpecBuilder().build()).always();
-
         registerSimpleWeb();
 
         given()

@@ -31,6 +31,7 @@ class WebsiteConfigEnvProviderTest extends QuarkusTestBase {
     void start() throws Exception {
         Website website = envProvider.createWebsiteFromEnv();
         envProvider.start(0, website);
+        assertPathsRequested(expectedRegisterWebRequests(2));
     }
 
     @Test

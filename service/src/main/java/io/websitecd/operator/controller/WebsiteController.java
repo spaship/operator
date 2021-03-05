@@ -65,14 +65,14 @@ public class WebsiteController {
             return;
         }
         initWebsiteCrd();
+        watch(100);
     }
 
     public void initWebsiteCrd() {
         websiteClient = client.customResources(Website.class, WebsiteList.class);
-        watch();
     }
 
-    public void watch() {
+    public void watch(long delay) {
         SharedInformerFactory sharedInformerFactory = client.informers();
         SharedIndexInformer<Website> websiteInformer = sharedInformerFactory.sharedIndexInformerFor(Website.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
 
@@ -98,11 +98,17 @@ public class WebsiteController {
                 websiteDeleted(website);
             }
         });
-        // slightly wait
-        vertx.setTimer(100, delay -> {
-            sharedInformerFactory.startAllRegisteredInformers();
-            ready = true;
-        });
+        if (delay > 0) {
+            // slightly wait
+            vertx.setTimer(100, res -> startAllRegisteredInformers(sharedInformerFactory));
+        } else {
+            startAllRegisteredInformers(sharedInformerFactory);
+        }
+    }
+
+    private void startAllRegisteredInformers(SharedInformerFactory sharedInformerFactory) {
+        sharedInformerFactory.startAllRegisteredInformers();
+        ready = true;
     }
 
     public void websiteAdded(Website website) {

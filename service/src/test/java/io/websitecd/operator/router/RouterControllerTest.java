@@ -55,6 +55,7 @@ class RouterControllerTest extends QuarkusTestBase {
     void testWebsiteRoutes() {
         List<Route> routes = controller.updateWebsiteRoutes("test", createTestWebsite(List.of(componentRoot, componentSearch, componentService)));
         Assertions.assertEquals(2, routes.size());
+        assertPathsRequested("/apis/route.openshift.io/v1/namespaces/websitecd-examples/routes", "/apis/route.openshift.io/v1/namespaces/websitecd-examples/routes");
     }
 
     @Test

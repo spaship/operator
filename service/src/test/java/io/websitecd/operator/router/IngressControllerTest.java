@@ -36,6 +36,8 @@ class IngressControllerTest extends QuarkusTestBase {
         Ingress ingress = controller.updateIngress("test", website);
 
         Assertions.assertNotNull(ingress);
+
+        assertPathsRequested("/apis/networking.k8s.io/v1/namespaces/websitecd-examples/ingresses");
     }
 
 }
