@@ -54,13 +54,13 @@
         <dependencies>
             <!-- Remove it once client is upgraded to 5.1.0 in quarkus -->
             <!-- https://github.com/quarkusio/quarkus/issues/15250 -->
-            <dependency>
-                <groupId>io.fabric8</groupId>
-                <artifactId>kubernetes-client-bom</artifactId>
-                <version>${fabric8-client.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>io.fabric8</groupId>-->
+<!--                <artifactId>kubernetes-client-bom</artifactId>-->
+<!--                <version>${fabric8-client.version}</version>-->
+<!--                <type>pom</type>-->
+<!--                <scope>import</scope>-->
+<!--            </dependency>-->
             <dependency>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-universe-bom</artifactId>
