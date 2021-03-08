@@ -1,5 +1,6 @@
 package io.websitecd.operator.content;
 
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -85,6 +86,34 @@ class ContentControllerTest extends QuarkusTestBase {
         assertEquals("190", apiResources.getRequests().get("memory").getAmount());
         assertEquals("200", apiResources.getLimits().get("cpu").getAmount());
         assertEquals("210", apiResources.getLimits().get("memory").getAmount());
+    }
+
+    @Test
+    void overrideImages() {
+        String env = "dev";
+        Map<String, String> params = new HashMap<>();
+        params.put("ENV", env);
+        params.put("NAME", "testwebsite");
+        params.put("GIT_SSL_NO_VERIFY", Boolean.toString(true));
+        params.put("IMAGE_INIT", "imageInit");
+        params.put("IMAGE_HTTPD", "imageHttpd");
+        params.put("IMAGE_API", "imageApi");
+        params.put("IMAGE_INIT_VERSION", "imageInitVersion");
+        params.put("IMAGE_HTTPD_VERSION", "imageHttpdVersion");
+        params.put("IMAGE_API_VERSION", "imageApiVersion");
+
+        KubernetesList kubernetesList = contentController.processTemplate("ns-1", params);
+        Deployment deployment = getDeployment(kubernetesList);
+
+        DeploymentSpec spec = deployment.getSpec();
+
+        Container initContainer = spec.getTemplate().getSpec().getInitContainers().get(0);
+        Container httpdContainer = spec.getTemplate().getSpec().getContainers().get(0);
+        Container apiContainer = spec.getTemplate().getSpec().getContainers().get(1);
+
+        assertEquals("imageInit:imageInitVersion", initContainer.getImage());
+        assertEquals("imageHttpd:imageHttpdVersion", httpdContainer.getImage());
+        assertEquals("imageApi:imageApiVersion", apiContainer.getImage());
     }
 
     private Deployment getDeployment(KubernetesList list) {

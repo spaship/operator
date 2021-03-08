@@ -57,11 +57,31 @@ public class ContentController {
     @ConfigProperty(name = "app.content.git.api.port")
     int staticContentApiPort;
 
+    // Content Image Spec
+    @ConfigProperty(name = "app.operator.image.init.name")
+    Optional<String> imageInitName;
+    @ConfigProperty(name = "app.operator.image.init.version")
+    Optional<String> imageInitVersion;
+    @ConfigProperty(name = "app.operator.image.httpd.name")
+    Optional<String> imageHttpdName;
+    @ConfigProperty(name = "app.operator.image.httpd.version")
+    Optional<String> imageHttpdVersion;
+    @ConfigProperty(name = "app.operator.image.api.name")
+    Optional<String> imageApiName;
+    @ConfigProperty(name = "app.operator.image.api.version")
+    Optional<String> imageApiVersion;
+
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
 
     void startup(@Observes StartupEvent event) {
-        log.infof("ContentController init contentApiHost=%s staticContentApiPort=%s rootContext=%s", contentApiHost.orElse("N/A"), staticContentApiPort, rootContext);
+        log.infof("ContentController init. contentApiHost=%s staticContentApiPort=%s rootContext=%s " +
+                        "imageInitName=%s imageInitVersion=%s imageHttpdName=%s imageHttpdVersion=%s imageApiName=%s imageApiVersion=%s ",
+                contentApiHost.orElse("N/A"), staticContentApiPort, rootContext,
+                imageInitName.orElse("N/A"), imageInitVersion.orElse("N/A"),
+                imageHttpdName.orElse("N/A"),imageHttpdVersion.orElse("N/A"),
+                imageApiName.orElse("N/A"),imageApiVersion.orElse("N/A")
+        );
     }
 
     public String getContentHost(String env, Website config) {
@@ -139,6 +159,12 @@ public class ContentController {
         params.put("ENV", env);
         params.put("NAME", websiteName);
         params.put("GIT_SSL_NO_VERIFY", Boolean.toString(!website.getSpec().getSslVerify()));
+        imageInitName.ifPresent(s -> params.put("IMAGE_INIT", s));
+        imageHttpdName.ifPresent(s -> params.put("IMAGE_HTTPD", s));
+        imageApiName.ifPresent(s -> params.put("IMAGE_API", s));
+        imageInitVersion.ifPresent(s -> params.put("IMAGE_INIT_VERSION", s));
+        imageHttpdVersion.ifPresent(s -> params.put("IMAGE_HTTPD_VERSION", s));
+        imageApiVersion.ifPresent(s -> params.put("IMAGE_API_VERSION", s));
 
         KubernetesList result = processTemplate(namespace, params);
 

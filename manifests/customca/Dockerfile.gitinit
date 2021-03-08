@@ -1,0 +1,12 @@
+#####
+# Example using own CA certificate
+# Build:  docker build -f Dockerfile.gitinit -t content-git-init:1.1.1-rhitca .
+#####
+FROM quay.io/websitecd/content-git-init:1.1.1
+
+ARG CA_CERT_URL=https://password.corp.redhat.com/RH-IT-Root-CA.crt
+
+USER root
+RUN curl -k ${CA_CERT_URL} --create-dirs -o /usr/local/share/ca-certificates/website-cd-ca.crt && \
+    update-ca-certificates
+USER 1001

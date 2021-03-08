@@ -15,6 +15,24 @@ parameters:
   - name: "GIT_SSL_NO_VERIFY"
     value: "false"
     required: false
+  - name: "IMAGE_INIT"
+    value: "quay.io/websitecd/content-git-init"
+    required: false
+  - name: "IMAGE_HTTPD"
+    value: "spaship/httpd"
+    required: false
+  - name: "IMAGE_API"
+    value: "quay.io/websitecd/content-git-api"
+    required: false
+  - name: "IMAGE_INIT_VERSION"
+    value: "1.1.1"
+    required: false
+  - name: "IMAGE_HTTPD_VERSION"
+    value: "latest"
+    required: false
+  - name: "IMAGE_API_VERSION"
+    value: "1.1.1"
+    required: false
 
 objects:
   - kind: Service
@@ -23,7 +41,6 @@ objects:
       name: ${NAME}-content-${ENV}
       labels:
         website: ${NAME}
-
     spec:
 #      type: NodePort
       ports:
@@ -72,7 +89,7 @@ objects:
           initContainers:
             # Init data
             - name: init
-              image: quay.io/websitecd/content-git-init:1.1.0
+              image: "${IMAGE_INIT}:${IMAGE_INIT_VERSION}"
               imagePullPolicy: IfNotPresent       # Always / IfNotPresent
               resources:
                 requests:
@@ -97,7 +114,7 @@ objects:
           containers:
             # Main container to serve data
             - name: httpd
-              image: "spaship/httpd"
+              image: "${IMAGE_HTTPD}:${IMAGE_HTTPD_VERSION}"
               imagePullPolicy: IfNotPresent
               resources:
                 requests:
@@ -112,7 +129,7 @@ objects:
                 # Dynamically generated
             # Side car container providing API
             - name: api
-              image: quay.io/websitecd/content-git-api:1.1.0
+              image: "${IMAGE_API}:${IMAGE_API_VERSION}"
               imagePullPolicy: IfNotPresent     # Always / IfNotPresent
               livenessProbe:
                 httpGet:

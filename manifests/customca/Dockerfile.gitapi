@@ -1,0 +1,12 @@
+#####
+# Example using own CA certificate
+# Build:  docker build -f Dockerfile.gitapi -t content-git-api:1.1.1-rhitca .
+#####
+FROM quay.io/websitecd/content-git-api:1.1.1
+
+ARG CA_CERT_URL=https://password.corp.redhat.com/RH-IT-Root-CA.crt
+
+USER root
+RUN curl -k ${CA_CERT_URL} --create-dirs -o /usr/share/pki/ca-trust-source/anchors/website-cd-ca.crt && \
+    update-ca-trust
+USER 1001
