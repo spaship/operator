@@ -225,6 +225,9 @@ spec:
             requests:
               cpu: 100m
               memory: 100Mi
+            limits:
+              cpu: 2
+              memory: 500Mi
           ports:
             - containerPort: 8080
 # CACERTS Volume Mount
