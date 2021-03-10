@@ -75,7 +75,7 @@ public class RouterController {
             host = websiteName + "-" + targetEnv + "-" + namespace + "." + domain.get();
         }
 
-        Map<String, String> defaultLabels = Utils.defaultLabels(targetEnv, config);
+        Map<String, String> defaultLabels = Utils.defaultLabels(targetEnv, website);
         String contentServiceName = getContentServiceName(websiteName, targetEnv);
 
         String finalHost = host;
@@ -152,7 +152,7 @@ public class RouterController {
         String name = getRouteName(websiteName, API_ROUTE_NAME, targetEnv);
 
         RouteBuilder builder = new RouteBuilder()
-                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, website.getConfig())).build())
+                .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, website)).build())
                 .withSpec(specBuilder.build());
 
         Route route = builder.build();

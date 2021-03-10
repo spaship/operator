@@ -8,8 +8,10 @@ import java.util.Map;
 
 public class Utils {
 
-    public static Map<String, String> defaultLabels(String env, WebsiteConfig config) {
+    public static Map<String, String> defaultLabels(String env, Website website) {
+        WebsiteConfig config = website.getConfig();
         Map<String, String> labels = new HashMap<>();
+        labels.put("website", website.getMetadata().getName());
         labels.put("env", env);
         labels.put("managedBy", "websitecd-operator");
         if (config.getLabels() != null) {

@@ -125,7 +125,7 @@ public class ContentController {
         ContentConfig config = GitContentUtils.createConfig(env, website.getConfig(), rootContext);
         String data = new Yaml().dumpAsMap(config);
         final String configName = getInitConfigName(website, env);
-        Map<String, String> labels = Utils.defaultLabels(env, website.getConfig());
+        Map<String, String> labels = Utils.defaultLabels(env, website);
         updateConfigMap(configName, namespace, data, labels);
     }
 
@@ -168,7 +168,7 @@ public class ContentController {
 
         KubernetesList result = processTemplate(namespace, params);
 
-        Map<String, String> defaultLabels = Utils.defaultLabels(env, config);
+        Map<String, String> defaultLabels = Utils.defaultLabels(env, website);
 
         for (HasMetadata item : result.getItems()) {
             log.infof("Deploying kind=%s name=%s", item.getKind(), item.getMetadata().getName());
