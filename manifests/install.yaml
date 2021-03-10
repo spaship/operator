@@ -111,12 +111,13 @@ rules:
   - apiGroups: [ "route.openshift.io" ]
     resources: [  "routes" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
-  # When APP_OPERATOR_WEBSITE_DOMAIN is defined this permission needs to be enabled
+  # When APP_OPERATOR_ROUTER_MODE=openshift this permission needs to be enabled
   - apiGroups: [ "route.openshift.io" ]
     resources:
       - "routes/custom-host"    # Openshift 4
       - "custom-host"           # Openshift 3
     verbs: [ "create" ]
+  # When APP_OPERATOR_ROUTER_MODE=ingress this permission needs to be enabled
   - apiGroups: [ "networking.k8s.io" ]
     resources: [  "ingresses" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
@@ -175,7 +176,7 @@ metadata:
   labels:
     websitecd: operator
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: 8080
       name: http
@@ -205,7 +206,7 @@ spec:
       serviceAccountName: websitecd-operator
       containers:
         - name: operator
-          image: "quay.io/websitecd/operator-jvm:1.1.0"
+          image: "quay.io/websitecd/operator-jvm:latest"
           livenessProbe:
             httpGet:
               path: "/health/live"
