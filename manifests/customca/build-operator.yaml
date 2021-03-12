@@ -30,9 +30,8 @@ spec:
       name: 'websitecd-operator-jvm:latest'
 #      kind: 'DockerImage'
 #      name: 'my-registry.mycompany.com:5000/myimages/myimage:tag'
-#      pushSecret:
-#        name: 'push-secret'
-
+    pushSecret:
+      name: 'push-secret'
 ---
 apiVersion: image.openshift.io/v1
 kind: ImageStream
