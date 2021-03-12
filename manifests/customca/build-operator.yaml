@@ -19,7 +19,7 @@ spec:
     type: Docker
     dockerStrategy:
       dockerfilePath: "manifests/customca/Dockerfile.operator"
-      env:
+      buildArgs:
         - name: CA_CERT_URL
           value: https://password.corp.redhat.com/RH-IT-Root-CA.crt
         - name: TAG
