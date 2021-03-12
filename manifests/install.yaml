@@ -237,7 +237,7 @@ spec:
           env:
 # JAVA_OPTIONS including CACERTS
 #            - name: JAVA_OPTIONS
-#              value: "-Djavax.net.ssl.trustStore=/deployments/config/cacerts/cacerts"
+#              value: "-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -XshowSettings:vm -Djavax.net.ssl.trustStore=/deployments/config/cacerts/cacerts"
             - name: XDG_CONFIG_HOME
               value: "/deployments"
           envFrom:
