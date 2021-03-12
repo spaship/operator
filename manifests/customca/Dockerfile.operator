@@ -1,12 +1,12 @@
 #####
 # Example using own CA certificate
-# Build:  docker build --build-arg TAG=1.1.0 -f Dockerfile.operator -t operator-jvm:1.1.0-rhitca .
+# Build:  docker build --build-arg TAG=1.1.0 --build-arg CA_CERT_URL=https://password.corp.redhat.com/RH-IT-Root-CA.crt -f Dockerfile.operator -t operator-jvm:1.1.0-rhitca .
 # Run:    docker run --rm operator-jvm:1.1.0-rhitca
 #####
 ARG TAG=latest
 FROM quay.io/websitecd/operator-jvm:${TAG}
 
-ARG CA_CERT_URL=https://password.corp.redhat.com/RH-IT-Root-CA.crt
+ARG CA_CERT_URL=
 
 USER root
 RUN curl -k ${CA_CERT_URL} --create-dirs -o /usr/share/pki/ca-trust-source/anchors/website-cd-ca.crt && \
