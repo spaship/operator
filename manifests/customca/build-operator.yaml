@@ -18,9 +18,6 @@ spec:
   strategy:
     type: Docker
     dockerStrategy:
-      from:
-        kind: DockerImage
-        name: 'quay.io/websitecd/operator-jvm'
       env:
         - name: CA_CERT_URL
           value: https://password.corp.redhat.com/RH-IT-Root-CA.crt
