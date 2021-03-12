@@ -1,7 +1,7 @@
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
-  name: websitecd-operator-build
+  name: websitecd-gitinit-build
   labels:
     name: websitecd
 spec:
@@ -9,32 +9,24 @@ spec:
     type: Git
     git:
       uri: "https://github.com/websitecd/operator.git"
-    contextDir: "service"
-    dockerfile: |
-      FROM quay.io/websitecd/operator-jvm
-      USER root
-      RUN curl -k ${CA_CERT_URL} --create-dirs -o /usr/share/pki/ca-trust-source/anchors/website-cd-ca.crt && update-ca-trust
-      USER 1001
   strategy:
     type: Docker
     dockerStrategy:
-      from:
-        kind: DockerImage
-        name: 'quay.io/websitecd/operator-jvm'
+      dockerfilePath: "manifests/customca/Dockerfile.gitinit"
       env:
         - name: CA_CERT_URL
           value: https://password.corp.redhat.com/RH-IT-Root-CA.crt
   output:
     to:
       kind: ImageStreamTag
-      name: 'websitecd-operator-jvm:latest'
+      name: 'websitecd-content-git-init:1.1.1'
 #      kind: 'DockerImage'
-#      name: 'my-registry.mycompany.com:5000/websitecd/operator-jvm'
+#      name: 'my-registry.mycompany.com:5000/websitecd/content-git-init:1.1.1'
     pushSecret:
       name: 'push-secret'
 ---
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
-  name: websitecd-operator-jvm
+  name: websitecd-content-git-init
 
