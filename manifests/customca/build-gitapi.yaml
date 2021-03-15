@@ -8,16 +8,15 @@ spec:
   source:
     type: Git
     git:
-      uri: "https://github.com/websitecd/operator.git"
+      uri: "https://github.com/websitecd/content-git.git"
+      ref: '1.1.1'
   strategy:
     type: Docker
     dockerStrategy:
-      dockerfilePath: "manifests/customca/Dockerfile.gitapi"
+      dockerfilePath: "api/src/main/docker/Dockerfile.multistage"
       buildArgs:
         - name: CA_CERT_URL
           value: https://password.corp.redhat.com/RH-IT-Root-CA.crt
-        - name: TAG
-          value: '1.1.1'
   output:
     to:
       kind: ImageStreamTag

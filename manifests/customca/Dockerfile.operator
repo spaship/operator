@@ -6,7 +6,7 @@
 ARG TAG=latest
 FROM quay.io/websitecd/operator-jvm:${TAG}
 
-ARG CA_CERT_URL=
+ARG CA_CERT_URL
 
 USER root
 RUN curl -k ${CA_CERT_URL} --create-dirs -o /usr/share/pki/ca-trust-source/anchors/website-cd-ca.crt && \
