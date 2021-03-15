@@ -15,7 +15,7 @@ To use custom CA certificate it's needed to customize 3 images:
 One option is to build own images on top of Website CD default images.
 
 Follow Docker files bellow. Each contains instructions how to build own image.
-It's recommended to use version suffix e.g. `1.1.0-rhitca` to make clear what is the parent image or use same
+It's recommended to use version suffix e.g. `1.1.2-rhitca` to make clear what is the parent image or use same
 version but different context.
 
 1. [Operator](https://github.com/websitecd/operator/tree/main/manifests/customca/Dockerfile.operator)

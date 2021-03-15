@@ -25,13 +25,13 @@ parameters:
     value: "quay.io/websitecd/content-git-api"
     required: false
   - name: "IMAGE_INIT_VERSION"
-    value: "1.1.1"
+    value: "1.1.2"
     required: false
   - name: "IMAGE_HTTPD_VERSION"
     value: "latest"
     required: false
   - name: "IMAGE_API_VERSION"
-    value: "1.1.1"
+    value: "1.1.2"
     required: false
 
 objects:
