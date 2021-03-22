@@ -9,5 +9,5 @@ mvn clean package
 ```shell
 mvn clean release:prepare release:perform
 ```
-4. Wait till [Deploy to registries](https://github.com/websitecd/operator/actions?query=workflow%3A%22Deploy+to+Registries%22) completes.
+4. Wait till [Deploy to registries](https://github.com/websitecd/operator/actions/workflows/docker-publish.yaml) completes.
 5. Create a [Github release](https://github.com/websitecd/operator/releases) based on the latest tag and document the release.
