@@ -7,16 +7,16 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.jvm -t websitecd/config-validator-jvm .
+# docker build -f src/main/docker/Dockerfile.jvm -t spaship/config-validator-jvm .
 #
 # Then run the container using:
 #
-# docker run -i --rm -e APP_FILE_PATH=/app/data/website.yaml -v /tmp:/app/data/ websitecd/config-validator-jvm
+# docker run -i --rm -e APP_FILE_PATH=/app/data/website.yaml -v /tmp:/app/data/ spaship/config-validator-jvm
 #
 #
 # Deploy to Quay.io
-# docker tag websitecd/operator-jvm quay.io/websitecd/config-validator-jvm
-# docker push quay.io/websitecd/config-validator-jvm
+# docker tag spaship/operator-jvm quay.io/spaship/config-validator-jvm
+# docker push quay.io/spaship/config-validator-jvm
 #
 ###
 # Keep updated !!!

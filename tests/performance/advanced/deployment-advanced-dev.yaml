@@ -1,9 +1,9 @@
-apiVersion: websitecd.io/v1
+apiVersion: spaship.io/v1
 kind: Website
 metadata:
   name: advanced
 spec:
-  gitUrl: https://github.com/websitecd/websitecd-examples.git
+  gitUrl: https://github.com/spaship/spaship-examples.git
   dir: websites/02-advanced
 ## Optional values:
 #  branch: main

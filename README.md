@@ -1,7 +1,7 @@
-# Website CD Operator
+# SPAship Operator
 
-[![GitHub Actions Status](https://img.shields.io/github/workflow/status/websitecd/operator/Build%20and%20Deploy?logo=GitHub&style=for-the-badge)](https://github.com/websitecd/operator/actions/workflows/docker-publish.yaml)
-[![codecov](https://img.shields.io/codecov/c/github/websitecd/operator?style=for-the-badge)](https://codecov.io/gh/websitecd/operator)
+[![GitHub Actions Status](https://img.shields.io/github/workflow/status/spaship/operator/Build%20and%20Deploy?logo=GitHub&style=for-the-badge)](https://github.com/spaship/operator/actions/workflows/docker-publish.yaml)
+[![codecov](https://img.shields.io/codecov/c/github/spaship/operator?style=for-the-badge)](https://codecov.io/gh/spaship/operator)
 
 Website Continues Deployment & Delivery on Kubernetes/Openshift as easy as Github pages.
 
@@ -19,8 +19,8 @@ Operator provides common enterprise website use cases in GitOps style.
 
 ## Documentation
 
-Learn more about the operator - [complete documentation](https://websitecd.github.io/operator/).
+Learn more about the operator - [complete documentation](https://spaship.io/operator/).
 
 ## Contact
 
-Feel free to create an [issue](https://github.com/websitecd/operator/issues) or ask a [question](https://github.com/websitecd/operator/discussions).
+Feel free to create an [issue](https://github.com/spaship/operator/issues) or ask a [question](https://github.com/spaship/operator/discussions).

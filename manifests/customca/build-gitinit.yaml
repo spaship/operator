@@ -1,14 +1,14 @@
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
-  name: websitecd-gitinit-build
+  name: spaship-gitinit-build
   labels:
-    name: websitecd
+    name: spaship
 spec:
   source:
     type: Git
     git:
-      uri: "https://github.com/websitecd/operator.git"
+      uri: "https://github.com/spaship/operator.git"
   strategy:
     type: Docker
     dockerStrategy:
@@ -17,18 +17,18 @@ spec:
         - name: CA_CERT_URL
           value: https://password.corp.redhat.com/RH-IT-Root-CA.crt
         - name: TAG
-          value: '1.1.1'
+          value: '1.2.5'
   output:
     to:
       kind: ImageStreamTag
-      name: 'websitecd-content-git-init:1.1.1'
+      name: 'spaship-content-git-init:1.2.5'
 #      kind: 'DockerImage'
-#      name: 'my-registry.mycompany.com:5000/websitecd/content-git-init:1.1.1'
+#      name: 'my-registry.mycompany.com:5000/spaship/content-git-init:1.2.5'
     pushSecret:
       name: 'push-secret'
 ---
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
-  name: websitecd-content-git-init
+  name: spaship-content-git-init
 

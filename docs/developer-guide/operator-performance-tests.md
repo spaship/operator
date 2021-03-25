@@ -11,42 +11,42 @@ minikube config set memory 8192
 minikube config set cpus 4
 minikube start --addons ingress,dashboard,metrics-server
 
-echo "$(minikube ip) minikube.info operator-websitecd.minikube.info simple-dev-websitecd-examples.minikube.info simple-prod-websitecd-examples.minikube.info advanced-dev-websitecd-examples.minikube.info advanced-prod-websitecd-examples.minikube.info" | sudo tee -a /etc/hosts
+echo "$(minikube ip) minikube.info operator-spaship.minikube.info simple-dev-spaship-examples.minikube.info simple-prod-spaship-examples.minikube.info advanced-dev-spaship-examples.minikube.info advanced-prod-spaship-examples.minikube.info" | sudo tee -a /etc/hosts
 ```
 
 ## Deploy Operator
 
 ```shell
-kubectl create namespace websitecd
+kubectl create namespace spaship
 # Operator configuration
-kubectl create configmap -n websitecd websitecd-operator-config \
+kubectl create configmap -n spaship spaship-operator-config \
         --from-literal=APP_OPERATOR_ROUTER_MODE=ingress \
         --from-literal=APP_OPERATOR_WEBSITE_DOMAIN=minikube.info
 # Operator
-kubectl apply -n websitecd -f manifests/install.yaml
-kubectl apply -n websitecd -f manifests/minikube/ingress.yaml
+kubectl apply -n spaship -f manifests/install.yaml
+kubectl apply -n spaship -f manifests/minikube/ingress.yaml
 ```
 
-Operator is available under [https://operator-websitecd.minikube.info/](https://operator-websitecd.minikube.info/).
+Operator is available under [https://operator-spaship.minikube.info/](https://operator-spaship.minikube.info/).
 
 ## Deploy sample website
 
 Deploy Website
 ```shell
-kubectl create namespace websitecd-examples
-kubectl apply -n websitecd-examples -f tests/performance/simple/deployment-simple-dev.yaml
+kubectl create namespace spaship-examples
+kubectl apply -n spaship-examples -f tests/performance/simple/deployment-simple-dev.yaml
 ```
 
 And watch:
 ```shell
-kubectl get -n websitecd-examples websites.websitecd.io -w
+kubectl get -n spaship-examples websites.spaship.io -w
 ```
 
 ## Prepare Watch Windows
 
 Watch operator deployments:
 ```shell
-kubectl get -n websitecd deployment -w
+kubectl get -n spaship deployment -w
 ```
 
 Dashboard:
@@ -69,29 +69,29 @@ $JMETER/bin/jmeter.sh -t perftest-operator-webhook.jmx &
 
 #### 500m CPU, 2 replicas
 ```shell
-kubectl apply -n websitecd -f patch-cpu-500m.yaml
-kubectl scale -n websitecd --replicas=2 deployment websitecd-operator
+kubectl apply -n spaship -f patch-cpu-500m.yaml
+kubectl scale -n spaship --replicas=2 deployment spaship-operator
 ```
 
-Website is available under [simple-dev-websitecd-examples.minikube.info](http://simple-dev-websitecd-examples.minikube.info/)
+Website is available under [simple-dev-spaship-examples.minikube.info](http://simple-dev-spaship-examples.minikube.info/)
 
 #### 500m CPU, 4 replicas
 ```shell
-kubectl apply -n websitecd-examples -f patch-cpu-500m.yaml
-kubectl scale -n websitecd --replicas=4 deployment websitecd-operator
+kubectl apply -n spaship-examples -f patch-cpu-500m.yaml
+kubectl scale -n spaship --replicas=4 deployment spaship-operator
 ```
 
 #### 1000m CPU, 2 replicas
 
 ```shell
-kubectl apply -n websitecd -f patch-cpu-1000m.yaml
-kubectl scale -n websitecd --replicas=2 deployment websitecd-operator
+kubectl apply -n spaship -f patch-cpu-1000m.yaml
+kubectl scale -n spaship --replicas=2 deployment spaship-operator
 ```
 
 ### Cleanup
 
 ```shell
-kubectl delete -n websitecd-examples websites.websitecd.io --all
+kubectl delete -n spaship-examples websites.spaship.io --all
 ```
 
 ## Results

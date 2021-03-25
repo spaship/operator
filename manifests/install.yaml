@@ -2,11 +2,11 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: websites.websitecd.io
+  name: websites.spaship.io
   labels:
-    websitecd: operator
+    spaship: operator
 spec:
-  group: websitecd.io
+  group: spaship.io
   scope: Namespaced
   names:
     kind: Website
@@ -96,16 +96,16 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: websitecd-operator
+  name: spaship-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: websitecd-operator
+  name: spaship-operator
   labels:
-    websitecd: operator
+    spaship: operator
 rules:
-  - apiGroups: [ "websitecd.io" ]
+  - apiGroups: [ "spaship.io" ]
     resources: [ "websites/status" ]
     verbs: [ "get", "patch", "update" ]
   - apiGroups: [ "route.openshift.io" ]
@@ -131,82 +131,82 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: websitecd-website
+  name: spaship-website
   labels:
-    websitecd: user
+    spaship: user
 rules:
-  - apiGroups: [ "websitecd.io" ]
+  - apiGroups: [ "spaship.io" ]
     resources: [ "websites" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: websitecd-operator
+  name: spaship-operator
   labels:
-    websitecd: operator
+    spaship: operator
 roleRef:
   kind: ClusterRole
-  name: websitecd-operator
+  name: spaship-operator
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: websitecd-operator
-    namespace: websitecd
+    name: spaship-operator
+    namespace: spaship-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: websitecd-operator-website
+  name: spaship-operator-website
   labels:
-    websitecd: operator
+    spaship: operator
 roleRef:
   kind: ClusterRole
-  name: websitecd-website
+  name: spaship-website
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: websitecd-operator
-    namespace: websitecd
+    name: spaship-operator
+    namespace: spaship-operator
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: websitecd-operator
+  name: spaship-operator
   labels:
-    websitecd: operator
+    spaship: operator
 spec:
   type: ClusterIP
   ports:
     - port: 8080
       name: http
   selector:
-    websitecd: operator
-    websitecd-operator-layer: service
+    spaship: operator
+    spaship-operator-layer: service
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: websitecd-operator
+  name: spaship-operator
   labels:
-    app: websitecd-operator
-    websitecd: operator
+    app: spaship-operator
+    spaship: operator
 spec:
   selector:
     matchLabels:
-      websitecd: operator
-      websitecd-operator-layer: service
+      spaship: operator
+      spaship-operator-layer: service
   replicas: 1
   template:
     metadata:
       labels:
-        websitecd: operator
-        websitecd-operator-layer: service
+        spaship: operator
+        spaship-operator-layer: service
     spec:
-      serviceAccountName: websitecd-operator
+      serviceAccountName: spaship-operator
       containers:
         - name: operator
-          image: "quay.io/websitecd/operator-jvm:1.2.0"
+          image: "quay.io/spaship/operator-jvm:1.2.5"
           livenessProbe:
             httpGet:
               path: "/health/live"
@@ -242,9 +242,9 @@ spec:
               value: "/deployments"
           envFrom:
             - configMapRef:
-                name: "websitecd-operator-config"
+                name: "spaship-operator-config"
 # CACERTS Volume
 #      volumes:
 #        - name: cacerts
 #          secret:
-#            secretName: websitecd-operator-cacerts
+#            secretName: spaship-operator-cacerts

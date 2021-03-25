@@ -35,7 +35,7 @@ components:
   - context: /path
     kind: service                  # Service kind - only route/ingress is created
     spec:
-      url: https://github.com/websitecd/websitecd-examples.git     # Git URL of repository. Default is Git URL of website.yaml
+      url: https://github.com/spaship/spaship-examples.git     # Git URL of repository. Default is Git URL of website.yaml
       dir: /websites/02-advanced/chrome        # Subdirectory within. Default is "."
       branch: "1.0.0"              # Branch/Tag override on component level
       envs:
@@ -98,7 +98,7 @@ components:                        # Components
   - context: /theme                # Path under component lives
     kind: git                      # Component kind. Available kinds: "git", "service"
     spec:
-      url: https://github.com/websitecd/websitecd-examples.git     # Git URL of repository. Default is Git URL of website.yaml
+      url: https://github.com/spaship/spaship-examples.git     # Git URL of repository. Default is Git URL of website.yaml
       dir: /websites/02-advanced/chrome        # Subdirectory within. Default is "."
       branch: "1.0.0"              # Branch override on component level
       envs:

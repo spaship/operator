@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>io.websitecd.operator</groupId>
+    <groupId>io.spaship.operator</groupId>
     <artifactId>operator-root</artifactId>
     <version>1.2.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <url>https://github.com/websitecd/operator</url>
+    <url>https://github.com/spaship/operator</url>
 
     <licenses>
         <license>
@@ -17,9 +17,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://github.com/websitecd/operator.git</connection>
-        <developerConnection>scm:git:git@github.com:websitecd/operator.git</developerConnection>
-        <url>https://github.com/websitecd/operator.git</url>
+        <connection>scm:git:https://github.com/spaship/operator.git</connection>
+        <developerConnection>scm:git:git@github.com:spaship/operator.git</developerConnection>
+        <url>https://github.com/spaship/operator.git</url>
         <tag>HEAD</tag>
     </scm>
 

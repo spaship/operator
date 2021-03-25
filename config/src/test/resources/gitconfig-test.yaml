@@ -3,14 +3,14 @@ components:
     kind: git
     spec:
       ref: main
-      url: https://github.com/websitecd/websitecd-examples.git
+      url: https://github.com/spaship/spaship-examples.git
   - dir: shared-components
     kind: git
     spec:
       ref: 2.0.0
-      url: https://github.com/websitecd/websitecd-examples.git
+      url: https://github.com/spaship/spaship-examples.git
   - dir: _root
     kind: git
     spec:
       ref: main
-      url: https://github.com/websitecd/websitecd-examples.git
+      url: https://github.com/spaship/spaship-examples.git

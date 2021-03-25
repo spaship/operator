@@ -1,17 +1,17 @@
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
-  name: websitecd-operator-build
+  name: spaship-operator-build
   labels:
-    name: websitecd
+    name: spaship
 spec:
   source:
     type: Git
     git:
-      uri: "https://github.com/websitecd/operator.git"
+      uri: "https://github.com/spaship/operator.git"
 # The another way how to pass Dockerfile
 #    dockerfile: |
-#      FROM quay.io/websitecd/operator-jvm:${TAG}
+#      FROM quay.io/spaship/operator-jvm:${TAG}
 #      USER root
 #      RUN curl -k ${CA_CERT_URL} --create-dirs -o /usr/share/pki/ca-trust-source/anchors/website-cd-ca.crt && update-ca-trust
 #      USER 1001
@@ -28,14 +28,14 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: 'websitecd-operator-jvm:latest'
+      name: 'spaship-operator-jvm:latest'
 #      kind: 'DockerImage'
-#      name: 'my-registry.mycompany.com:5000/websitecd/operator-jvm:latest'
+#      name: 'my-registry.mycompany.com:5000/spaship/operator-jvm:latest'
     pushSecret:
       name: 'push-secret'
 ---
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
-  name: websitecd-operator-jvm
+  name: spaship-operator-jvm
 

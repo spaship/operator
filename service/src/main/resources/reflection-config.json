@@ -1,6 +1,6 @@
 [
   {
-    "name": "io.websitecd.operator.config.model.ComponentConfig",
+    "name": "io.spaship.operator.config.model.ComponentConfig",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -9,7 +9,7 @@
     "allPublicFields": true
   },
   {
-    "name": "io.websitecd.operator.config.model.ComponentSpec",
+    "name": "io.spaship.operator.config.model.ComponentSpec",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -18,7 +18,7 @@
     "allPublicFields": true
   },
   {
-    "name": "io.websitecd.operator.config.model.Environment",
+    "name": "io.spaship.operator.config.model.Environment",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -27,7 +27,7 @@
     "allPublicFields": true
   },
   {
-    "name": "io.websitecd.operator.config.model.WebsiteConfig",
+    "name": "io.spaship.operator.config.model.WebsiteConfig",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -37,7 +37,7 @@
   },
 
   {
-    "name": "io.websitecd.content.git.config.model.ContentConfig",
+    "name": "io.spaship.content.git.config.model.ContentConfig",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -46,7 +46,7 @@
     "allPublicFields": true
   },
   {
-    "name": "io.websitecd.content.git.config.model.GitComponent",
+    "name": "io.spaship.content.git.config.model.GitComponent",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -55,7 +55,7 @@
     "allPublicFields": true
   },
   {
-    "name": "io.websitecd.content.git.config.model.GitSpec",
+    "name": "io.spaship.content.git.config.model.GitSpec",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
