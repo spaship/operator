@@ -1,4 +1,4 @@
-# Website CD Operator
+# SPAship Operator
 
 Website Continues Deployment & Delivery on Kubernetes as easy as Github pages.
 
@@ -34,12 +34,12 @@ components:
   - context: /theme                    # URL context of website shared component
     kind: git
     spec:
-      url: https://github.com/websitecd/websitecd-examples.git
+      url: https://github.com/spaship/spaship-examples.git
       dir: /websites/01-simple/theme   # sub directory within git repo
   - context: /                         # URL context of main SPA
     kind: git
     spec:
-      url: https://github.com/websitecd/websitecd-examples.git
+      url: https://github.com/spaship/spaship-examples.git
       dir: /websites/01-simple/home
 ```
 
@@ -47,20 +47,20 @@ components:
 Create simple `simple-site.yaml`:
 
 ```yaml
-apiVersion: websitecd.io/v1
+apiVersion: spaship.io/v1
 kind: Website
 metadata:
   name: simple
 spec:
-  gitUrl: https://github.com/websitecd/websitecd-examples.git
+  gitUrl: https://github.com/spaship/spaship-examples.git
   dir: websites/01-simple              # Relative path to your website.yaml
   secretToken: TOKENSIMPLE
 ```   
 
 Apply it
 ```shell
-kubectl create namespace websitecd-examples
-kubectl apply -n websitecd-examples -f simple-site.yaml
+kubectl create namespace spaship-examples
+kubectl apply -n spaship-examples -f simple-site.yaml
 ```   
 
 That's IT!
@@ -71,7 +71,7 @@ to accept Git webhook events for:
 * Continues deployment (changes in environments or components)
 * Continues delivery (changes in `theme` and `main SPA`).
 
-More examples: [websitecd-examples](https://github.com/websitecd/websitecd-examples.git)
+More examples: [spaship-examples](https://github.com/spaship/spaship-examples.git)
 
 ## Supported Runtimes
 
@@ -84,22 +84,22 @@ More examples: [websitecd-examples](https://github.com/websitecd/websitecd-examp
 
 Operator:
 ```shell
-kubectl create namespace websitecd
+kubectl create namespace spaship-operator
 # Operator configuration
-kubectl create configmap -n websitecd websitecd-operator-config \
+kubectl create configmap -n spaship-operator spaship-operator-config \
         --from-literal=APP_OPERATOR_ROUTER_MODE=ingress \
         --from-literal=APP_OPERATOR_WEBSITE_DOMAIN=minikube.info
 # Operator
-kubectl apply -n websitecd -f https://raw.githubusercontent.com/websitecd/operator/main/manifests/install.yaml
+kubectl apply -n spaship-operator -f https://raw.githubusercontent.com/spaship/operator/main/manifests/install.yaml
 ```
 
 Website:
 ```shell
-kubectl create namespace websitecd-examples
+kubectl create namespace spaship-examples
 # Advanced (Static):
-kubectl apply -n websitecd-examples -f https://raw.githubusercontent.com/websitecd/websitecd-examples/main/websites/02-advanced/deployment-advanced-preprodonly.yaml
+kubectl apply -n spaship-examples -f https://raw.githubusercontent.com/spaship/spaship-examples/main/websites/02-advanced/deployment-advanced-preprodonly.yaml
 # Simple:
-kubectl apply -n websitecd-examples -f https://raw.githubusercontent.com/websitecd/websitecd-examples/main/websites/01-simple/deployment-simple-allenvs.yaml
+kubectl apply -n spaship-examples -f https://raw.githubusercontent.com/spaship/spaship-examples/main/websites/01-simple/deployment-simple-allenvs.yaml
 ```
 
-[More examples](https://github.com/websitecd/websitecd-examples)
+[More examples](https://github.com/spaship/spaship-examples)

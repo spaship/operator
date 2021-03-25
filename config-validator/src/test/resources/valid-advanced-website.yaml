@@ -24,7 +24,7 @@ components:
   - context: /template
     kind: git
     spec:
-      url: https://github.com/websitecd/websitecd-examples.git
+      url: https://github.com/spaship/spaship-examples.git
       dir: /websites/02-advanced/chrome
   - context: /shared-components
     kind: git

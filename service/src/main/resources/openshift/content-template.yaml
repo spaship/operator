@@ -16,22 +16,22 @@ parameters:
     value: "false"
     required: false
   - name: "IMAGE_INIT"
-    value: "quay.io/websitecd/content-git-init"
+    value: "quay.io/spaship/content-git-init"
     required: false
   - name: "IMAGE_HTTPD"
-    value: "spaship/httpd"
+    value: "quay.io/spaship/httpd"
     required: false
   - name: "IMAGE_API"
-    value: "quay.io/websitecd/content-git-api"
+    value: "quay.io/spaship/content-git-api"
     required: false
   - name: "IMAGE_INIT_VERSION"
-    value: "1.1.2"
+    value: "1.2.5"
     required: false
   - name: "IMAGE_HTTPD_VERSION"
     value: "0.1.0"
     required: false
   - name: "IMAGE_API_VERSION"
-    value: "1.1.2"
+    value: "1.2.5"
     required: false
 
 objects:

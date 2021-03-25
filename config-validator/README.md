@@ -19,15 +19,15 @@ APP_FILE_PATH=src/test/resources/valid-simple-website.yaml java -jar target/quar
 ## Docker
 
 ```shell
-docker build -f src/main/docker/Dockerfile.jvm -t websitecd/config-validator-jvm .
+docker build -f src/main/docker/Dockerfile.jvm -t spaship/config-validator-jvm .
 ```
 
 ```shell
 cp src/test/resources/*.yaml /tmp
-docker run -i --rm -e APP_FILE_PATH=/app/data/valid-simple-website.yaml -v /tmp:/app/data/ websitecd/config-validator-jvm
+docker run -i --rm -e APP_FILE_PATH=/app/data/valid-simple-website.yaml -v /tmp:/app/data/ spaship/config-validator-jvm
 ```
 
 ```shell
 cp src/test/resources/*.yaml /tmp
-docker run -i --rm -v /tmp:/app/data/ websitecd/config-validator-jvm /app/data/valid-simple-website.yaml /app/data/valid-advanced-website.yaml
+docker run -i --rm -v /tmp:/app/data/ spaship/config-validator-jvm /app/data/valid-simple-website.yaml /app/data/valid-advanced-website.yaml
 ```

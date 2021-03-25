@@ -1,16 +1,16 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: operator-websitecd
+  name: operator-spaship
 spec:
   rules:
-    - host: operator-websitecd.minikube.info
+    - host: operator-spaship.minikube.info
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: websitecd-operator
+                name: spaship-operator
                 port:
                   number: 8080

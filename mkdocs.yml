@@ -1,7 +1,7 @@
 # To run docs locally:
 # docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
 # and open http://localhost:8000/
-site_name: Website Continuous Deployment & Delivery
+site_name: SPAship Operator
 theme:
   name: material
 

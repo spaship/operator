@@ -1,4 +1,4 @@
-# Website CD Installation Manifests
+# SPAship Operator Installation Manifests
 
 ## Configuration
 

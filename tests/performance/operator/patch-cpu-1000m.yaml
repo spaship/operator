@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: websitecd-operator
+  name: spaship-operator
 spec:
   selector:
     matchLabels:
-      websitecd: operator
-      websitecd-operator-layer: service
+      spaship: operator
+      spaship-operator-layer: service
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        websitecd: operator
-        websitecd-operator-layer: service
+        spaship: operator
+        spaship-operator-layer: service
     spec:
       containers:
         - name: operator
-          image: quay.io/websitecd/operator-jvm:latest
+          image: quay.io/spaship/operator-jvm:latest
           imagePullPolicy: IfNotPresent
           resources:
             limits:

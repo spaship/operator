@@ -5,7 +5,7 @@
     <version>1.2.1-SNAPSHOT</version>
 
     <parent>
-        <groupId>io.websitecd.operator</groupId>
+        <groupId>io.spaship.operator</groupId>
         <artifactId>operator-root</artifactId>
         <version>1.2.1-SNAPSHOT</version>
     </parent>
@@ -13,7 +13,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.websitecd.operator</groupId>
+            <groupId>io.spaship.operator</groupId>
             <artifactId>operator-config</artifactId>
             <version>${project.version}</version>
         </dependency>
