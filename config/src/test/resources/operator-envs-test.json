@@ -1,0 +1,50 @@
+{
+  "envs": {
+    "dev": {
+      "deployment": {
+        "replicas": 1,
+        "init": {
+          "resources": {
+            "requests": {
+              "cpu": "100m",
+              "memory": "110Mi"
+            },
+            "limits": {
+              "cpu": "120m",
+              "memory": "130Mi"
+            }
+          }
+        },
+        "httpd": {
+          "resources": {
+            "requests": {
+              "cpu": "140m",
+              "memory": "150Mi"
+            },
+            "limits": {
+              "cpu": "160m",
+              "memory": "170Mi"
+            }
+          }
+        },
+        "api": {
+          "resources": {
+            "requests": {
+              "cpu": "180m",
+              "memory": "190Mi"
+            },
+            "limits": {
+              "cpu": "200m",
+              "memory": "210Mi"
+            }
+          }
+        }
+      }
+    },
+    "prod": {
+      "deployment": {
+        "replicas": 5
+      }
+    }
+  }
+}

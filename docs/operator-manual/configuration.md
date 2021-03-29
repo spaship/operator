@@ -13,4 +13,4 @@
 | APP_OPERATOR_IMAGE_HTTPD_VERSION | 0.1.0 | Httpd image version |
 | APP_OPERATOR_IMAGE_API_NAME | quay.io/spaship/content-git-api | Api image name |
 | APP_OPERATOR_IMAGE_API_VERSION | 1.2.5 | Api image version |
-
+| APP_OPERATOR_CONTENT_ENVS | | Operator's website environment overrides. Useful for defining default deployment overrides for particular environments e.g. prod |

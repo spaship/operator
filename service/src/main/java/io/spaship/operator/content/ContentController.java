@@ -6,12 +6,15 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
+import io.quarkus.runtime.configuration.ConfigurationException;
 import io.spaship.content.git.config.GitContentUtils;
 import io.spaship.content.git.config.model.ContentConfig;
 import io.spaship.operator.Utils;
 import io.spaship.operator.config.KubernetesUtils;
+import io.spaship.operator.config.OperatorConfigUtils;
 import io.spaship.operator.config.model.ComponentConfig;
 import io.spaship.operator.config.model.DeploymentConfig;
+import io.spaship.operator.config.model.Environment;
 import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.crd.Website;
 import io.vertx.core.Future;
@@ -32,6 +35,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.ServiceUnavailableException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -74,14 +78,26 @@ public class ContentController {
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
 
+    @ConfigProperty(name = "app.operator.content.envs")
+    Optional<String> contentEnvsStr;
+
+    Map<String, Environment> contentEnvs;
+
     void startup(@Observes StartupEvent event) {
         log.infof("ContentController init. contentApiHost=%s staticContentApiPort=%s rootContext=%s " +
                         "imageInitName=%s imageInitVersion=%s imageHttpdName=%s imageHttpdVersion=%s imageApiName=%s imageApiVersion=%s ",
                 contentApiHost.orElse("N/A"), staticContentApiPort, rootContext,
                 imageInitName.orElse("N/A"), imageInitVersion.orElse("N/A"),
-                imageHttpdName.orElse("N/A"),imageHttpdVersion.orElse("N/A"),
-                imageApiName.orElse("N/A"),imageApiVersion.orElse("N/A")
+                imageHttpdName.orElse("N/A"), imageHttpdVersion.orElse("N/A"),
+                imageApiName.orElse("N/A"), imageApiVersion.orElse("N/A")
         );
+        log.infof("contentEnvs=%s", contentEnvsStr.orElse("N/A"));
+        try {
+            contentEnvs = OperatorConfigUtils.getContentEnvsJson(contentEnvsStr.orElse(null));
+        } catch (IOException e) {
+            log.error("Invalid `APP_OPERATOR_CONTENT_ENVS` variable. value=" + contentEnvsStr.orElse("N/A"));
+            throw new ConfigurationException(e);
+        }
     }
 
     public String getContentHost(String env, Website config) {
@@ -180,6 +196,11 @@ public class ContentController {
             if (item instanceof Deployment) {
                 Deployment deployment = (Deployment) item;
 
+                // override operator's defaults
+                if (contentEnvs.containsKey(env)) {
+                    deployment = overrideDeployment(deployment, contentEnvs.get(env).getDeployment());
+                }
+                // override website's defaults
                 deployment = overrideDeployment(deployment, config.getEnvironment(env).getDeployment());
 
                 Container httpdContainer = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
