@@ -36,7 +36,8 @@ public class RouterController {
     @ConfigProperty(name = "app.operator.website.domain")
     protected Optional<String> domain;
 
-    final String API_ROUTE_NAME = "api";
+    @ConfigProperty(name = "app.operator.router.openshift.api.route")
+    String apiRouteName;
 
     @ConfigProperty(name = "app.operator.router.mode")
     String routerMode;
@@ -149,7 +150,7 @@ public class RouterController {
                 .withTo(targetReference.build())
                 .withPort(routePortBuilder.build());
 
-        String name = getRouteName(websiteName, API_ROUTE_NAME, targetEnv);
+        String name = getRouteName(websiteName, apiRouteName, targetEnv);
 
         RouteBuilder builder = new RouteBuilder()
                 .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, website)).build())
@@ -180,7 +181,7 @@ public class RouterController {
                 .map(c -> getRouteName(websiteName, sanityContext(c.getContext()), targetEnv))
                 .forEach(name -> client.inNamespace(namespace).routes().withName(name).delete());
 
-        String name = getRouteName(websiteName, API_ROUTE_NAME, targetEnv);
+        String name = getRouteName(websiteName, apiRouteName, targetEnv);
         client.inNamespace(namespace).routes().withName(name).delete();
     }
 
