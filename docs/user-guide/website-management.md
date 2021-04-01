@@ -8,8 +8,8 @@ kubectl get websites.spaship.io -n spaship-examples
 Output is:
 ```shell
 NAME       GIT URL                                               BRANCH   DIR                    SSL VERIFY   ENVIRONMENTS               STATUS     MESSAGE
-advanced   https://github.com/spaship/spaship-examples.git            websites/02-advanced   true         ["dev[1/1]"]               Deployed
-simple     https://github.com/spaship/spaship-examples.git            websites/01-simple     true         ["prod[1/1]","dev[1/1]"]   Deployed
+advanced   https://github.com/spaship/spaship-examples.git                websites/02-advanced   true         ["dev[1/1]"]               Deployed
+simple     https://github.com/spaship/spaship-examples.git                websites/01-simple     true         ["prod[1/1]","dev[1/1]"]   Deployed
 ```
 
 * STATUS - Status of website. Can be: `Git Clonning`, `Git Pulling`, `Creating`, `Deployed`, `Failed`

@@ -10,10 +10,6 @@ It covers:
 
 Once Website administrator registers such git repository the Operator parses `website.yaml` file and deploys each environment as separate runtime.
 
-## Architecture
-
-![Argo CD Architecture](assets/architecture.svg)
-
 ## Continuous Deployment & Delivery
 
 Thanks to `/api/webhook` the operator is notified via standard git events about changes in `website.yaml` file
@@ -21,3 +17,7 @@ as well as about changes of website's components.
 
 Thanks to such architecture it creates/deletes environments dynamically and offer `continous deployment`.
 Also performs incremental updates (via git pull) to offer `continuous delivery`. 
+
+## Architecture
+
+![SPAship Operator Architecture](assets/architecture.svg)
