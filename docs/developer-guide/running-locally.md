@@ -33,7 +33,7 @@ mvn clean install
 ```
 
 ### Dev Mode
-Default values for dev mode are stored in [application.properties](../../service/src/main/resources/application.properties)
+Default values for dev mode are stored in [application.properties](https://github.com/spaship/operator/blob/main/service/src/main/resources/application.properties#L51)
 in section `# DEV`
 
 ```shell

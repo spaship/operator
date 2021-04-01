@@ -13,93 +13,9 @@ Operator provides common enterprise website use cases in GitOps style.
 5. GitOps - Control your website deployment and website's content delivery purely by git
 6. Extendable - ability to provide another repository of content in addition to git (e.g. FTP)
 
-
-## The Simplest Use Case
-
-### Step 1 - Describe your website and push it into your git repo
-```yaml
-apiVersion: v1
-
-# Environments
-envs:
-  dev:
-    branch: main                       # dev git branch (can be git tag)
-  prod:
-    branch: prod                       # prod git branch (can be git tag e.g. "1.0.0")
-    deployment:
-      replicas: 2                      # per environment deployment configuration
-
-# List of Website Components / Blocks
-components:
-  - context: /theme                    # URL context of website shared component
-    kind: git
-    spec:
-      url: https://github.com/spaship/spaship-examples.git
-      dir: /websites/01-simple/theme   # sub directory within git repo
-  - context: /                         # URL context of main SPA
-    kind: git
-    spec:
-      url: https://github.com/spaship/spaship-examples.git
-      dir: /websites/01-simple/home
-```
-
-### Step 2 - Register your git repo in the operator.
-Create simple `simple-site.yaml`:
-
-```yaml
-apiVersion: spaship.io/v1
-kind: Website
-metadata:
-  name: simple
-spec:
-  gitUrl: https://github.com/spaship/spaship-examples.git
-  dir: websites/01-simple              # Relative path to your website.yaml
-  secretToken: TOKENSIMPLE
-```   
-
-Apply it
-```shell
-kubectl create namespace spaship-examples
-kubectl apply -n spaship-examples -f simple-site.yaml
-```   
-
-That's IT!
-
-Operator creates both `dev` and `prod` environment with main `SPA` and `theme` and is ready
-to accept Git webhook events for:
-
-* Continues deployment (changes in environments or components)
-* Continues delivery (changes in `theme` and `main SPA`).
-
-More examples: [spaship-examples](https://github.com/spaship/spaship-examples.git)
-
 ## Supported Runtimes
 
 1. Kubernetes
 2. Minikube
 3. Openshift 3
 4. Openshift 4
-
-## How To Install
-
-Operator:
-```shell
-kubectl create namespace spaship-operator
-# Operator configuration
-kubectl create configmap -n spaship-operator spaship-operator-config \
-        --from-literal=APP_OPERATOR_ROUTER_MODE=ingress \
-        --from-literal=APP_OPERATOR_WEBSITE_DOMAIN=minikube.info
-# Operator
-kubectl apply -n spaship-operator -f https://raw.githubusercontent.com/spaship/operator/main/manifests/install.yaml
-```
-
-Website:
-```shell
-kubectl create namespace spaship-examples
-# Advanced (Static):
-kubectl apply -n spaship-examples -f https://raw.githubusercontent.com/spaship/spaship-examples/main/websites/02-advanced/deployment-advanced-preprodonly.yaml
-# Simple:
-kubectl apply -n spaship-examples -f https://raw.githubusercontent.com/spaship/spaship-examples/main/websites/01-simple/deployment-simple-allenvs.yaml
-```
-
-[More examples](https://github.com/spaship/spaship-examples)

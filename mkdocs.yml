@@ -1,28 +1,65 @@
 # To run docs locally:
 # docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
 # and open http://localhost:8000/
+# docs: https://squidfunk.github.io/mkdocs-material/getting-started/
 site_name: SPAship Operator
+repo_url: https://github.com/spaship/operator
+repo_name: spaship/operator
+edit_uri: edit/main/docs/
 theme:
   name: material
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: 'Red Hat Text'
+  logo: 'assets/theme/logo.png'
+  favicon: 'assets/theme/favicon.ico'
+  palette:
+    # Light mode
+    - amber: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: amber
+      accent: amber
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: amber
+      accent: amber
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/spaship/operator
 
 nav:
-  - Overview: index.md
-  - how-it-works.md
+  - Home:
+    - index.md
+    - how-it-works.md
+  - Getting Started:
+    - getting-started/operator-installation.md
+    - getting-started/creating-your-website.md
+    - getting-started/website-deployment.md
   - Operator Manual:
-      - Overview: operator-manual/index.md
-      - operator-manual/configuration.md
-      - operator-manual/custom-ca-cert.md
+    - operator-manual/configuration.md
+    - operator-manual/custom-ca-cert.md
   - User Guide:
-      - Overview: user-guide/index.md
-      - user-guide/website-specification.md
-      - user-guide/website-management.md
-      - user-guide/live-website-coding.md
+    - user-guide/website-specification.md
+    - user-guide/website-management.md
+    - user-guide/live-website-coding.md
   - Developer Guide:
-      - Overview: developer-guide/index.md
-      - developer-guide/project-structure.md
-      - developer-guide/running-locally.md
-      - developer-guide/website-performance-tests.md
-      - developer-guide/release.md
+    - developer-guide/project-structure.md
+    - developer-guide/running-locally.md
+    - developer-guide/website-performance-tests.md
+    - developer-guide/operator-performance-tests.md
+    - developer-guide/release.md
   - support.md
 
 markdown_extensions:
