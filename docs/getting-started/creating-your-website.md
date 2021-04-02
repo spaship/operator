@@ -1,5 +1,7 @@
 # Creating Your Website
 
+SPAship operator is declarative way of deployment so you need to describe your desired environments and what components are deployed under specific contexts.
+
 ## Create Website Manifest
 
 Example of `website.yaml` file
