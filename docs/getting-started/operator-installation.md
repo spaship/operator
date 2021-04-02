@@ -1,5 +1,8 @@
 # Operator Installation
 
+Operator needs very few configurations in config map and namespace.
+Here is simple use case. For more details see [Operator Manual](../operator-manual/installation.md).
+
 ## Create separate namespace
 
 ```shell

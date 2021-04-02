@@ -20,7 +20,7 @@ simple     https://github.com/spaship/spaship-examples.git                websit
 
 ### Step 1: Create a namespace
 ```shell
-kubectl create namespace website
+kubectl create namespace spaship-examples
 ```
 
 ### Step 2: Create a `my-website.yaml` file and apply it in the cluster
@@ -33,14 +33,14 @@ metadata:
 spec:
   gitUrl: https://github.com/spaship/spaship-examples.git
   branch: main                   # Branch (Optional)
-  dir: websites/02-advanced      # Location of website.yaml file. Default is "."
+  dir: websites/01-simple        # Location of website.yaml file. Default is "."
   sslVerify: false               # Perform SSL verification. Default is "true"
   secretToken: TOKENADVANCED     # Secret token for Webhook API
   envs:                          # Control which environment will be deployed to. If not defined all envs are deployed.
 ```
 
 ```shell
-kubectl apply -n website -f my-website.yaml
+kubectl apply -n spaship-examples -f my-website.yaml
 ```
 
 ### Optional - Control Mapping Environments to Namespaces
@@ -63,7 +63,7 @@ spec:
       - prod
 ```
 
-#### Example - included only `pr-*` environment
+#### Example - included only `pr-*` environments
 ```yaml
 spec:
   envs:
@@ -71,6 +71,14 @@ spec:
       - pr-.*
 ```
 
+## Register Git Webhook
+
+Registering your git repo's webhook makes any changes to your git repo immediately applied in your deployment and also 
+your website's content.
+
+Navigate to your git settings and add webhook.
+* URL: https://<operator-url>/api/webhook
+* TOKEN: the token defined in `my-website.yaml`
 
 ## Delete Website in Cluster
 

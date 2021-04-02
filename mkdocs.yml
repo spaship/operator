@@ -48,6 +48,8 @@ nav:
     - getting-started/creating-your-website.md
     - getting-started/website-deployment.md
   - Operator Manual:
+    - operator-manual/installation.md
+    - operator-manual/installation-types.md
     - operator-manual/configuration.md
     - operator-manual/custom-ca-cert.md
   - User Guide:

@@ -1,6 +1,6 @@
 # How It Works
 
-In very similar way how Github pages uses git branches the SPAship Operator works with git repositories and branches resp. tags.
+In very similar way how Github pages uses git branches the SPAship Operator works with git repositories and branches and tags.
 
 Website itself is described in `website.yaml` and stored in git repository.
 It covers:
@@ -19,5 +19,7 @@ Thanks to such architecture it creates/deletes environments dynamically and offe
 Also performs incremental updates (via git pull) to offer `continuous delivery`. 
 
 ## Architecture
+
+Following diagram shows Operator architecture.
 
 ![SPAship Operator Architecture](assets/architecture.svg)
