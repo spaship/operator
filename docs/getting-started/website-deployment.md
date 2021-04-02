@@ -36,7 +36,7 @@ The operator is also ready to consume Git webhook events for:
 * Continues Deployment (changes in environments or components)
 * Continues Delivery (changes in `theme` and `main SPA`).
 
-See [user guide](../user-guide/website-management.md#register-git-webhook) how to set up webhook.
+See [user guide](../user-guide/git-integration.md) how to set up webhook.
 
 ## More examples
 

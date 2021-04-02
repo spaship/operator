@@ -55,6 +55,7 @@ nav:
   - User Guide:
     - user-guide/website-specification.md
     - user-guide/website-management.md
+    - user-guide/git-integration.md
     - user-guide/live-website-coding.md
   - Developer Guide:
     - developer-guide/project-structure.md

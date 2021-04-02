@@ -2,10 +2,10 @@
 
 The operator allows to deploy a website into any cluster including local k8s clusters e.g. minikube.
 
-To enable Live Website Coding experience it's needed to:
+To enable Live Website Coding experience it's needed to provide:
 
 1. Local files sync to the environment
-2. Port forwarding from cluster to localhost
+2. Port forwarding from the cluster to localhost
 
 These two features are nicely provided by [Okteto](https://okteto.com/).
 

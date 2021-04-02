@@ -71,15 +71,6 @@ spec:
       - pr-.*
 ```
 
-## Register Git Webhook
-
-Registering your git repo's webhook makes any changes to your git repo immediately applied in your deployment and also 
-your website's content.
-
-Navigate to your git settings and add webhook.
-* URL: https://<operator-url>/api/webhook
-* TOKEN: the token defined in `my-website.yaml`
-
 ## Delete Website in Cluster
 
 Delete website:
