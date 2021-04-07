@@ -5,6 +5,8 @@ import io.spaship.operator.controller.OperatorService;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.webhook.github.GithubWebHookManager;
 import io.spaship.operator.webhook.gitlab.GitlabWebHookManager;
+import io.spaship.operator.webhook.model.UpdatedWebsite;
+import io.spaship.operator.webhook.model.WebhookResponse;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -23,15 +25,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.spaship.operator.webhook.model.UpdatedWebsite.STATUS_IGNORED;
+import static io.spaship.operator.webhook.model.UpdatedWebsite.STATUS_UPDATING;
+import static io.spaship.operator.webhook.model.WebhookResponse.STATUS_PING;
+import static io.spaship.operator.webhook.model.WebhookResponse.STATUS_SUCCESS;
+
 @ApplicationScoped
 public class WebhookService {
 
     private static final Logger log = Logger.getLogger(WebhookService.class);
 
-    public static final String STATUS_SUCCESS = "SUCCESS";
-    public static final String STATUS_IGNORED = "IGNORED";
-    public static final String STATUS_UPDATING = "UPDATING";
-    public static final String STATUS_PING = "PING";
 
     @Inject
     GitlabWebHookManager gitlabWebHookManager;
@@ -48,22 +51,23 @@ public class WebhookService {
         managers = Set.of(gitlabWebHookManager, githubWebHookManager);
     }
 
-    public Future<JsonObject> handleRequest(HttpServerRequest request, JsonObject data) {
-        JsonObject resultObject = new JsonObject();
+    public Future<WebhookResponse> handleRequest(HttpServerRequest request, JsonObject data) {
+        WebhookResponse resultObject = new WebhookResponse();
 
         GitWebHookManager manager = getManager(request);
         if (manager == null) {
             if (githubWebHookManager.isPingRequest(data)) {
                 log.infof("Ping event registered. gitUrl=%s", githubWebHookManager.getGitUrl(data));
-                return Future.succeededFuture(resultObject.put("status", STATUS_PING));
+                resultObject.setStatus(STATUS_PING);
+                return Future.succeededFuture(resultObject);
             } else {
                 return Future.failedFuture(new BadRequestException("unknown provider"));
             }
         }
 
-        resultObject.put("status", STATUS_SUCCESS);
+        resultObject.setStatus(STATUS_SUCCESS);
 
-        List<JsonObject> updatedSites;
+        List<UpdatedWebsite> updatedSites;
         boolean someWebsitesUpdated;
         try {
             manager.validateRequest(request, data);
@@ -71,15 +75,15 @@ public class WebhookService {
             List<Website> websites = manager.getAuthorizedWebsites(request, data);
 
             updatedSites = handleWebsites(websites);
-            resultObject.put("websites", updatedSites);
+            resultObject.setWebsites(updatedSites);
             someWebsitesUpdated = updatedSites.size() != 0;
         } catch (Exception e) {
             return Future.failedFuture(e);
         }
 
         Set<String> updatedWebsiteIds = updatedSites.stream().
-                filter(site -> !STATUS_IGNORED.equals(site.getString("status")))
-                .map(site -> site.getString("namespace") + "-" + site.getString("name"))
+                filter(site -> !STATUS_IGNORED.equals(site.getStatus()))
+                .map(site -> site.getNamespace() + "-" + site.getName())
                 .collect(Collectors.toSet());
 
         String gitUrl = manager.getGitUrl(data);
@@ -90,12 +94,12 @@ public class WebhookService {
             return Future.failedFuture(new BadRequestException("no matched website or components"));
         }
 
-        Promise<JsonObject> promise = Promise.promise();
+        Promise<WebhookResponse> promise = Promise.promise();
         CompositeFuture.join(updates)
                 .onFailure(promise::fail)
                 .onSuccess(e -> {
                     if (e.result().list() != null) {
-                        resultObject.put("components", e.result().list());
+                        resultObject.setComponents(e.result().list());
                     }
                     promise.complete(resultObject);
                 });
@@ -103,15 +107,15 @@ public class WebhookService {
         return promise.future();
     }
 
-    protected List<JsonObject> handleWebsites(List<Website> websites) throws GitAPIException, IOException {
-        List<JsonObject> updatedSites = new ArrayList<>();
+    protected List<UpdatedWebsite> handleWebsites(List<Website> websites) throws GitAPIException, IOException {
+        List<UpdatedWebsite> updatedSites = new ArrayList<>();
 
         for (Website website : websites) {
             boolean updatePerformed = operatorService.rolloutWebsiteNonBlocking(website, false);
-            JsonObject result = new JsonObject()
-                    .put("name", website.getMetadata().getName())
-                    .put("namespace", website.getMetadata().getNamespace())
-                    .put("status", updatePerformed ? STATUS_UPDATING : STATUS_IGNORED);
+            UpdatedWebsite result = new UpdatedWebsite(
+                    website.getMetadata().getName(),
+                    website.getMetadata().getNamespace(),
+                    updatePerformed ? STATUS_UPDATING : STATUS_IGNORED);
             updatedSites.add(result);
         }
         return updatedSites;
