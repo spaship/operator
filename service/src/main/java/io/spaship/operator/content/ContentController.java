@@ -21,7 +21,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
@@ -287,13 +286,13 @@ public class ContentController {
         }
     }
 
-    public Future<JsonObject> refreshComponent(Website website, String env, String name) {
+    public Future<UpdatedComponent> refreshComponent(Website website, String env, String name) {
         String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
         log.infof("Update components on %s", componentDesc);
         String clientId = getClientId(website, env);
         WebClient webClient = clients.get(clientId);
 
-        Promise<JsonObject> promise = Promise.promise();
+        Promise<UpdatedComponent> promise = Promise.promise();
         if (webClient == null) {
             ServiceUnavailableException exception = new ServiceUnavailableException("Client not available clientId=" + clientId);
             log.error("Content client not found", exception);
@@ -306,12 +305,11 @@ public class ContentController {
                 .send(ar -> {
                     log.debugf("update result=%s", ar);
                     if (ar.succeeded()) {
-                        JsonObject result = new JsonObject()
-                                .put("name", name)
-                                .put("status", ar.result().bodyAsString())
-                                .put("namespace", website.getMetadata().getNamespace())
-                                .put("website", website.getMetadata().getName())
-                                .put("env", env);
+                        UpdatedComponent result = new UpdatedComponent(name,
+                                ar.result().bodyAsString(),
+                                website.getMetadata().getNamespace(),
+                                website.getMetadata().getName(),
+                                env);
                         promise.tryComplete(result);
                     } else {
                         String message = String.format("Cannot update content on %s clientId=%s", componentDesc, clientId);

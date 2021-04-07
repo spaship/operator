@@ -1,6 +1,9 @@
 package io.spaship.operator.rest;
 
 import io.spaship.operator.controller.WebsiteController;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -18,12 +21,17 @@ public class HealthCheckResource {
 
     @GET
     @Path("live")
+    @Operation(summary = "Liveness check")
+    @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN, example = "live"))
     public String live() {
         return "live";
     }
 
     @GET
     @Path("ready")
+    @Operation(summary = "Readiness check", description = "Check if Website CRD Controller is ready to manage CRDs (if enabled)")
+    @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN, example = "ready"))
+    @APIResponse(responseCode = "204", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public Response ready() {
         if (websiteController.isReady()) {
             return Response.ok("ready").build();

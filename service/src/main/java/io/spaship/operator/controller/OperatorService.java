@@ -7,13 +7,13 @@ import io.spaship.operator.Utils;
 import io.spaship.operator.config.model.ComponentConfig;
 import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.content.ContentController;
+import io.spaship.operator.content.UpdatedComponent;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.router.IngressController;
 import io.spaship.operator.router.RouterController;
 import io.spaship.operator.websiteconfig.GitWebsiteConfigService;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -146,7 +146,7 @@ public class OperatorService {
                     continue;
                 }
                 log.tracef("Component with same gitUrl found. context=%s", component.getContext());
-                List<Future<JsonObject>> componentsUpdates = website.getEnabledEnvs().stream()
+                List<Future<UpdatedComponent>> componentsUpdates = website.getEnabledEnvs().stream()
                         .filter(env -> {
                             String componentRef = GitContentUtils.getRef(website.getConfig(), env, component.getContext());
                             return ref.endsWith(componentRef);

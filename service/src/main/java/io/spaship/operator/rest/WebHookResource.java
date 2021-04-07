@@ -2,16 +2,22 @@ package io.spaship.operator.rest;
 
 import io.quarkus.vertx.web.Route;
 import io.spaship.operator.webhook.WebhookService;
+import io.spaship.operator.webhook.model.WebhookResponse;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +37,13 @@ public class WebHookResource {
         return apis;
     }
 
-    @Route(methods = HttpMethod.POST, path = "/api/webhook", produces = "application/json")
+    @Route(methods = HttpMethod.POST, path = "/api/webhook", produces = MediaType.APPLICATION_JSON)
+    @Operation(summary = "Git Webhook", description = "Handles git webhook")
+    @APIResponse(responseCode = "200",
+            description = "OK Response with updated websites and components",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = WebhookResponse.class))
+    )
+    @APIResponse(responseCode = "400", content = @Content(mediaType = MediaType.APPLICATION_JSON, example = "Body is empty"))
     public void webhook(RoutingContext rc) {
         JsonObject body = rc.getBodyAsJson();
         HttpServerRequest request = rc.request();
@@ -43,7 +55,7 @@ public class WebHookResource {
         }
 
         webhookService.handleRequest(request, body)
-                .onSuccess(ar -> rc.response().end(ar.toBuffer()))
+                .onSuccess(ar -> rc.response().end(JsonObject.mapFrom(ar).toBuffer()))
                 .onFailure(err -> {
                     if (err instanceof WebApplicationException) {
                         WebApplicationException exc = (WebApplicationException) err;
