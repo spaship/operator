@@ -42,7 +42,7 @@
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
 
         <!-- Be sure that mvn clean install and also mvn quarkus:dev works !!! -->
-        <quarkus.platform.version>1.13.0.Final</quarkus.platform.version>
+        <quarkus.platform.version>1.13.1.Final</quarkus.platform.version>
         <snakeyaml.version>1.28</snakeyaml.version>
         <fabric8.client.version>5.0.1</fabric8.client.version>
 
