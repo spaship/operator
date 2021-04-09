@@ -3,13 +3,13 @@ package io.spaship.operator.controller;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.crd.WebsiteSpec;
+import io.spaship.operator.crd.WebsiteStatus;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 @ApplicationScoped
 public class WebsiteRepository {
@@ -36,6 +36,7 @@ public class WebsiteRepository {
         Website website = new Website();
         website.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
         website.setSpec(websiteSpec);
+        website.setStatus(new WebsiteStatus());
 
         return website;
     }
@@ -49,6 +50,19 @@ public class WebsiteRepository {
             }
         }
         return result;
+    }
+
+    public Stream<Website> searchWebsite(Optional<String> namespace, Optional<String> name) {
+        return websites.values().stream()
+                .filter(website -> {
+                    if (namespace.isPresent() && !StringUtils.equals(website.getMetadata().getNamespace(), namespace.get())) {
+                        return false;
+                    }
+                    if (name.isPresent() && !StringUtils.equals(website.getMetadata().getName(), name.get())) {
+                        return false;
+                    }
+                    return true;
+                });
     }
 
     boolean tokensSame(String websiteToken, String eventToken, boolean sha256Hex) {

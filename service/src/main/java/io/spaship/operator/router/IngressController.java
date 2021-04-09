@@ -43,6 +43,15 @@ public class IngressController {
         return routerMode.equals("ingress");
     }
 
+    public String getContentHost(String targetEnv, Website website) {
+        if (domain.isEmpty()) {
+            return null;
+        }
+        final String hostSuffix = "-" + website.getMetadata().getNamespace() + "." + domain.get();
+        final String websiteName = Utils.getWebsiteName(website);
+        return websiteName + "-" + targetEnv + hostSuffix;
+    }
+
     public Ingress updateIngress(String targetEnv, Website website) {
         if (domain.isEmpty()) {
             log.infof("No Ingress created. Missing domain configuration.");
@@ -50,9 +59,8 @@ public class IngressController {
         }
         String namespace = website.getMetadata().getNamespace();
         WebsiteConfig config = website.getConfig();
-        final String hostSuffix = "-" + namespace + "." + domain.get();
         final String websiteName = Utils.getWebsiteName(website);
-        final String host = websiteName + "-" + targetEnv + hostSuffix;
+        final String host = getContentHost(targetEnv, website);
         final String contentService = RouterController.getContentServiceName(websiteName, targetEnv);
 
         List<HTTPIngressPath> paths = new ArrayList<>();

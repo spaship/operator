@@ -21,6 +21,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
@@ -33,6 +34,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ServiceUnavailableException;
 import java.io.IOException;
 import java.util.HashMap;
@@ -233,6 +235,10 @@ public class ContentController {
         return vmb;
     }
 
+    public String getComponentDirName(ComponentConfig component) {
+        return GitContentUtils.getDirName(component.getContext(), rootContext);
+    }
+
     protected KubernetesList processTemplate(String namespace, Map<String, String> params) {
         KubernetesList result = client.templates()
                 .inNamespace(namespace)
@@ -303,7 +309,7 @@ public class ContentController {
         webClient.get("/api/update/" + name)
                 .expect(ResponsePredicate.SC_OK)
                 .send(ar -> {
-                    log.debugf("update result=%s", ar);
+                    log.tracef("update result=%s", ar);
                     if (ar.succeeded()) {
                         UpdatedComponent result = new UpdatedComponent(name,
                                 ar.result().bodyAsString(),
@@ -315,6 +321,38 @@ public class ContentController {
                         String message = String.format("Cannot update content on %s clientId=%s", componentDesc, clientId);
                         log.error(message, ar.cause());
                         promise.tryFail(new InternalServerErrorException(message));
+                    }
+                });
+        return promise.future();
+    }
+
+    public Future<JsonObject> componentInfo(Website website, String env, String name) {
+        String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
+        log.infof("Get Info components on %s", componentDesc);
+        String clientId = getClientId(website, env);
+        WebClient webClient = clients.get(clientId);
+
+        Promise<JsonObject> promise = Promise.promise();
+        if (webClient == null) {
+            ServiceUnavailableException exception = new ServiceUnavailableException("Client not available clientId=" + clientId);
+            log.error("Content client not found", exception);
+            promise.tryFail(exception);
+            return promise.future();
+        }
+
+        webClient.get("/api/info/" + name)
+                .send(ar -> {
+                    if (ar.result().statusCode() == 404) {
+                        promise.tryFail(new NotFoundException("Component not found. name=" + name));
+                        return;
+                    }
+                    if (ar.result().statusCode() != 200) {
+                        log.error(String.format("Error getting info on %s clientId=%s", componentDesc, clientId), ar.cause());
+                        promise.tryFail(ar.cause());
+                    } else {
+                        JsonObject result = ar.result().bodyAsJsonObject();
+                        log.tracef("info result=%s", result);
+                        promise.tryComplete(result);
                     }
                 });
         return promise.future();

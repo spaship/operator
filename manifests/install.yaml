@@ -37,6 +37,8 @@ spec:
                   default: true
                 secretToken:
                   type: string
+                displayName:
+                  type: string
                 envs:
                   type: object
                   properties:

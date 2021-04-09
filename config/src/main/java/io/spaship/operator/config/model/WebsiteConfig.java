@@ -72,7 +72,7 @@ public class WebsiteConfig {
         if (env != null) {
             return components.stream().filter(new ComponentNotSkipped(env.getSkipContexts()));
         } else {
-            return components.stream();
+            return Stream.empty();
         }
     }
 

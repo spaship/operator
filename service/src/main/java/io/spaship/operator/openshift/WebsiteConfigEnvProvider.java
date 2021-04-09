@@ -89,7 +89,7 @@ public class WebsiteConfigEnvProvider {
         if (delay > 0) {
             vertx.setTimer(delay, e -> vertx.executeBlocking(future -> {
                 try {
-                    registerWebsite(website);
+                    registerWebsite(website, true);
                     future.complete();
                 } catch (Exception ex) {
                     future.fail(ex);
@@ -101,7 +101,7 @@ public class WebsiteConfigEnvProvider {
             }));
         } else {
             try {
-                registerWebsite(website);
+                registerWebsite(website, true);
             } catch (Exception ex) {
                 log.error("Cannot init ENV provider", ex);
                 throw ex;
@@ -109,10 +109,9 @@ public class WebsiteConfigEnvProvider {
         }
     }
 
-    public void registerWebsite(Website website) throws IOException, GitAPIException {
-        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website);
+    public void registerWebsite(Website website, boolean updateIfExists) throws IOException, GitAPIException {
+        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website, updateIfExists);
         website.setConfig(websiteConfig);
-        websiteRepository.addWebsite(website);
         operatorService.initNewWebsite(website);
         log.infof("Initialization completed from ENV provider.");
     }

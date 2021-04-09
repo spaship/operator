@@ -117,13 +117,11 @@ public class WebsiteController {
         Website websiteCrd;
         websiteCrd = updateStatus(website, STATUS.GIT_CLONING);
         try {
-            WebsiteConfig config = gitWebsiteConfigService.cloneRepo(website);
+            WebsiteConfig config = gitWebsiteConfigService.cloneRepo(website, true);
             website.setConfig(config);
 
-            websiteRepository.addWebsite(website);
-
-            updateStatus(websiteCrd, STATUS.DEPLOYED);
-            operatorService.initNewWebsite(website);
+            WebsiteStatus status = operatorService.initNewWebsite(website);
+            updateStatus(websiteCrd, STATUS.DEPLOYED, "", status.getEnvHosts());
         } catch (Exception e) {
             log.error("Error on CRD added", e);
             updateStatus(websiteCrd, STATUS.FAILED, e.getMessage());
@@ -142,16 +140,15 @@ public class WebsiteController {
                 log.infof("Spec changed. Refreshing setup");
                 gitWebsiteConfigService.deleteRepo(oldWebsite);
                 websiteCrd = updateStatus(websiteCrd, STATUS.GIT_CLONING);
-                newConfig = gitWebsiteConfigService.cloneRepo(newWebsite);
+                newConfig = gitWebsiteConfigService.cloneRepo(newWebsite, true);
             } else {
                 websiteCrd = updateStatus(websiteCrd, STATUS.GIT_PULLING);
                 newConfig = gitWebsiteConfigService.updateRepo(newWebsite);
             }
             newWebsite.setConfig(newConfig);
-            websiteRepository.addWebsite(newWebsite);
 
-            updateStatus(websiteCrd, STATUS.DEPLOYED);
-            operatorService.initInfrastructure(newWebsite, true);
+            WebsiteStatus status = operatorService.initInfrastructure(newWebsite, true);
+            updateStatus(websiteCrd, STATUS.DEPLOYED, "", status.getEnvHosts());
         } catch (Exception e) {
             log.error("Error on CRD modified", e);
             updateStatus(websiteCrd, STATUS.FAILED, e.getMessage());
@@ -182,17 +179,20 @@ public class WebsiteController {
     }
 
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus) {
-        return updateStatus(websiteToUpdate, newStatus, "");
+        return updateStatus(websiteToUpdate, newStatus, "", null);
+    }
+    public Website updateStatus(Website websiteToUpdate, STATUS newStatus,String message) {
+        return updateStatus(websiteToUpdate, newStatus, message, null);
     }
 
-    public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message) {
+    public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message, Map<String, String> envHosts) {
         String ns = websiteToUpdate.getMetadata().getNamespace();
         String name = websiteToUpdate.getMetadata().getName();
         final String lock = getLock(ns, name);
         synchronized (lock) {
             Website website = websiteClient.inNamespace(ns).withName(name).get();
 
-            log.infof("Update Status, websiteId=%s status=%s", website.getId(), newStatus);
+            log.infof("Update Status, websiteId=%s status=%s host=%s", website.getId(), newStatus, envHosts);
             WebsiteStatus status = website.getStatus();
             if (status == null) {
                 status = new WebsiteStatus("", "", new ArrayList<>());
@@ -202,6 +202,9 @@ public class WebsiteController {
             }
             if (message != null) {
                 status.setMessage(message);
+            }
+            if (envHosts != null) {
+                status.setEnvHosts(envHosts);
             }
             status.setStatus(newStatus);
             website.setStatus(status);

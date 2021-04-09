@@ -21,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import static io.restassured.RestAssured.given;
 
@@ -47,6 +46,7 @@ public class WebhookTestCommon extends QuarkusTestBase {
     @Inject
     OperatorService operatorService;
     @Inject
+    protected
     WebsiteRepository websiteRepository;
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
@@ -78,18 +78,23 @@ public class WebhookTestCommon extends QuarkusTestBase {
         vertx.close();
     }
 
-    public void registerWeb(Website website) throws IOException, GitAPIException {
-        websiteRepository.reset();
-        websiteConfigEnvProvider.registerWebsite(website);
-        assertPathsRequested(expectedRegisterWebRequests(2));
+    public void registerWeb(Website website, boolean reset) throws IOException, GitAPIException {
+        if (reset) {
+            websiteRepository.reset();
+        }
+        websiteConfigEnvProvider.registerWebsite(website, false);
+        assertPathsRequested(expectedRegisterWebRequests(2, website.getMetadata().getNamespace()));
     }
 
-    public void registerSimpleWeb() throws GitAPIException, IOException, URISyntaxException {
-        registerWeb(SIMPLE_WEBSITE);
+    public void registerSimpleWeb() throws GitAPIException, IOException {
+        registerWeb(SIMPLE_WEBSITE, true);
     }
 
-    public void registerAdvancedWeb() throws GitAPIException, IOException, URISyntaxException {
-        registerWeb(ADVANCED_WEBSITE);
+    public void registerAdvancedWeb() throws GitAPIException, IOException {
+        registerAdvancedWeb(true);
+    }
+    public void registerAdvancedWeb(boolean reset) throws GitAPIException, IOException {
+        registerWeb(ADVANCED_WEBSITE, reset);
     }
 
     public String getGitlabEventBody(String gitUrl, String branch) {

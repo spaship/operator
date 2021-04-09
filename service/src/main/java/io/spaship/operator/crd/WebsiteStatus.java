@@ -2,7 +2,9 @@ package io.spaship.operator.crd;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RegisterForReflection
 public class WebsiteStatus {
@@ -37,6 +39,8 @@ public class WebsiteStatus {
     String message;
 
     List<String> envs;
+
+    Map<String, String> envHosts;
 
     public WebsiteStatus() {
     }
@@ -75,12 +79,34 @@ public class WebsiteStatus {
         this.envs = envs;
     }
 
+    public Map<String, String> getEnvHosts() {
+        return envHosts;
+    }
+
+    public void setEnvHosts(Map<String, String> envHosts) {
+        this.envHosts = envHosts;
+    }
+
+    public void addEnvHost(String env, String host) {
+        if (envHosts == null) {
+            envHosts = new HashMap<>();
+        }
+        envHosts.put(env, host);
+    }
+    public String getHost(String env) {
+        if (envHosts != null && envHosts.containsKey(env)) {
+            return envHosts.get(env);
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("WebsiteStatus{");
         sb.append("status='").append(status).append('\'');
         sb.append(", message='").append(message).append('\'');
-        sb.append(", envs='").append(envs).append('\'');
+        sb.append(", envs=").append(envs);
+        sb.append(", envHosts='").append(envHosts).append('\'');
         sb.append('}');
         return sb.toString();
     }
