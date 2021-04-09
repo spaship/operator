@@ -52,6 +52,7 @@ nav:
     - operator-manual/installation-types.md
     - operator-manual/configuration.md
     - operator-manual/custom-ca-cert.md
+    - operator-manual/restapi.md
   - User Guide:
     - user-guide/website-specification.md
     - user-guide/website-management.md

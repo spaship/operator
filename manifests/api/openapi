@@ -1,0 +1,301 @@
+---
+openapi: 3.0.3
+info:
+  title: SPAship Operator API
+  description: "API for SPAship Operator - Git Webhook, API for UI"
+  contact:
+    url: http://github.com/spaship/operator
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+paths:
+  /api:
+    get:
+      summary: List of APIs
+      description: Shows available Operator's APIs
+      responses:
+        "200":
+          description: List of API URLs
+          content:
+            application/json:
+              example: "[\"/api/webhook/\",\"/api/v1/website/search\",\"/api/v1/website/{namespace}/{website}/{env}/component\"\
+                ,\"/api/v1/website/{namespace}/{website}/{env}/component/{name}\"]"
+  /api/v1/website/component/info:
+    get:
+      summary: Component Detail
+      description: Website component detail - get actual data via Content API
+      parameters:
+      - name: env
+        in: query
+        required: true
+        schema:
+          type: string
+          nullable: false
+      - name: name
+        in: query
+        required: true
+        schema:
+          type: string
+          nullable: false
+      - name: namespace
+        in: query
+        required: true
+        schema:
+          type: string
+          nullable: false
+      - name: website
+        in: query
+        required: true
+        schema:
+          type: string
+          nullable: false
+      responses:
+        "200":
+          description: OK Response with component detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentDetailResponse'
+        "404":
+          description: Component not exists
+  /api/v1/website/component/search:
+    get:
+      summary: Component Search
+      description: All website components for given environment. Always returns 200
+      parameters:
+      - name: env
+        in: query
+        required: true
+        schema:
+          type: string
+          nullable: false
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: namespace
+        in: query
+        required: true
+        schema:
+          type: string
+          nullable: false
+      - name: website
+        in: query
+        required: true
+        schema:
+          type: string
+          nullable: false
+      responses:
+        "200":
+          description: OK Response with components
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentSearchResponse'
+  /api/v1/website/search:
+    get:
+      summary: Website Search
+      description: Search websites based on optional parameters name and namespace.
+        Always returns 200
+      parameters:
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: namespace
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK Response with websites
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebsiteSearchResponse'
+  /api/webhook:
+    post:
+      summary: Git Webhook
+      description: Handles git webhook
+      responses:
+        "200":
+          description: OK Response with updated websites and components
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+        "400":
+          content:
+            application/json:
+              example: Body is empty
+  /health/live:
+    get:
+      summary: Liveness check
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              example: live
+  /health/ready:
+    get:
+      summary: Readiness check
+      description: Check if Website CRD Controller is ready to manage CRDs (if enabled)
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              example: ready
+        "204":
+          content:
+            text/plain: {}
+components:
+  schemas:
+    Component:
+      type: object
+      properties:
+        api:
+          type: string
+        name:
+          type: string
+        path:
+          type: string
+        ref:
+          type: string
+    ComponentDetail:
+      type: object
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        ref:
+          type: string
+        gitUrl:
+          type: string
+        lastCommitAuthor:
+          type: string
+        lastCommitMessage:
+          type: string
+        timestamp:
+          type: string
+        api:
+          type: string
+    ComponentDetailResponse:
+      type: object
+      properties:
+        status:
+          description: Response Status
+          enum:
+          - success
+          type: string
+        data:
+          $ref: '#/components/schemas/ComponentDetail'
+    ComponentSearchResponse:
+      type: object
+      properties:
+        status:
+          description: Response Status
+          enum:
+          - success
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Component'
+    UpdatedComponent:
+      description: Response from Component response call
+      type: object
+      properties:
+        env:
+          description: Website environment
+          type: string
+        name:
+          description: Component name
+          type: string
+        namespace:
+          type: string
+        status:
+          description: Git update result
+          type: string
+        website:
+          description: Website name
+          type: string
+    UpdatedWebsite:
+      description: Info about updated website
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        status:
+          description: Website Update Status
+          enum:
+          - UPDATING
+          - IGNORED
+          type: string
+    WebhookResponse:
+      description: Webhook Response - status and list of updated components and websites
+      type: object
+      properties:
+        components:
+          description: List of updated components
+          type: array
+          items:
+            $ref: '#/components/schemas/UpdatedComponent'
+        status:
+          description: Response Status
+          enum:
+          - SUCCESS
+          - PING
+          type: string
+        websites:
+          description: List of updated/ignored websites
+          type: array
+          items:
+            $ref: '#/components/schemas/UpdatedWebsite'
+    WebsiteEnvironment:
+      type: object
+      properties:
+        api:
+          type: string
+        domain:
+          type: string
+        name:
+          type: string
+    WebsiteResponse:
+      type: object
+      properties:
+        environments:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteEnvironment'
+        name:
+          type: string
+        spec:
+          $ref: '#/components/schemas/WebsiteSpec'
+    WebsiteSearchResponse:
+      type: object
+      properties:
+        status:
+          description: Response Status
+          enum:
+          - success
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteResponse'
+    WebsiteSpec:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string

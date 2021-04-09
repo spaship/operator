@@ -1,5 +1,6 @@
 package io.spaship.operator.rest;
 
+import io.spaship.operator.rest.website.WebsiteResource;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -23,10 +24,11 @@ public class ApiRootResource {
     @Operation(summary = "List of APIs", description = "Shows available Operator's APIs")
     @APIResponse(
             responseCode = "200", description = "List of API URLs",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON, example = "[\"/api/webhook/\"]")
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, example = "[\"/api/webhook/\",\"/api/v1/website/search\",\"/api/v1/website/{namespace}/{website}/{env}/component\",\"/api/v1/website/{namespace}/{website}/{env}/component/{name}\"]")
     )
     public List<String> apis() {
         List<String> apis = WebHookResource.apis(rootPath);
+        apis.addAll(WebsiteResource.apis(rootPath));
         return apis;
     }
 

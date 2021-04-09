@@ -96,12 +96,11 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
         Website website = SIMPLE_WEBSITE;
 
         websiteRepository.reset();
-        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website);
+        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website, false);
         websiteConfig.getComponents().get(0).getSpec().setUrl("COMPONENT_URL");
         websiteConfig.getComponents().get(1).getSpec().setUrl("COMPONENT2_URL");
 
         website.setConfig(websiteConfig);
-        websiteRepository.addWebsite(website);
         operatorService.initNewWebsite(website);
 
         String body = getGitlabEventBody("COMPONENT_URL", "main");

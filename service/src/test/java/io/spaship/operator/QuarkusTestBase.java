@@ -25,6 +25,8 @@ public class QuarkusTestBase {
 
     private static final Logger log = Logger.getLogger(QuarkusTestBase.class);
 
+    public static final String EXAMPLES_NAMESPACE = "spaship-examples";
+
     @MockServer
     protected OpenShiftMockServer mockServer;
 
@@ -37,20 +39,7 @@ public class QuarkusTestBase {
                 .andReturn(200, new CustomResourceDefinitionBuilder().build())
                 .always();
 
-        mockServer.expect()
-                .post().withPath("/api/v1/namespaces/spaship-examples/configmaps")
-                .andReturn(200, new ConfigMapBuilder().build())
-                .always();
-
-        mockServer.expect()
-                .post().withPath("/api/v1/namespaces/spaship-examples/services")
-                .andReturn(200, new ServiceSpecBuilder().build())
-                .always();
-
-        mockServer.expect()
-                .post().withPath("/apis/apps/v1/namespaces/spaship-examples/deployments")
-                .andReturn(200, new DeploymentBuilder().build())
-                .always();
+        setupMockServerDeployment("spaship-examples");
 
         mockServer.expect()
                 .get().withPath("/apis/apps/v1/namespaces/spaship-examples/deployments/simple-content-dev")
@@ -59,6 +48,21 @@ public class QuarkusTestBase {
                 .get().withPath("/apis/apps/v1/namespaces/spaship-examples/deployments/simple-content-prod")
                 .andReturn(200, new DeploymentBuilder().withMetadata(new ObjectMetaBuilder().withName("simple-content-prod").build()).build()).always();
 
+    }
+
+    protected void setupMockServerDeployment(String namespace) {
+        mockServer.expect()
+                .post().withPath("/api/v1/namespaces/" + namespace + "/configmaps")
+                .andReturn(200, new ConfigMapBuilder().build())
+                .always();
+        mockServer.expect()
+                .post().withPath("/api/v1/namespaces/" + namespace + "/services")
+                .andReturn(200, new ServiceSpecBuilder().build())
+                .always();
+        mockServer.expect()
+                .post().withPath("/apis/apps/v1/namespaces/" + namespace + "/deployments")
+                .andReturn(200, new DeploymentBuilder().build())
+                .always();
     }
 
     protected void mockDeleted(String websiteName, String env) {
@@ -106,11 +110,15 @@ public class QuarkusTestBase {
     }
 
     public static List<String> expectedRegisterWebRequests(int envsCount) {
+        return expectedRegisterWebRequests(envsCount, EXAMPLES_NAMESPACE);
+    }
+
+    public static List<String> expectedRegisterWebRequests(int envsCount, String namespace) {
         ArrayList<String> result = new ArrayList<>();
         for (int i = 0; i < envsCount; i++) {
-            result.add("/api/v1/namespaces/spaship-examples/configmaps");
-            result.add("/api/v1/namespaces/spaship-examples/services");
-            result.add("/apis/apps/v1/namespaces/spaship-examples/deployments");
+            result.add("/api/v1/namespaces/" + namespace + "/configmaps");
+            result.add("/api/v1/namespaces/" + namespace + "/services");
+            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments");
         }
         return result;
     }

@@ -62,6 +62,7 @@ public class RouterController {
             return config.getEnabledGitComponents(targetEnv);
         }
     }
+
     public Stream<ComponentConfig> getServiceComponents(WebsiteConfig config, String targetEnv) {
         return config.getEnabledServiceComponents(targetEnv);
     }

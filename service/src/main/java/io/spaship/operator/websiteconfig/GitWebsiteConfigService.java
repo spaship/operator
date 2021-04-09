@@ -43,14 +43,14 @@ public class GitWebsiteConfigService {
         log.infof("WebsiteConfig Service init. configFilename=%s", configFilenames);
     }
 
-    public WebsiteConfig cloneRepo(Website website) throws GitAPIException, IOException {
+    public WebsiteConfig cloneRepo(Website website, boolean updateIfExists) throws GitAPIException, IOException {
         WebsiteSpec websiteSpec = website.getSpec();
         final String gitUrl = websiteSpec.getGitUrl();
         File gitDir = new File(getGitDirName(workDir, website.getId()));
         boolean gitDirExists = gitDir.exists();
         log.infof("Initializing website config repo in dir=%s gitDirExists=%s websiteSpec=%s", gitDir, gitDirExists, websiteSpec);
 
-        Git git;
+        Git git = null;
         if (!gitDirExists) {
             CloneCommand cloneCommand = Git.cloneRepository().setURI(gitUrl).setDirectory(gitDir);
             if (!websiteSpec.getSslVerify()) {
@@ -62,16 +62,18 @@ public class GitWebsiteConfigService {
                 cloneCommand.setBranch(branch);
             }
             git = cloneCommand.call();
-        } else {
+        } else if (updateIfExists) {
             log.debug("Just git pull");
             git = Git.init().setDirectory(gitDir).call();
             git.pull().call();
         }
 
-        String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
-        git.close();
+        if (git != null) {
+            String lastCommitMessage = git.log().call().iterator().next().getShortMessage();
+            git.close();
 
-        log.infof("Website repo fetched to dir=%s dir_exists=%s commit_message='%s'", gitDir, gitDirExists, lastCommitMessage);
+            log.infof("Website repo fetched to dir=%s dir_exists=%s commit_message='%s'", gitDir, gitDirExists, lastCommitMessage);
+        }
 
         GitInfo gitInfo = new GitInfo(website.getSpec().getBranch(), gitDir.getAbsolutePath(), website.getSpec().getDir());
         repos.put(website.getId(), gitInfo);

@@ -24,7 +24,7 @@ import java.util.List;
 @ApplicationScoped
 public class WebHookResource {
 
-    public static final String CONTEXT = "api/webhook/";
+    public static final String API_WEBHOOK = "api/webhook";
 
     private static final Logger log = Logger.getLogger(WebHookResource.class);
 
@@ -33,11 +33,11 @@ public class WebHookResource {
 
     public static List<String> apis(String rootPath) {
         List<String> apis = new ArrayList<>();
-        apis.add(rootPath + CONTEXT);
+        apis.add(rootPath + API_WEBHOOK);
         return apis;
     }
 
-    @Route(methods = HttpMethod.POST, path = "/api/webhook", produces = MediaType.APPLICATION_JSON)
+    @Route(methods = HttpMethod.POST, path = API_WEBHOOK, produces = MediaType.APPLICATION_JSON)
     @Operation(summary = "Git Webhook", description = "Handles git webhook")
     @APIResponse(responseCode = "200",
             description = "OK Response with updated websites and components",

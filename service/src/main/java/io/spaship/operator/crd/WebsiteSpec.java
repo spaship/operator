@@ -7,6 +7,7 @@ import java.util.Objects;
 @RegisterForReflection
 public class WebsiteSpec {
 
+    String displayName;
     String gitUrl;
     String branch;
     String dir;
@@ -23,6 +24,14 @@ public class WebsiteSpec {
         this.dir = dir;
         this.sslVerify = sslVerify;
         this.secretToken = secretToken;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getGitUrl() {
@@ -76,7 +85,8 @@ public class WebsiteSpec {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("WebsiteSpec{");
-        sb.append("gitUrl='").append(gitUrl).append('\'');
+        sb.append("displayName='").append(displayName).append('\'');
+        sb.append(", gitUrl='").append(gitUrl).append('\'');
         sb.append(", branch='").append(branch).append('\'');
         sb.append(", dir='").append(dir).append('\'');
         sb.append(", sslVerify=").append(sslVerify);
@@ -90,11 +100,11 @@ public class WebsiteSpec {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WebsiteSpec that = (WebsiteSpec) o;
-        return gitUrl.equals(that.gitUrl) && Objects.equals(branch, that.branch) && Objects.equals(dir, that.dir) && Objects.equals(sslVerify, that.sslVerify) && Objects.equals(secretToken, that.secretToken) && Objects.equals(envs, that.envs);
+        return Objects.equals(displayName, that.displayName) && gitUrl.equals(that.gitUrl) && Objects.equals(branch, that.branch) && Objects.equals(dir, that.dir) && Objects.equals(sslVerify, that.sslVerify) && Objects.equals(secretToken, that.secretToken) && Objects.equals(envs, that.envs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(gitUrl, branch, dir, sslVerify, secretToken, envs);
+        return Objects.hash(displayName, gitUrl, branch, dir, sslVerify, secretToken, envs);
     }
 }

@@ -1,5 +1,6 @@
 package io.spaship.operator.controller;
 
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.openshift.api.model.Route;
 import io.quarkus.runtime.StartupEvent;
 import io.spaship.content.git.config.GitContentUtils;
@@ -9,6 +10,7 @@ import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.content.ContentController;
 import io.spaship.operator.content.UpdatedComponent;
 import io.spaship.operator.crd.Website;
+import io.spaship.operator.crd.WebsiteStatus;
 import io.spaship.operator.router.IngressController;
 import io.spaship.operator.router.RouterController;
 import io.spaship.operator.websiteconfig.GitWebsiteConfigService;
@@ -60,34 +62,46 @@ public class OperatorService {
     void startup(@Observes StartupEvent event) {
     }
 
-    public Set<String> initNewWebsite(Website website) {
+    public WebsiteStatus initNewWebsite(Website website) {
         return initInfrastructure(website, false);
     }
 
-    public Set<String> initInfrastructure(Website website, boolean redeploy) {
+    public WebsiteStatus initInfrastructure(Website website, boolean redeploy) {
         Set<String> enabledEnvs = website.getEnabledEnvs();
         log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s", website.getId(), enabledEnvs);
 
         RuntimeException exception = null;
+        WebsiteStatus status = website.getStatus();
+        if (status == null) {
+            status = new WebsiteStatus();
+        }
         for (String env : enabledEnvs) {
             try {
                 log.debugf("Processing env=%s", env);
 
                 setupCoreServices(env, website);
 
-                String host = null;
+                String apiHost = null;
                 Integer port = null;
                 if (ingressController.isEnabled()) {
-                    ingressController.updateIngress(env, website);
+                    Ingress ingress = ingressController.updateIngress(env, website);
+                    if (ingress != null) {
+                        String contentHost = ingress.getSpec().getRules().get(0).getHost();
+                        status.addEnvHost(env, contentHost);
+                    }
                 } else if (routerController.isEnabled()) {
-                    routerController.updateWebsiteRoutes(env, website);
+                    List<Route> contentRoutes = routerController.updateWebsiteRoutes(env, website);
+                    if (contentRoutes != null && contentRoutes.size() > 0) {
+                        String contentHost = contentRoutes.get(0).getSpec().getHost();
+                        status.addEnvHost(env, contentHost);
+                    }
                     Route apiRoute = routerController.updateApiRoute(env, website);
-                    host = apiRoute.getSpec().getHost();
+                    apiHost = apiRoute.getSpec().getHost();
                     port = 80;
                 } else {
                     log.infof("No routing created");
                 }
-                contentController.createClient(env, website, host, port);
+                contentController.createClient(env, website, apiHost, port);
 
                 if (redeploy) {
                     contentController.redeploy(env, website);
@@ -101,7 +115,9 @@ public class OperatorService {
         if (exception != null) {
             throw exception;
         }
-        return enabledEnvs;
+        log.debugf("Infrastructure initialized. status=%s", status);
+        websiteRepository.addWebsite(website);
+        return status;
     }
 
     private void setupCoreServices(String env, Website website) {
@@ -184,7 +200,6 @@ public class OperatorService {
             log.infof("Rollout websiteId=%s", websiteId);
             try {
                 website.setConfig(newConfig);
-                websiteRepository.addWebsite(website);
 
                 initInfrastructure(website, true);
                 future.complete();
