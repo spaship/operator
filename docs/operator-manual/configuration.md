@@ -12,6 +12,7 @@ can be overridden via env variable but in uppercase and dot is replaced by under
 | APP_OPERATOR_ROUTER_MODE | disabled | Router module. Values: `ingress` or `openshift` or `disabled` |
 | APP_OPERATOR_PROVIDER_CRD_ENABLED | true | If `false` CRD is not watched |
 | APP_OPERATOR_PROVIDER_ENV_ENABLED | false | If `true` then operator expects website definition via ENV variable. See [example](https://github.com/spaship/operator/blob/main/manifests/config/k8s.yaml#L15) |
+| APP_OPERATOR_URL | | Operator's URL - used to generate API links in REST API |
 | APP_OPERATOR_IMAGE_INIT_NAME | quay.io/spaship/content-git-init | Init image name |
 | APP_OPERATOR_IMAGE_INIT_VERSION | 1.3.0 | Init image version |
 | APP_OPERATOR_IMAGE_HTTPD_NAME | quay.io/spaship/httpd | Httpd image name |

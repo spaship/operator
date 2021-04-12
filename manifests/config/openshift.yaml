@@ -6,6 +6,7 @@ metadata:
     spaship: operator
 data:
   APP_OPERATOR_ROUTER_MODE: 'openshift'
+#  APP_OPERATOR_URL: https://spaship-operator.apps.grey-spoke.dev.iad2.dc.paas.redhat.com
 #  APP_OPERATOR_WEBSITE_DOMAIN: 'minikube.info'
 #######################
 # For Namespace install
