@@ -10,7 +10,7 @@ The `/api` returns actual list of APIs.
 ```json
 [
   "/api/webhook",
-  "/api/v1/website/search",
+  "/api/v1/website/search?namespace={namespace}&name={name}",
   "/api/v1/website/component/search?namespace={namespace}&website={website}&env={env}",
   "/api/v1/website/component/info?namespace={namespace}&website={website}&env={env}&name={component_name}"
 ]
@@ -25,4 +25,12 @@ Under `/api/webhook` is exposed Webhook API to consume Git webhook.
 Website API provides information about deployed websites.
 Used by SPAship Manager UI.
 
- * /api/v1/website/component/info - Website component detail - get actual data via Content API
+* `/api/v1/website/search?namespace={namespace}&name={name}`
+  - List of websites managed by Operator.
+  - Parameters `namespace` and `name` are optional.
+* `/api/v1/website/component/search?namespace={namespace}&website={website}&env={env}`
+  - Search Component
+  - Parameters `namespace`, `website`, `env` are required
+* `/api/v1/website/component/info?namespace={namespace}&website={website}&env={env}&name={component_name}`
+  - Website component detail - get actual data via Content API
+  - Parameters `namespace`, `website`, `env`, `name` are required

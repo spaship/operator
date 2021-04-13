@@ -51,7 +51,7 @@ public class WebsiteResource {
 
     public static List<String> apis(String rootPath) {
         List<String> apis = new ArrayList<>();
-        apis.add(rootPath + CONTEXT + "/search");
+        apis.add(rootPath + CONTEXT + "/search?namespace={namespace}&name={name}");
         apis.add(rootPath + API_COMPONENT);
         apis.add(rootPath + API_COMPONENT_DETAIL);
         return apis;
