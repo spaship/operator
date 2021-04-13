@@ -80,6 +80,34 @@ WEBHOOK_URL=http://localhost:8080/api/webhook
 curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-Event: Push Hook" -H "X-Gitlab-Token: TOKENSIMPLE" --data-binary "@src/test/resources/gitlab-push.json" 
 ```
 
+## Security
+
+### Start Local Keycloak
+
+```shell
+docker run --name keycloak -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -p 8180:8080 quay.io/keycloak/keycloak:12.0.4
+```
+
+Import realm located at [service/src/test/resources](https://github.com/spaship/operator/tree/main/service/src/test/resources)
+
+### Get Access token
+```shell
+export access_token=$(\
+    curl -X POST http://localhost:8180/auth/realms/spaship/protocol/openid-connect/token \
+    --user spaship-manager:secret \
+    -H 'content-type: application/x-www-form-urlencoded' \
+    -d 'username=spaship-user&password=spaship-user&grant_type=password' | sed 's/.*access_token":"//g' | sed 's/".*//g' \
+ )
+```
+
+### Test API
+
+```shell
+curl -i -X GET -H "Authorization: Bearer "$access_token http://localhost:8080/api/v1/website/search
+```
+
+More info in [Quarkus docs](https://quarkus.io/guides/security-openid-connect#testing-the-application).
+
 ## Build Docker Image
 
 You don't need to care about building docker images because they're covered by [Github Action](https://github.com/spaship/content-git/actions/workflows/docker-publish.yaml)

@@ -18,9 +18,26 @@ class WebsiteResourceComponentInfoTest extends WebhookTestCommon {
     String COMPONENT_API_INFO = "/component/info";
 
     @Test
+    void notAuthenticated() {
+        given()
+                .when().get(COMPONENT_API_INFO)
+                .then().log().ifValidationFails()
+                .statusCode(401);
+    }
+
+    @Test
+    void notAuthorized() {
+        given().auth().oauth2(getAccessToken(AUTH_SPASHIP_USER, "invalid-role"))
+                .when().get(COMPONENT_API_INFO)
+                .then().log().ifValidationFails()
+                .statusCode(403);
+    }
+
+    @Test
     void badInput() {
         websiteRepository.reset();
-        given()
+
+        given().auth().oauth2(getSpashipUserToken())
                 .when().get(COMPONENT_API_INFO)
                 .then().log().ifValidationFails()
                 .statusCode(400)
@@ -31,7 +48,8 @@ class WebsiteResourceComponentInfoTest extends WebhookTestCommon {
     void searchComponentAll() throws Exception {
         registerSimpleWeb();
         registerAdvancedWeb(false);
-        given()
+
+        given().auth().oauth2(getSpashipUserToken())
                 .when().get(COMPONENT_API_INFO + "?namespace=" + EXAMPLES_NAMESPACE + "&website=simple&env=dev&name=theme")
                 .then().log().ifValidationFails()
                 .statusCode(200)
@@ -49,7 +67,8 @@ class WebsiteResourceComponentInfoTest extends WebhookTestCommon {
     void searchComponentEmptyByFilter() throws Exception {
         registerSimpleWeb();
         registerWeb(ADVANCED_WEBSITE, false);
-        given()
+
+        given().auth().oauth2(getSpashipUserToken())
                 .when().get(COMPONENT_API_INFO + "?namespace=" + EXAMPLES_NAMESPACE + "&website=simple&env=dev&name=some-wrong-name")
                 .then().log().ifValidationFails()
                 .statusCode(404);

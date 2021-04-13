@@ -1,6 +1,7 @@
 package io.spaship.operator.rest;
 
 import io.restassured.specification.RequestSpecification;
+import io.smallrye.jwt.build.Jwt;
 import io.spaship.operator.ContentApiMock;
 import io.spaship.operator.QuarkusTestBase;
 import io.spaship.operator.controller.OperatorService;
@@ -21,6 +22,8 @@ import org.junit.jupiter.api.BeforeEach;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import static io.restassured.RestAssured.given;
 
@@ -93,6 +96,7 @@ public class WebhookTestCommon extends QuarkusTestBase {
     public void registerAdvancedWeb() throws GitAPIException, IOException {
         registerAdvancedWeb(true);
     }
+
     public void registerAdvancedWeb(boolean reset) throws GitAPIException, IOException {
         registerWeb(ADVANCED_WEBSITE, reset);
     }
@@ -111,4 +115,20 @@ public class WebhookTestCommon extends QuarkusTestBase {
                 .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE);
     }
 
+    protected static final String AUTH_SPASHIP_USER = "spaship-user";
+    protected static final String AUTH_SPASHIP_ROLE = "spaship-user";
+
+    protected String getAccessToken(String userName, String... role) {
+        return Jwt.preferredUserName(userName)
+                .groups(new HashSet<>(Arrays.asList(role)))
+                .issuer("https://server.example.com")
+                .audience("https://service.example.com")
+                .jws()
+                .keyId("1")
+                .sign();
+    }
+
+    protected String getSpashipUserToken() {
+        return getAccessToken(AUTH_SPASHIP_USER, AUTH_SPASHIP_ROLE);
+    }
 }

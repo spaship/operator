@@ -20,6 +20,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.logging.Logger;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -32,11 +33,14 @@ import java.util.stream.Collectors;
 
 @ApplicationScoped
 @RouteBase(path = WebsiteResource.CONTEXT, produces = MediaType.APPLICATION_JSON)
+@RolesAllowed(WebsiteResource.ROLE_SPASHIP_USER)
 public class WebsiteResource {
 
     public static final String CONTEXT = "api/v1/website";
     public static final String API_COMPONENT = CONTEXT + "/component/search?namespace={namespace}&website={website}&env={env}";
     public static final String API_COMPONENT_DETAIL = CONTEXT + "/component/info?namespace={namespace}&website={website}&env={env}&name={component_name}";
+
+    public static final String ROLE_SPASHIP_USER = "spaship-user";
 
     private static final Logger log = Logger.getLogger(WebsiteResource.class);
 

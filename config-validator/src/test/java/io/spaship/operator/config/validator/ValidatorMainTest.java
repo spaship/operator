@@ -17,7 +17,7 @@ class ValidatorMainTest {
 
     @Test
     void noInput() throws Exception {
-        assertEquals(1, validatorMain.checkAndValidate(Optional.empty(), null));
+        assertEquals(1, validatorMain.checkAndValidate(Optional.empty(), (String[]) null));
     }
 
     @BeforeAll
@@ -30,7 +30,7 @@ class ValidatorMainTest {
 
     @Test
     void validFilePath() throws Exception {
-        assertEquals(0, validatorMain.checkAndValidate(Optional.of(validFile), null));
+        assertEquals(0, validatorMain.checkAndValidate(Optional.of(validFile), (String[]) null));
     }
 
     @Test
@@ -50,7 +50,7 @@ class ValidatorMainTest {
 
     @Test
     void invalidOneFile() throws Exception {
-        assertEquals(1, validatorMain.checkAndValidate(Optional.of(invalidFile), null));
+        assertEquals(1, validatorMain.checkAndValidate(Optional.of(invalidFile), (String[]) null));
     }
     @Test
     void invalidTwoFiles() throws Exception {
