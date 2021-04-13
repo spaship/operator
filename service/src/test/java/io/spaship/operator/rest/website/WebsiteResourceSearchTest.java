@@ -1,7 +1,9 @@
 package io.spaship.operator.rest.website;
 
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.oidc.server.OidcWiremockTestResource;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.rest.WebhookTestCommon;
 import org.junit.jupiter.api.Test;
@@ -14,14 +16,31 @@ import static org.hamcrest.Matchers.is;
  */
 @QuarkusTest
 @TestHTTPEndpoint(WebsiteResource.class)
+@QuarkusTestResource(OidcWiremockTestResource.class)
 class WebsiteResourceSearchTest extends WebhookTestCommon {
 
     String SEARCH_API = "/search";
 
     @Test
+    void notAuthenticated() {
+        given()
+                .when().get(SEARCH_API)
+                .then().log().ifValidationFails()
+                .statusCode(401);
+    }
+
+    @Test
+    void notAuthorized() {
+        given().auth().oauth2(getAccessToken(AUTH_SPASHIP_USER, "invalid-role"))
+                .when().get(SEARCH_API)
+                .then().log().ifValidationFails()
+                .statusCode(403);
+    }
+
+    @Test
     void searchEmpty() {
         websiteRepository.reset();
-        given()
+        given().auth().oauth2(getSpashipUserToken())
                 .when().get(SEARCH_API)
                 .then().log().ifValidationFails()
                 .statusCode(200)
@@ -33,7 +52,7 @@ class WebsiteResourceSearchTest extends WebhookTestCommon {
     void searchWebsiteAll() throws Exception {
         registerSimpleWeb();
         registerAdvancedWeb(false);
-        given()
+        given().auth().oauth2(getSpashipUserToken())
                 .when().get(SEARCH_API)
                 .then().log().ifValidationFails()
                 .statusCode(200)
@@ -45,7 +64,8 @@ class WebsiteResourceSearchTest extends WebhookTestCommon {
     void searchWebsiteFilterName() throws Exception {
         registerSimpleWeb();
         registerAdvancedWeb(false);
-        given()
+
+        given().auth().oauth2(getSpashipUserToken())
                 .when().get(SEARCH_API + "?name=simple")
                 .then().log().ifValidationFails()
                 .statusCode(200)
@@ -63,7 +83,8 @@ class WebsiteResourceSearchTest extends WebhookTestCommon {
         Website advancedWebsite = ADVANCED_WEBSITE;
         advancedWebsite.getMetadata().setNamespace(namespace);
         registerWeb(advancedWebsite, false);
-        given()
+
+        given().auth().oauth2(getSpashipUserToken())
                 .when().get(SEARCH_API + "?namespace=" + namespace)
                 .then().log().ifValidationFails()
                 .statusCode(200)
@@ -77,7 +98,8 @@ class WebsiteResourceSearchTest extends WebhookTestCommon {
     void searchWebsiteEmptyByFilter() throws Exception {
         registerSimpleWeb();
         registerWeb(ADVANCED_WEBSITE, false);
-        given()
+
+        given().auth().oauth2(getSpashipUserToken())
                 .when().get(SEARCH_API + "?name=some-wrong-name")
                 .then().log().ifValidationFails()
                 .statusCode(200)

@@ -8,6 +8,8 @@ data:
   APP_OPERATOR_ROUTER_MODE: 'openshift'
 #  APP_OPERATOR_URL: https://spaship-operator.apps.grey-spoke.dev.iad2.dc.paas.redhat.com
 #  APP_OPERATOR_WEBSITE_DOMAIN: 'minikube.info'
+#  QUARKUS_OIDC_AUTH_SERVER_URL: ''
+#  QUARKUS_OIDC_CLIENT_ID: ''
 #######################
 # For Namespace install
 # Configured via ENVs
