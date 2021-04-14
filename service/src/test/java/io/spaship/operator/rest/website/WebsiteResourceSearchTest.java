@@ -40,7 +40,7 @@ class WebsiteResourceSearchTest extends WebhookTestCommon {
 
     @Test
     void authorizedByLdap() {
-        given().auth().oauth2(getAccessToken(MockInitialDirContextFactory.LDAP_USERNAME))
+        given().auth().oauth2(getAccessToken(MockInitialDirContextFactory.LDAP_USER_ONLY))
                 .when().get(SEARCH_API)
                 .then().log().ifValidationFails()
                 .statusCode(200);

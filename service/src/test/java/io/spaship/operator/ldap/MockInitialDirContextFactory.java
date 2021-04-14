@@ -11,25 +11,33 @@ import java.util.Hashtable;
 
 public class MockInitialDirContextFactory implements InitialContextFactory {
 
-    public static final String LDAP_USERNAME = "ldapuser";
+    public static final String LDAP_ALL_ROLES = "ldapuser-allroles";
+    public static final String LDAP_USER_ONLY = "ldapuser-user";
+    public static final String LDAP_ADMIN_ONLY = "ldapuser-admin";
+
+    final String groupUser = "cn=spaship-users,ou=adhoc,ou=managedGroups,dc=test,dc=com";
+    final String groupAdmin = "cn=spaship-admins,ou=adhoc,ou=managedGroups,dc=test,dc=com";
+    final String search = "ou=users,dc=test,dc=com";
 
     private static DirContext mockContext = null;
 
     public Context getInitialContext(Hashtable environment) throws NamingException {
         synchronized (MockInitialDirContextFactory.class) {
             mockContext = Mockito.mock(DirContext.class);
-            Mockito.when(mockContext.search(
-                    Mockito.eq("ou=users,dc=test,dc=com"), Mockito.eq("uid=" + LDAP_USERNAME), Mockito.any(SearchControls.class)))
-                    // a custom 'answer', which records the queries issued
+            Mockito.when(mockContext.search(Mockito.eq(search), Mockito.eq("uid=" + LDAP_ALL_ROLES), Mockito.any(SearchControls.class)))
                     .thenAnswer(invocationOnMock -> {
                         Attributes attributes = new BasicAttributes();
                         BasicAttribute values = new BasicAttribute("groups");
-                        values.add("cn=spaship-users,ou=adhoc,ou=managedGroups,dc=test,dc=com");
-                        values.add("cn=spaship-admins,ou=adhoc,ou=managedGroups,dc=test,dc=com");
+                        values.add(groupUser);
+                        values.add(groupAdmin);
                         attributes.put(values);
 
                         return new MockNamingEnumeration(attributes);
                     });
+            Mockito.when(mockContext.search(Mockito.eq(search), Mockito.eq("uid=" + LDAP_USER_ONLY), Mockito.any(SearchControls.class)))
+                    .thenAnswer(invocationOnMock -> new MockNamingEnumeration(new BasicAttributes("groups", groupUser)));
+            Mockito.when(mockContext.search(Mockito.eq(search), Mockito.eq("uid=" + LDAP_ADMIN_ONLY), Mockito.any(SearchControls.class)))
+                    .thenAnswer(invocationOnMock -> new MockNamingEnumeration(new BasicAttributes("groups", groupAdmin)));
         }
         return mockContext;
     }
