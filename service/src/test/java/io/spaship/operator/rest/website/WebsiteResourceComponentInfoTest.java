@@ -35,7 +35,8 @@ class WebsiteResourceComponentInfoTest extends WebhookTestCommon {
     }
 
     @Test
-    void authorizedByLdap() {
+    void authorizedByLdap() throws Exception {
+        registerSimpleWeb();
         given().auth().oauth2(getAccessToken(MockInitialDirContextFactory.LDAP_USERNAME))
                 .when().get(COMPONENT_API_INFO + "?namespace=" + EXAMPLES_NAMESPACE + "&website=simple&env=dev&name=theme")
                 .then().log().ifValidationFails()
