@@ -2,6 +2,7 @@ package io.spaship.operator.rest.website;
 
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import io.spaship.operator.ldap.MockInitialDirContextFactory;
 import io.spaship.operator.rest.WebhookTestCommon;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +32,14 @@ class WebsiteResourceComponentSearchTest extends WebhookTestCommon {
                 .when().get(COMPONENT_API_SEARCH)
                 .then().log().ifValidationFails()
                 .statusCode(403);
+    }
+
+    @Test
+    void authorizedByLdap() {
+        given().auth().oauth2(getAccessToken(MockInitialDirContextFactory.LDAP_USERNAME))
+                .when().get(COMPONENT_API_SEARCH + "?namespace=" + EXAMPLES_NAMESPACE + "&website=simple&env=dev")
+                .then().log().ifValidationFails()
+                .statusCode(200);
     }
 
     @Test

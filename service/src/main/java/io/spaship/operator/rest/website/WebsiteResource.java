@@ -41,6 +41,7 @@ public class WebsiteResource {
     public static final String API_COMPONENT_DETAIL = CONTEXT + "/component/info?namespace={namespace}&website={website}&env={env}&name={component_name}";
 
     public static final String ROLE_SPASHIP_USER = "spaship-user";
+    public static final String ROLE_SPASHIP_ADMIN = "spaship-admin";
 
     private static final Logger log = Logger.getLogger(WebsiteResource.class);
 
@@ -68,7 +69,7 @@ public class WebsiteResource {
             content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = WebsiteSearchResponse.class))
     )
     public void search(RoutingContext rc, @Param("namespace") Optional<String> namespace, @Param("name") Optional<String> name) {
-        log.tracef("website search. namespace=%s name=%s", namespace, name);
+        log.infof("website search. namespace=%s name=%s", namespace, name);
 
         List<WebsiteResponse> data = websiteRepository.searchWebsite(namespace, name)
                 .map(crd -> WebsiteResponse.createFromCrd(crd, operatorUrl))
@@ -87,7 +88,7 @@ public class WebsiteResource {
             content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ComponentSearchResponse.class))
     )
     public void components(RoutingContext rc, @NotNull @Param("namespace") String namespace, @NotNull @Param("website") String website, @NotNull @Param("env") String env, @Param("name") Optional<String> name) {
-        log.tracef("component search. namespace=%s website=%s env=%s name=%s", namespace, website, env, name);
+        log.infof("component search. namespace=%s website=%s env=%s name=%s", namespace, website, env, name);
 
         // bean validation is not enabled to gracefully validate input params
         if (StringUtils.isAnyEmpty(namespace, website, env)) {
@@ -131,7 +132,7 @@ public class WebsiteResource {
     )
     @APIResponse(responseCode = "404", description = "Component not exists")
     public void componentInfo(RoutingContext rc, @NotNull @Param("namespace") String namespace, @NotNull @Param("website") String website, @NotNull @Param("env") String env, @NotNull @Param("name") String name) {
-        log.tracef("component search. namespace=%s website=%s, env=%s, name=%s", namespace, website, env, name);
+        log.infof("component search. namespace=%s website=%s, env=%s, name=%s", namespace, website, env, name);
 
         // bean validation is not enabled to gracefully validate input params
         if (StringUtils.isAnyEmpty(namespace, website, env, name)) {
