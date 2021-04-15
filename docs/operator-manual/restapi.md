@@ -3,6 +3,8 @@
 The operator provides REST API. It's documented by Open API standard and available under
 `http://<operator>/openapi` or actual copy is in [manifests/api](https://github.com/spaship/operator/tree/main/manifests/api) directory.
 
+How API is secured is described in [next page](security.md).
+
 ## API List
 
 The `/api` returns actual list of APIs.
@@ -24,6 +26,7 @@ Under `/api/webhook` is exposed Webhook API to consume Git webhook.
 
 Website API provides information about deployed websites.
 Used by SPAship Manager UI.
+Required roles: `spaship-user`
 
 * `/api/v1/website/search?namespace={namespace}&name={name}`
   - List of websites managed by Operator.

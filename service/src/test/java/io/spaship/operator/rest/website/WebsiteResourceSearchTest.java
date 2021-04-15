@@ -5,6 +5,7 @@ import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.oidc.server.OidcWiremockTestResource;
 import io.spaship.operator.crd.Website;
+import io.spaship.operator.ldap.MockInitialDirContextFactory;
 import io.spaship.operator.rest.WebhookTestCommon;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +36,14 @@ class WebsiteResourceSearchTest extends WebhookTestCommon {
                 .when().get(SEARCH_API)
                 .then().log().ifValidationFails()
                 .statusCode(403);
+    }
+
+    @Test
+    void authorizedByLdap() {
+        given().auth().oauth2(getAccessToken(MockInitialDirContextFactory.LDAP_USER_ONLY))
+                .when().get(SEARCH_API)
+                .then().log().ifValidationFails()
+                .statusCode(200);
     }
 
     @Test

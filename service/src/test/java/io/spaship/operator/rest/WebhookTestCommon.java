@@ -2,6 +2,7 @@ package io.spaship.operator.rest;
 
 import io.restassured.specification.RequestSpecification;
 import io.smallrye.jwt.build.Jwt;
+import io.smallrye.jwt.build.JwtClaimsBuilder;
 import io.spaship.operator.ContentApiMock;
 import io.spaship.operator.QuarkusTestBase;
 import io.spaship.operator.controller.OperatorService;
@@ -119,13 +120,21 @@ public class WebhookTestCommon extends QuarkusTestBase {
     protected static final String AUTH_SPASHIP_ROLE = "spaship-user";
 
     protected String getAccessToken(String userName, String... role) {
-        return Jwt.preferredUserName(userName)
-                .groups(new HashSet<>(Arrays.asList(role)))
+        JwtClaimsBuilder builder = Jwt.preferredUserName(userName);
+        if (role != null) {
+            builder.groups(new HashSet<>(Arrays.asList(role)));
+        }
+
+        return builder
                 .issuer("https://server.example.com")
                 .audience("https://service.example.com")
                 .jws()
                 .keyId("1")
                 .sign();
+    }
+
+    protected String getAccessToken(String userName) {
+        return getAccessToken(userName, (String[]) null);
     }
 
     protected String getSpashipUserToken() {
