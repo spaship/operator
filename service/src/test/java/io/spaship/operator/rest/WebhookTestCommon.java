@@ -128,6 +128,7 @@ public class WebhookTestCommon extends QuarkusTestBase {
         return builder
                 .issuer("https://server.example.com")
                 .audience("https://service.example.com")
+                .claim("testid", userName)
                 .jws()
                 .keyId("1")
                 .sign();

@@ -24,7 +24,7 @@ public class MockInitialDirContextFactory implements InitialContextFactory {
     public Context getInitialContext(Hashtable environment) throws NamingException {
         synchronized (MockInitialDirContextFactory.class) {
             mockContext = Mockito.mock(DirContext.class);
-            Mockito.when(mockContext.search(Mockito.eq(search), Mockito.eq("uid=" + LDAP_ALL_ROLES), Mockito.any(SearchControls.class)))
+            Mockito.when(mockContext.search(Mockito.eq(search), Mockito.eq("testid=" + LDAP_ALL_ROLES), Mockito.any(SearchControls.class)))
                     .thenAnswer(invocationOnMock -> {
                         Attributes attributes = new BasicAttributes();
                         BasicAttribute values = new BasicAttribute("groups");
@@ -34,9 +34,9 @@ public class MockInitialDirContextFactory implements InitialContextFactory {
 
                         return new MockNamingEnumeration(attributes);
                     });
-            Mockito.when(mockContext.search(Mockito.eq(search), Mockito.eq("uid=" + LDAP_USER_ONLY), Mockito.any(SearchControls.class)))
+            Mockito.when(mockContext.search(Mockito.eq(search), Mockito.eq("testid=" + LDAP_USER_ONLY), Mockito.any(SearchControls.class)))
                     .thenAnswer(invocationOnMock -> new MockNamingEnumeration(new BasicAttributes("groups", groupUser)));
-            Mockito.when(mockContext.search(Mockito.eq(search), Mockito.eq("uid=" + LDAP_ADMIN_ONLY), Mockito.any(SearchControls.class)))
+            Mockito.when(mockContext.search(Mockito.eq(search), Mockito.eq("testid=" + LDAP_ADMIN_ONLY), Mockito.any(SearchControls.class)))
                     .thenAnswer(invocationOnMock -> new MockNamingEnumeration(new BasicAttributes("groups", groupAdmin)));
         }
         return mockContext;

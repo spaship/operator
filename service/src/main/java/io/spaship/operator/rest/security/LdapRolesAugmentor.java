@@ -1,15 +1,21 @@
 package io.spaship.operator.rest.security;
 
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.security.identity.AuthenticationRequestContext;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.SecurityIdentityAugmentor;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import io.spaship.operator.ldap.LdapService;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.security.Principal;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -23,19 +29,39 @@ public class LdapRolesAugmentor implements SecurityIdentityAugmentor {
 
     @Inject
     LdapService ldapService;
+    @ConfigProperty(name = "app.ldap.jwt.claim")
+    Optional<String> claim;
+
+    void onStart(@Observes StartupEvent ev) {
+        log.infof("LDAP Roles Identity Augmentor init. enabled=%s claim=%s", isEnabled(), claim.orElse("N/A"));
+    }
 
     @Override
     public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
-        if (identity.isAnonymous() || !ldapService.isEnabled()) {
+        if (identity.isAnonymous() || !isEnabled()) {
             return sameIdentity(identity);
         }
+        Principal principal = identity.getPrincipal();
+        log.tracef("principal=%s", principal);
 
-        Set<String> roles = ldapService.getRoles(identity.getPrincipal().getName());
+        String filterValue = principal.getName();
+
+        if (claim.isPresent() && principal instanceof JsonWebToken) {
+            JsonWebToken token = (JsonWebToken) principal;
+            log.debug("Getting filter value from claim");
+            filterValue = token.getClaim(claim.get());
+        }
+
+        Set<String> roles = ldapService.getRoles(filterValue);
         if (roles.isEmpty()) {
             return sameIdentity(identity);
         }
 
         return Uni.createFrom().item(build(identity, roles));
+    }
+
+    public boolean isEnabled() {
+        return ldapService.isEnabled();
     }
 
     private Uni<SecurityIdentity> sameIdentity(SecurityIdentity identity) {

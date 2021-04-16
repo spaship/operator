@@ -49,8 +49,8 @@ To enable LDAP define following variables:
 * `APP_LDAP_ENABLED` - Enable it by `true`. By default `false`
 * `APP_LDAP_URL` - Ldap URL e.g. `ldap://ldap.corp.redhat.com`
 * `APP_LDAP_SEARCH_NAME` - LDAP Query Search
-* `APP_LDAP_SEARCH_FILTER` - Filter format. Default is `uid=%s` where %s is replaced by JWT username
+* `APP_LDAP_SEARCH_FILTER` - Filter format. Default is `uid=%s` where %s is replaced by JWT username or by claim value if `APP_LDAP_JWT_CLAIM` is defined.
 * `APP_LDAP_SEARCH_GROUPS_ATTRNAME` - LDAP attribute containing groups
 * `APP_LDAP_SEARCH_ROLE_USER_ATTRVALUE` - group name for `user` role
 * `APP_LDAP_SEARCH_ROLE_ADMIN_ATTRVALUE` - group  name for `admin` role
-
+* `APP_LDAP_JWT_CLAIM` - if set the filter value is used from claim name.

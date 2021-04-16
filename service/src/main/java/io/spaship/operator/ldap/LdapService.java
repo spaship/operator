@@ -90,11 +90,11 @@ public class LdapService {
     }
 
     @CacheResult(cacheName = "ldap-roles")
-    public Set<String> getRoles(String username) {
-        log.infof("LDAP Search Roles. username=%s", username);
+    public Set<String> getRoles(String filterValue) {
+        log.infof("LDAP Search Roles. filterValue=%s", filterValue);
         Set<String> result = new HashSet<>();
         try {
-            String filter = String.format(searchFilter, username);
+            String filter = String.format(searchFilter, filterValue);
             NamingEnumeration<SearchResult> results = ldapContext.search(searchName.get(), filter, controls);
             if (results == null) {
                 return result;
