@@ -46,6 +46,7 @@ It's possible to use both techniques where JWT provides username and its roles a
 
 To enable LDAP define following variables:
 
+* `APP_LDAP_ENABLED` - Enable it by `true`. By default `false`
 * `APP_LDAP_URL` - Ldap URL e.g. `ldap://ldap.corp.redhat.com`
 * `APP_LDAP_SEARCH_NAME` - LDAP Query Search
 * `APP_LDAP_SEARCH_FILTER` - Filter format. Default is `uid=%s` where %s is replaced by JWT username
