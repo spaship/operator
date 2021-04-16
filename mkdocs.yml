@@ -38,7 +38,9 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/spaship/operator
-
+google_analytics:
+  - 'UA-194760132-1'
+  - 'auto'
 nav:
   - Home:
     - index.md
