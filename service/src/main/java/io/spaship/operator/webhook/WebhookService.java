@@ -19,6 +19,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotAuthorizedException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +75,9 @@ public class WebhookService {
             manager.validateRequest(request, data);
 
             authorizedWebsites = manager.getAuthorizedWebsites(request, data);
+            if (authorizedWebsites.size() == 0) {
+                return Future.failedFuture(new NotAuthorizedException("no matched website", "token"));
+            }
 
             updatedSites = handleWebsites(authorizedWebsites);
             resultObject.setWebsites(updatedSites);

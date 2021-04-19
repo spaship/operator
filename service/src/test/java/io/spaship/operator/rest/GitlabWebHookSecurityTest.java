@@ -18,7 +18,8 @@ class GitlabWebHookSecurityTest extends WebhookTestCommon {
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(401);
+                .statusCode(401)
+                .body(is("X-Gitlab-Token missing"));
     }
 
     @Test
@@ -34,8 +35,8 @@ class GitlabWebHookSecurityTest extends WebhookTestCommon {
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(400)
-                .body(is("no matched website or components"));
+                .statusCode(401)
+                .body(is("no matched website"));
     }
 
 }

@@ -1,6 +1,5 @@
 package io.spaship.operator.webhook.github;
 
-import io.quarkus.security.UnauthorizedException;
 import io.spaship.operator.controller.WebsiteRepository;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.rest.WebHookResource;
@@ -13,6 +12,7 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotAuthorizedException;
 import java.util.List;
 
 @ApplicationScoped
@@ -41,7 +41,7 @@ public class GithubWebHookManager implements GitWebHookManager {
     }
 
     @Override
-    public void validateRequest(HttpServerRequest request, JsonObject data) throws UnauthorizedException, BadRequestException {
+    public void validateRequest(HttpServerRequest request, JsonObject data) throws NotAuthorizedException, BadRequestException {
         String eventName = WebHookResource.getHeader(request, "X-GitHub-Event");
         if (eventName == null || eventName.trim().isEmpty()) {
             log.warn("X-GitHub-Event header is missing!");
@@ -52,7 +52,7 @@ public class GithubWebHookManager implements GitWebHookManager {
 
         if (StringUtils.isEmpty(signature)) {
             log.warn("X-Hub-Signature-256 is missing!");
-            throw new UnauthorizedException("X-Hub-Signature-256 missing");
+            throw new NotAuthorizedException("X-Hub-Signature-256 missing", "token");
         }
 
         if (StringUtils.isEmpty(getGitUrl(data)) || StringUtils.isEmpty(getRef(data))) {

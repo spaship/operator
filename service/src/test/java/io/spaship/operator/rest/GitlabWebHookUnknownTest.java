@@ -20,9 +20,8 @@ class GitlabWebHookUnknownTest extends WebhookTestCommon {
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(400)
-                .contentType(ContentType.JSON)
-                .body(is("no matched website or components"));
+                .statusCode(401)
+                .body(is("no matched website"));
     }
 
     @Test

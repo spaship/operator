@@ -4,6 +4,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
 class GithubWebHookSecurityTest extends WebhookTestCommon {
@@ -17,7 +18,8 @@ class GithubWebHookSecurityTest extends WebhookTestCommon {
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(401);
+                .statusCode(401)
+                .body(is("X-Hub-Signature-256 missing"));
     }
 
 }

@@ -1,6 +1,5 @@
 package io.spaship.operator.webhook.gitlab;
 
-import io.quarkus.security.UnauthorizedException;
 import io.spaship.operator.controller.WebsiteRepository;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.rest.WebHookResource;
@@ -13,6 +12,7 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotAuthorizedException;
 import java.util.List;
 
 @ApplicationScoped
@@ -34,12 +34,12 @@ public class GitlabWebHookManager implements GitWebHookManager {
     }
 
     @Override
-    public void validateRequest(HttpServerRequest request, JsonObject data) throws UnauthorizedException {
+    public void validateRequest(HttpServerRequest request, JsonObject data) throws NotAuthorizedException {
         String secretToken = WebHookResource.getHeader(request, "X-Gitlab-Token");
 
         if (StringUtils.isEmpty(secretToken)) {
             log.warn("X-Gitlab-Token is missing!");
-            throw new UnauthorizedException("X-Gitlab-Token missing");
+            throw new NotAuthorizedException("X-Gitlab-Token missing", "token");
         }
 
         if (StringUtils.isEmpty(getGitUrl(data)) || StringUtils.isEmpty(getRef(data))) {

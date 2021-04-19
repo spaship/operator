@@ -105,14 +105,16 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(400);
+                .statusCode(401)
+                .body(is("no matched website"));
 
         givenSimpleGitlabWebhookRequest()
                 .body(body)
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(400);
+                .statusCode(401)
+                .body(is("no matched website"));
 
         assertEquals(0, apiMock.getApiListCount());
         assertEquals(0, apiMock.getApiUpdateThemeCount());

@@ -43,7 +43,8 @@ public class WebHookResource {
             description = "OK Response with updated websites and components",
             content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = WebhookResponse.class))
     )
-    @APIResponse(responseCode = "400", content = @Content(mediaType = MediaType.APPLICATION_JSON, example = "Body is empty"))
+    @APIResponse(responseCode = "400", content = @Content(example = "Body is empty"))
+    @APIResponse(responseCode = "401", content = @Content(example = "no matched website"))
     public void webhook(RoutingContext rc) {
         JsonObject body = rc.getBodyAsJson();
         HttpServerRequest request = rc.request();
