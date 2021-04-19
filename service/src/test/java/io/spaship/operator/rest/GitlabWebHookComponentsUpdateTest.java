@@ -7,7 +7,6 @@ import io.spaship.operator.crd.Website;
 import io.spaship.operator.openshift.OperatorServiceTest;
 import org.junit.jupiter.api.Test;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -18,10 +17,7 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
     public void gitPushStaticUpdate() throws Exception {
         registerSimpleWeb();
 
-        given()
-                .header("Content-type", "application/json")
-                .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", "Avoid rollout update")
+        givenSimpleGitlabWebhookRequest()
                 .body(GitlabWebHookComponentsUpdateTest.class.getResourceAsStream("/gitlab-push.json"))
                 .when().post("/api/webhook")
                 .then()
@@ -29,7 +25,8 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
-                .body("websites.size()", is(0))
+                .body("websites.size()", is(1))
+                .body("websites[0].name", is("simple")).body("websites[0].status", is("IGNORED"))
                 .body("components.size()", is(2));
 
         assertEquals(0, apiMock.getApiListCount());
@@ -42,10 +39,7 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
     public void gitPushStaticUpdateAdvanced() throws Exception {
         registerAdvancedWeb();
 
-        given()
-                .header("Content-type", "application/json")
-                .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", "Avoid rollout update")
+        givenAdvancedGitlabWebhookRequest()
                 .body(GitlabWebHookComponentsUpdateTest.class.getResourceAsStream("/gitlab-push.json"))
                 .when().post("/api/webhook")
                 .then()
@@ -53,7 +47,8 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
-                .body("websites.size()", is(0))
+                .body("websites.size()", is(1))
+                .body("websites[0].name", is("advanced")).body("websites[0].status", is("IGNORED"))
                 .body("components.size()", is(3));  // template, search, _root
 
         assertEquals(0, apiMock.getApiListCount());
@@ -68,10 +63,7 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
     public void gitPushStaticUpdateAdvancedTag() throws Exception {
         registerAdvancedWeb();
 
-        given()
-                .header("Content-type", "application/json")
-                .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", "Avoid rollout update")
+        givenAdvancedGitlabWebhookRequest()
                 .body(GitlabWebHookComponentsUpdateTest.class.getResourceAsStream("/gitlab-push-tag.json"))
                 .when().post("/api/webhook")
                 .then()
@@ -79,7 +71,8 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
-                .body("websites.size()", is(0))
+                .body("websites.size()", is(1))
+                .body("websites[0].name", is("advanced")).body("websites[0].status", is("IGNORED"))
                 .body("components.size()", is(1))
                 .body("components[0].name", is("shared-components"));
 
@@ -105,34 +98,24 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
 
         String body = getGitlabEventBody("COMPONENT_URL", "main");
 
-        // Pushing component with different secret. It's VALID !!!
+        // Pushing VALID component with different secret is INVALID
         givenSimpleGitlabWebhookRequest()
                 .header("X-Gitlab-Token", OperatorServiceTest.SECRET_ADVANCED)
                 .body(body)
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(200)
-                .contentType(ContentType.JSON)
-                .body("status", is("SUCCESS"))
-                .body("websites.size()", is(0))
-                .body("components[0].name", is("theme"))
-                .body("components[0].status", is("DONE"));
+                .statusCode(400);
 
         givenSimpleGitlabWebhookRequest()
                 .body(body)
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(200)
-                .contentType(ContentType.JSON)
-                .body("status", is("SUCCESS"))
-                .body("websites.size()", is(0))
-                .body("components[0].name", is("theme"))
-                .body("components[0].status", is("DONE"));
+                .statusCode(400);
 
         assertEquals(0, apiMock.getApiListCount());
-        assertEquals(2, apiMock.getApiUpdateThemeCount());
+        assertEquals(0, apiMock.getApiUpdateThemeCount());
         assertEquals(0, apiMock.getApiUpdateRootCount());
 
         assertPathsRequested(expectedRegisterWebRequests(2));

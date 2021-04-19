@@ -9,6 +9,9 @@ The `api/webhook` is secured by `securityToken` defined in deployment descriptor
 Any webhook request requires security token (based on git provider), and the operator match all websites
 secured by given security token and perform the appropriate action.
 
+In case that one git repository is used for more websites (e.g. common components like header/footer), and they 
+use same branch then each website needs to register its own webhook.
+
 ## API Security
 
 Operator's API is secured primarily via JWT Token and is able to perform authentication and also

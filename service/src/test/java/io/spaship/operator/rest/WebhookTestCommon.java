@@ -115,6 +115,12 @@ public class WebhookTestCommon extends QuarkusTestBase {
                 .header("X-Gitlab-Event", "Push Hook")
                 .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE);
     }
+    public RequestSpecification givenAdvancedGitlabWebhookRequest() {
+        return given()
+                .header("Content-type", "application/json")
+                .header("X-Gitlab-Event", "Push Hook")
+                .header("X-Gitlab-Token", OperatorServiceTest.SECRET_ADVANCED);
+    }
 
     protected static final String AUTH_SPASHIP_USER = "spaship-user";
     protected static final String AUTH_SPASHIP_ROLE = "spaship-user";

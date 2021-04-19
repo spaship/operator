@@ -4,7 +4,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
@@ -16,10 +15,7 @@ class GitlabWebHookUnknownTest extends WebhookTestCommon {
 
         String body = getGitlabEventBody("UNKNOWN", "main");
 
-        given()
-                .header("Content-type", "application/json")
-                .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", "Avoid rollout update")
+        givenSimpleGitlabWebhookRequest()
                 .body(body)
                 .when().post("/api/webhook")
                 .then()
@@ -35,17 +31,17 @@ class GitlabWebHookUnknownTest extends WebhookTestCommon {
 
         String body = getGitlabEventBody(SIMPLE_WEB.getGitUrl(), "UNKNOWN");
 
-        given()
-                .header("Content-type", "application/json")
-                .header("X-Gitlab-Event", "Push Hook")
-                .header("X-Gitlab-Token", "Avoid rollout update")
+        givenSimpleGitlabWebhookRequest()
                 .body(body)
                 .when().post("/api/webhook")
                 .then()
                 .log().ifValidationFails()
-                .statusCode(400)
+                .statusCode(200)
                 .contentType(ContentType.JSON)
-                .body(is("no matched website or components"));
+                .body("websites.size()", is(1))
+                .body("websites[0].name", is("simple")).body("websites[0].status", is("IGNORED"))
+                .body("components.size()", is(0));  // no matched component
+
     }
 
 }

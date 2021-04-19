@@ -150,13 +150,13 @@ public class OperatorService {
         }
     }
 
-    public List<Future> updateRelatedComponents(String gitUrl, String ref, Set<String> updatedWebsites) {
+    public List<Future> updateRelatedComponents(List<Website> authorizedWebsites, String gitUrl, String ref, Set<String> updatedWebsites) {
         List<Future> updates = new ArrayList<>();
-        for (Website website : websiteRepository.getWebsites().values()) {
+        // Iterate over authorized websites
+        for (Website website : authorizedWebsites) {
             if (updatedWebsites != null && updatedWebsites.contains(website.getId())) {
                 continue;
             }
-            // secret token is not checked
             for (ComponentConfig component : website.getConfig().getComponents()) {
                 if (!ComponentGitMatcher.test(component) || !StringUtils.equals(gitUrl, component.getSpec().getUrl())) {
                     continue;
