@@ -19,7 +19,7 @@ class GithubWebHookStaticUpdateTest extends WebhookTestCommon {
         given()
                 .header("Content-type", "application/json")
                 .header("X-GitHub-Event", "push")
-                .header("X-Hub-Signature-256", OperatorServiceTest.SECRET_ADVANCED_SIGN)  // Different secret to not trigger website update
+                .header("X-Hub-Signature-256", OperatorServiceTest.SECRET_SIMPLE_SIGN)
                 .body(GithubWebHookStaticUpdateTest.class.getResourceAsStream("/github-push.json"))
                 .when().post("/api/webhook")
                 .then()
@@ -27,7 +27,8 @@ class GithubWebHookStaticUpdateTest extends WebhookTestCommon {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("status", is("SUCCESS"))
-                .body("websites.size()", is(0))
+                .body("websites.size()", is(1))
+                .body("websites[0].name", is("simple")).body("websites[0].status", is("IGNORED"))
                 .body("components.size()", is(2));
 
         assertEquals(0, apiMock.getApiListCount());

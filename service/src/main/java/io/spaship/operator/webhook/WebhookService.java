@@ -69,12 +69,13 @@ public class WebhookService {
 
         List<UpdatedWebsite> updatedSites;
         boolean someWebsitesUpdated;
+        List<Website> authorizedWebsites;
         try {
             manager.validateRequest(request, data);
 
-            List<Website> websites = manager.getAuthorizedWebsites(request, data);
+            authorizedWebsites = manager.getAuthorizedWebsites(request, data);
 
-            updatedSites = handleWebsites(websites);
+            updatedSites = handleWebsites(authorizedWebsites);
             resultObject.setWebsites(updatedSites);
             someWebsitesUpdated = updatedSites.size() != 0;
         } catch (Exception e) {
@@ -88,7 +89,7 @@ public class WebhookService {
 
         String gitUrl = manager.getGitUrl(data);
         String ref = manager.getRef(data);
-        List<Future> updates = operatorService.updateRelatedComponents(gitUrl, ref, updatedWebsiteIds);
+        List<Future> updates = operatorService.updateRelatedComponents(authorizedWebsites, gitUrl, ref, updatedWebsiteIds);
         log.infof("Update components with same gitUrl and branch. gitUrl=%s ref=%s matchedComponents=%s", gitUrl, ref, updates.size());
         if (updates.size() == 0 && !someWebsitesUpdated) {
             return Future.failedFuture(new BadRequestException("no matched website or components"));
