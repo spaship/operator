@@ -68,18 +68,6 @@ public class IngressController {
                 .map(component -> createIngressPath(component, contentService))
                 .forEach(paths::add);
 
-        //websiteinfo
-        IngressBackend contentApibackend = new IngressBackendBuilder().withService(new IngressServiceBackendBuilder()
-                .withName(contentService)
-                .withPort(new ServiceBackendPortBuilder().withName("http-api").build())
-                .build()).build();
-
-        HTTPIngressPath path = new HTTPIngressPath();
-        path.setPath("/websiteinfo");
-        path.setPathType("Prefix");
-        path.setBackend(contentApibackend);
-        paths.add(path);
-
         IngressRule rule = new IngressRuleBuilder().withHost(host).withNewHttp().withPaths(paths).endHttp().build();
 
         String name = RouterController.getRouteName(websiteName, null, targetEnv);
@@ -90,8 +78,8 @@ public class IngressController {
 
         Ingress ingress = builder.build();
 
+        log.tracef("Ingress: %s", ingress);
         Ingress created = client.inNamespace(namespace).network().v1().ingresses().createOrReplace(ingress);
-        log.tracef("Ingress: %s", created);
         return created;
     }
 
