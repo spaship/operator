@@ -6,14 +6,41 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.List;
 
+import static io.spaship.operator.webhook.model.UpdatedWebsite.*;
+
 public interface GitWebHookManager {
+
+    public static enum MergeStatus {
+        OPEN, UPDATE, CLOSE;
+
+        public String toResponseStatus() {
+            switch (this) {
+                case OPEN:
+                    return STATUS_PREVIEW_CREATING;
+                case UPDATE:
+                    return STATUS_PREVIEW_UPDATING;
+                case CLOSE:
+                    return STATUS_PREVIEW_DELETING;
+            }
+            return "unknown";
+        }
+    }
+
     boolean canHandleRequest(HttpServerRequest request);
+
+    boolean isMergeRequest(HttpServerRequest request);
+
+    MergeStatus getMergeStatus(JsonObject data);
 
     void validateRequest(HttpServerRequest request, JsonObject data) throws Exception;
 
-    String getGitUrl(JsonObject postData);
+    String getGitUrl(HttpServerRequest request, JsonObject postData);
 
     String getRef(JsonObject postData);
+
+    String getPreviewRef(JsonObject postData);
+
+    String getPreviewId(JsonObject postData);
 
     List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject postData);
 }

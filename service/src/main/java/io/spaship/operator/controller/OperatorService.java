@@ -1,5 +1,7 @@
 package io.spaship.operator.controller;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.openshift.api.model.Route;
 import io.quarkus.runtime.StartupEvent;
@@ -10,6 +12,7 @@ import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.content.ContentController;
 import io.spaship.operator.content.UpdatedComponent;
 import io.spaship.operator.crd.Website;
+import io.spaship.operator.crd.WebsiteSpec;
 import io.spaship.operator.crd.WebsiteStatus;
 import io.spaship.operator.router.IngressController;
 import io.spaship.operator.router.RouterController;
@@ -52,6 +55,9 @@ public class OperatorService {
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
 
+    @Inject
+    WebsiteController websiteController;
+
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
 
@@ -69,6 +75,7 @@ public class OperatorService {
     public WebsiteStatus initInfrastructure(Website website, boolean redeploy) {
         Set<String> enabledEnvs = website.getEnabledEnvs();
         log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s", website.getId(), enabledEnvs);
+        websiteRepository.addWebsite(website);
 
         RuntimeException exception = null;
         WebsiteStatus status = website.getStatus();
@@ -116,7 +123,6 @@ public class OperatorService {
             throw exception;
         }
         log.debugf("Infrastructure initialized. status=%s", status);
-        websiteRepository.addWebsite(website);
         return status;
     }
 
@@ -214,6 +220,51 @@ public class OperatorService {
             }
         });
         return true;
+    }
+
+    public static Website createWebsiteCopy(Website website, String previewId, String previewGitUrl, String previewRef) {
+        Website previewWebsite = new Website();
+
+        WebsiteSpec sourceSpec = website.getSpec();
+        // Git Spec is from Merge request
+        WebsiteSpec spec = new WebsiteSpec(previewGitUrl, previewRef, sourceSpec.getDir(), sourceSpec.getSslVerify(), sourceSpec.getSecretToken());
+        spec.setPreviews(false);
+        spec.setEnvs(sourceSpec.getEnvs());
+        previewWebsite.setSpec(spec);
+
+        // Just change the name to "name"-<previewId>
+        ObjectMeta sourceMetadata = website.getMetadata();
+        String previewName = sourceMetadata.getName() + "-pr-" + previewId;
+
+        previewWebsite.setMetadata(new ObjectMetaBuilder().withName(previewName).withNamespace(sourceMetadata.getNamespace()).build());
+        return previewWebsite;
+    }
+
+    public void createOrUpdateWebsite(Website website) throws GitAPIException, IOException {
+        log.infof("Deploying website website_id=%s", website.getId());
+
+        if (websiteController.isCrdEnabled()) {
+            websiteController.getWebsiteClient().inNamespace(website.getMetadata().getNamespace()).createOrReplace(website);
+        } else {
+            deployNewWebsite(website, true);
+        }
+    }
+
+    public void deleteWebsite(Website website) {
+        log.infof("Deleting website website_id=%s", website.getId());
+
+        if (websiteController.isCrdEnabled()) {
+            websiteController.getWebsiteClient().inNamespace(website.getMetadata().getNamespace()).delete(website);
+        } else {
+            Website websiteToDelete = websiteRepository.getWebsite(website.getId());
+            deleteInfrastructure(websiteToDelete);
+        }
+    }
+
+    public WebsiteStatus deployNewWebsite(Website website, boolean updateIfExists) throws IOException, GitAPIException {
+        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website, updateIfExists);
+        website.setConfig(websiteConfig);
+        return initNewWebsite(website);
     }
 
 }

@@ -65,23 +65,25 @@ public class QuarkusTestBase {
                 .always();
     }
 
-    protected void mockDeleted(String websiteName, String env) {
-        mockServer.expect()
-                .delete().withPath("/api/v1/namespaces/spaship-examples/services/" + websiteName + "-content-" + env)
-                .andReturn(200, null)
-                .always();
-        mockServer.expect()
-                .delete().withPath("/apis/apps/v1/namespaces/spaship-examples/deployments/" + websiteName + "-content-" + env)
-                .andReturn(200, null)
-                .always();
-        mockServer.expect()
-                .delete().withPath("/apis/extensions/v1beta1/namespaces/spaship-examples/deployments/" + websiteName + "-content-" + env)
-                .andReturn(200, null)
-                .always();
-        mockServer.expect()
-                .delete().withPath("/api/v1/namespaces/spaship-examples/configmaps/" + websiteName + "-content-init-" + env)
-                .andReturn(200, null)
-                .always();
+    protected void mockDeleted(String websiteName, List<String> envs) {
+        for (String env : envs) {
+            mockServer.expect()
+                    .delete().withPath("/api/v1/namespaces/spaship-examples/services/" + websiteName + "-content-" + env)
+                    .andReturn(200, null)
+                    .always();
+            mockServer.expect()
+                    .delete().withPath("/apis/apps/v1/namespaces/spaship-examples/deployments/" + websiteName + "-content-" + env)
+                    .andReturn(200, null)
+                    .always();
+            mockServer.expect()
+                    .delete().withPath("/apis/extensions/v1beta1/namespaces/spaship-examples/deployments/" + websiteName + "-content-" + env)
+                    .andReturn(200, null)
+                    .always();
+            mockServer.expect()
+                    .delete().withPath("/api/v1/namespaces/spaship-examples/configmaps/" + websiteName + "-content-init-" + env)
+                    .andReturn(200, null)
+                    .always();
+        }
     }
 
     protected void assertPathsRequested(String... paths) {
@@ -119,6 +121,16 @@ public class QuarkusTestBase {
             result.add("/api/v1/namespaces/" + namespace + "/configmaps");
             result.add("/api/v1/namespaces/" + namespace + "/services");
             result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments");
+        }
+        return result;
+    }
+
+    public static List<String> expectedDeleteWebRequests(List<String> envs, String namespace, String name) {
+        ArrayList<String> result = new ArrayList<>();
+        for (String env : envs) {
+            result.add("/api/v1/namespaces/" + namespace + "/configmaps/" + name + "-content-init-" + env);
+            result.add("/api/v1/namespaces/" + namespace + "/services/" + name + "-content-" + env);
+            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
         }
         return result;
     }

@@ -1,12 +1,10 @@
 package io.spaship.operator.openshift;
 
 import io.quarkus.runtime.StartupEvent;
-import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.controller.OperatorService;
 import io.spaship.operator.controller.WebsiteRepository;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.crd.WebsiteSpec;
-import io.spaship.operator.websiteconfig.GitWebsiteConfigService;
 import io.vertx.core.Vertx;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -36,6 +34,8 @@ public class WebsiteConfigEnvProvider {
 
     @ConfigProperty(name = "website.sslVerify")
     Optional<Boolean> sslVerify;
+    @ConfigProperty(name = "website.previews")
+    Optional<Boolean> previews;
 
     @ConfigProperty(name = "website.config.dir")
     Optional<String> configDir;
@@ -54,12 +54,6 @@ public class WebsiteConfigEnvProvider {
 
     @Inject
     Vertx vertx;
-
-    @Inject
-    WebsiteRepository websiteRepository;
-
-    @Inject
-    GitWebsiteConfigService gitWebsiteConfigService;
 
     void onStart(@Observes StartupEvent ev) throws Exception {
         log.infof("WebsiteConfigEnvProvider enabled=%s", providerEnabled.orElse(false));
@@ -81,6 +75,7 @@ public class WebsiteConfigEnvProvider {
             throw new WebsiteConfigEnvException("namespace is missing");
 
         WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.orElse(null), configDir.orElse(null), sslVerify.orElse(true), secret.get());
+        websiteSpec.setPreviews(previews.orElse(false));
         return WebsiteRepository.createWebsite(websiteName.get(), websiteSpec, namespace.get());
     }
 
@@ -110,9 +105,7 @@ public class WebsiteConfigEnvProvider {
     }
 
     public void registerWebsite(Website website, boolean updateIfExists) throws IOException, GitAPIException {
-        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website, updateIfExists);
-        website.setConfig(websiteConfig);
-        operatorService.initNewWebsite(website);
+        operatorService.deployNewWebsite(website, updateIfExists);
         log.infof("Initialization completed from ENV provider.");
     }
 

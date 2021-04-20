@@ -13,6 +13,7 @@ public class WebsiteSpec {
     String dir;
     Boolean sslVerify = true;
     String secretToken;
+    Boolean previews = false;
     WebsiteEnvs envs;
 
     public WebsiteSpec() {
@@ -74,6 +75,14 @@ public class WebsiteSpec {
         this.secretToken = secretToken;
     }
 
+    public Boolean getPreviews() {
+        return previews;
+    }
+
+    public void setPreviews(Boolean previews) {
+        this.previews = previews;
+    }
+
     public WebsiteEnvs getEnvs() {
         return envs;
     }
@@ -90,6 +99,7 @@ public class WebsiteSpec {
         sb.append(", branch='").append(branch).append('\'');
         sb.append(", dir='").append(dir).append('\'');
         sb.append(", sslVerify=").append(sslVerify);
+        sb.append(", previews=").append(previews);
         sb.append(", envs=").append(envs);
         sb.append('}');
         return sb.toString();
@@ -100,11 +110,11 @@ public class WebsiteSpec {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WebsiteSpec that = (WebsiteSpec) o;
-        return Objects.equals(displayName, that.displayName) && gitUrl.equals(that.gitUrl) && Objects.equals(branch, that.branch) && Objects.equals(dir, that.dir) && Objects.equals(sslVerify, that.sslVerify) && Objects.equals(secretToken, that.secretToken) && Objects.equals(envs, that.envs);
+        return Objects.equals(displayName, that.displayName) && gitUrl.equals(that.gitUrl) && Objects.equals(branch, that.branch) && Objects.equals(dir, that.dir) && Objects.equals(sslVerify, that.sslVerify) && Objects.equals(previews, that.previews) && Objects.equals(secretToken, that.secretToken) && Objects.equals(envs, that.envs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(displayName, gitUrl, branch, dir, sslVerify, secretToken, envs);
+        return Objects.hash(displayName, gitUrl, branch, dir, sslVerify, secretToken, previews, envs);
     }
 }
