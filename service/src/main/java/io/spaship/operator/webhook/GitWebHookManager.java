@@ -38,6 +38,8 @@ public interface GitWebHookManager {
 
     String getRef(JsonObject postData);
 
+    String getPreviewGitUrl(JsonObject postData);
+
     String getPreviewRef(JsonObject postData);
 
     String getPreviewId(JsonObject postData);

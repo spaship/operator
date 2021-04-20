@@ -31,10 +31,7 @@ public class GitlabWebHookManager implements GitWebHookManager {
     public boolean canHandleRequest(HttpServerRequest request) {
         String eventName = getEventHeader(request);
         log.tracef("X-Gitlab-Event=%s", eventName);
-        if (StringUtils.isNotEmpty(eventName)) {
-            return true;
-        }
-        return false;
+        return StringUtils.isNotEmpty(eventName);
     }
 
     @Override
@@ -68,8 +65,14 @@ public class GitlabWebHookManager implements GitWebHookManager {
         if (StringUtils.isEmpty(getGitUrl(request, data))) {
             throw new BadRequestException("Unsupported Event");
         }
-        if (StringUtils.isEmpty(isMergeRequest(request) ? getPreviewRef(data) : getRef(data))) {
-            throw new BadRequestException("Ref or branch not defined");
+        if (isMergeRequest(request)) {
+            if (StringUtils.isEmpty(getPreviewGitUrl(data)) || StringUtils.isEmpty(getPreviewRef(data))) {
+                throw new BadRequestException("Merge Event Data missing");
+            }
+        } else {
+            if (StringUtils.isEmpty(getRef(data))) {
+                throw new BadRequestException("Ref or branch not defined");
+            }
         }
     }
 
@@ -83,14 +86,22 @@ public class GitlabWebHookManager implements GitWebHookManager {
 
     @Override
     public String getGitUrl(HttpServerRequest request, JsonObject postData) {
-        if (postData == null || request == null) {
-            return null;
+        if (isMergeRequest(request)) {
+            if (postData.containsKey("project")) {
+                return postData.getJsonObject("project").getString("git_http_url");
+            }
         }
-        if (isMergeRequest(request) && postData.containsKey("project")) {
-            return postData.getJsonObject("project").getString("git_http_url");
-        }
-        if (postData.containsKey("repository")) {
+
+        if (postData != null && postData.containsKey("repository")) {
             return postData.getJsonObject("repository").getString("git_http_url");
+        }
+        return null;
+    }
+
+    @Override
+    public String getPreviewGitUrl(JsonObject postData) {
+        if (postData.containsKey("object_attributes")) {
+            return postData.getJsonObject("object_attributes").getJsonObject("source").getString("git_http_url");
         }
         return null;
     }

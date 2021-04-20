@@ -6,6 +6,7 @@ import io.spaship.operator.crd.WebsiteSpec;
 import io.spaship.operator.crd.WebsiteStatus;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.*;
@@ -13,6 +14,8 @@ import java.util.stream.Stream;
 
 @ApplicationScoped
 public class WebsiteRepository {
+
+    private static final Logger log = Logger.getLogger(WebsiteRepository.class);
 
     private Map<String, Website> websites = new HashMap<>();
 
@@ -42,6 +45,7 @@ public class WebsiteRepository {
     }
 
     public List<Website> getByGitUrl(String gitUrl, String secretToken, boolean sha256Hex) {
+        log.debugf("Get Websites by gitUrl gitUrl=%s", gitUrl);
         List<Website> result = new ArrayList<>();
         for (Map.Entry<String, Website> entry : websites.entrySet()) {
             WebsiteSpec spec = entry.getValue().getSpec();

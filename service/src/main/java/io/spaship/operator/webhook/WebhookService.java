@@ -80,7 +80,7 @@ public class WebhookService {
             }
 
             if (manager.isMergeRequest(request)) {
-                updatedSites = handlePreview(authorizedWebsites, manager.getPreviewId(data), manager.getGitUrl(request, data), manager.getPreviewRef(data), manager.getMergeStatus(data));
+                updatedSites = handlePreview(authorizedWebsites, manager.getPreviewId(data), manager.getPreviewGitUrl(data), manager.getPreviewRef(data), manager.getMergeStatus(data));
                 resultObject.setWebsites(updatedSites);
                 resultObject.setComponents(new ArrayList<>());
                 return Future.succeededFuture(resultObject);
