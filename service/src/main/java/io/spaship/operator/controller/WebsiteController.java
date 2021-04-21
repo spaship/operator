@@ -116,7 +116,7 @@ public class WebsiteController {
     }
 
     public void websiteAdded(Website website) {
-        if (website.getStatus() != null && StringUtils.equalsIgnoreCase(STATUS.DEPLOYED.toString(), website.getStatus().getStatus())) {
+        if (website.getStatus() != null && !StringUtils.equalsIgnoreCase(website.getStatus().getStatus(), STATUS.FAILED.toString())) {
             registerDeployedWebsite(website);
             return;
         }
