@@ -25,3 +25,10 @@ Once webhook is triggered following steps are performed:
 
 Operator exposes `api/webhook` endpoint to all websites. To secure your website use unique security token in `spec.secretToken` 
 to avoid unnecessary deployment/content refresh.
+
+## Previews based on Pull (Merge) Request
+
+On pull (merge) request event operator creates a copy of forked website with website name suffixed by `pr-<pr_number>.
+Once request is closed the forked website is deleted.
+
+Deployment descriptor can control if preview environments are created or not via `previews` field.

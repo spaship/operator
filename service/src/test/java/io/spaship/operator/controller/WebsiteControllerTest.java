@@ -45,8 +45,7 @@ class WebsiteControllerTest extends QuarkusTestBase {
 
     @Test
     void websiteAddedAndDeleted() {
-        mockDeleted("simple", "dev");
-        mockDeleted("simple", "prod");
+        mockDeleted("simple", List.of("dev", "prod"));
 
         websiteController.websiteAdded(WebhookTestCommon.SIMPLE_WEBSITE);
 
@@ -59,14 +58,7 @@ class WebsiteControllerTest extends QuarkusTestBase {
         assertPathsRequested(paths);
 
         websiteController.websiteDeleted(WebhookTestCommon.SIMPLE_WEBSITE);
-        assertPathsRequested(
-                "/api/v1/namespaces/spaship-examples/services/simple-content-prod",
-                "/apis/apps/v1/namespaces/spaship-examples/deployments/simple-content-prod",
-                "/api/v1/namespaces/spaship-examples/configmaps/simple-content-init-prod",
-                "/api/v1/namespaces/spaship-examples/services/simple-content-dev",
-                "/apis/apps/v1/namespaces/spaship-examples/deployments/simple-content-dev",
-                "/api/v1/namespaces/spaship-examples/configmaps/simple-content-init-dev"
-        );
+        assertPathsRequested(expectedDeleteWebRequests(List.of("prod", "dev"), "spaship-examples", "simple"));
 
     }
 

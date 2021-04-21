@@ -35,6 +35,9 @@ spec:
                 sslVerify:
                   type: boolean
                   default: true
+                previews:
+                  type: boolean
+                  default: false
                 secretToken:
                   type: string
                 displayName:

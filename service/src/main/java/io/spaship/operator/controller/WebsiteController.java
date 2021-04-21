@@ -72,6 +72,10 @@ public class WebsiteController {
         websiteClient = client.customResources(Website.class, WebsiteList.class);
     }
 
+    public MixedOperation<Website, WebsiteList, Resource<Website>> getWebsiteClient() {
+        return websiteClient;
+    }
+
     public void watch(long delay) {
         SharedInformerFactory sharedInformerFactory = client.informers();
         SharedIndexInformer<Website> websiteInformer = sharedInformerFactory.sharedIndexInformerFor(Website.class, TimeUnit.SECONDS.toMillis(resyncPeriodSec));
@@ -117,10 +121,7 @@ public class WebsiteController {
         Website websiteCrd;
         websiteCrd = updateStatus(website, STATUS.GIT_CLONING);
         try {
-            WebsiteConfig config = gitWebsiteConfigService.cloneRepo(website, true);
-            website.setConfig(config);
-
-            WebsiteStatus status = operatorService.initNewWebsite(website);
+            WebsiteStatus status = operatorService.deployNewWebsite(website, true);
             updateStatus(websiteCrd, STATUS.DEPLOYED, "", status.getEnvHosts());
         } catch (Exception e) {
             log.error("Error on CRD added", e);
@@ -287,4 +288,7 @@ public class WebsiteController {
         return ready;
     }
 
+    public boolean isCrdEnabled() {
+        return crdEnabled;
+    }
 }

@@ -23,14 +23,33 @@ public class GithubWebHookManager implements GitWebHookManager {
     @Inject
     WebsiteRepository websiteRepository;
 
+    protected String getEventHeader(HttpServerRequest request) {
+        return WebHookResource.getHeader(request, "X-GitHub-Event");
+    }
+
     @Override
     public boolean canHandleRequest(HttpServerRequest request) {
-        List<String> eventName = request.headers().getAll("X-GitHub-Event");
+        String eventName = getEventHeader(request);
         log.tracef("X-GitHub-Event=%s", eventName);
-        if (eventName != null && eventName.size() > 0 && StringUtils.isNotEmpty(eventName.get(0))) {
-            return true;
+        return StringUtils.isNotEmpty(eventName);
+    }
+
+    @Override
+    public boolean isMergeRequest(HttpServerRequest request) {
+        return StringUtils.equals("pull_request", getEventHeader(request));
+    }
+
+    @Override
+    public MergeStatus getMergeStatus(JsonObject data) {
+        String action = data.getString("action");
+
+        if (StringUtils.equals(action, "opened")) {
+            return MergeStatus.OPEN;
         }
-        return false;
+        if (StringUtils.equals(action, "closed")) {
+            return MergeStatus.CLOSE;
+        }
+        return MergeStatus.UPDATE;
     }
 
     public boolean isPingRequest(JsonObject data) {
@@ -55,23 +74,40 @@ public class GithubWebHookManager implements GitWebHookManager {
             throw new NotAuthorizedException("X-Hub-Signature-256 missing", "token");
         }
 
-        if (StringUtils.isEmpty(getGitUrl(data)) || StringUtils.isEmpty(getRef(data))) {
+        if (StringUtils.isEmpty(getGitUrl(request, data))) {
             throw new BadRequestException("Unsupported Event");
+        }
+        if (isMergeRequest(request)) {
+            if (StringUtils.isEmpty(getPreviewGitUrl(data)) || StringUtils.isEmpty(getPreviewRef(data))) {
+                throw new BadRequestException("Merge Event Data missing");
+            }
+        } else {
+            if (StringUtils.isEmpty(getRef(data))) {
+                throw new BadRequestException("Ref or branch not defined");
+            }
         }
     }
 
     @Override
     public List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject event) {
-        String gitUrl = getGitUrl(event);
+        String gitUrl = getGitUrl(request, event);
         String signature = WebHookResource.getHeader(request, "X-Hub-Signature-256");
 
         return websiteRepository.getByGitUrl(gitUrl, signature, true);
     }
 
     @Override
-    public String getGitUrl(JsonObject postData) {
+    public String getGitUrl(HttpServerRequest request, JsonObject postData) {
         if (postData != null && postData.containsKey("repository")) {
             return postData.getJsonObject("repository").getString("clone_url");
+        }
+        return null;
+    }
+
+    @Override
+    public String getPreviewGitUrl(JsonObject postData) {
+        if (postData != null && postData.containsKey("pull_request")) {
+            return postData.getJsonObject("pull_request").getJsonObject("head").getJsonObject("repo").getString("clone_url");
         }
         return null;
     }
@@ -82,5 +118,15 @@ public class GithubWebHookManager implements GitWebHookManager {
             return postData.getString("ref");
         }
         return null;
+    }
+
+    @Override
+    public String getPreviewRef(JsonObject postData) {
+        return postData.getJsonObject("pull_request").getJsonObject("head").getString("ref");
+    }
+
+    @Override
+    public String getPreviewId(JsonObject postData) {
+        return postData.getInteger("number").toString();
     }
 }

@@ -1,0 +1,142 @@
+{
+  "object_kind": "merge_request",
+  "event_type": "merge_request",
+  "user": {
+    "id": 3611,
+    "name": "lkrzyzan",
+    "username": "lkrzyzan",
+    "avatar_url": "https://seccdn.libravatar.org/avatar/6029b8a70a9e305525aa8f750d2a01c4?s=80&d=identicon",
+    "email": "lkrzyzan@redhat.com"
+  },
+  "project": {
+    "id": 41049,
+    "name": "spaship-examples",
+    "description": "Mirror of https://github.com/spaship/spaship-examples",
+    "web_url": "https://github.com/spaship/spaship-examples",
+    "avatar_url": null,
+    "git_ssh_url": "git@github.com:spaship/spaship-examples.git",
+    "git_http_url": "https://github.com/spaship/spaship-examples.git",
+    "namespace": "SPAship",
+    "visibility_level": 20,
+    "path_with_namespace": "spaship/spaship-examples",
+    "default_branch": "main",
+    "ci_config_path": "",
+    "homepage": "https://github.com/spaship/spaship-examples",
+    "url": "git@github.com:spaship/spaship-examples.git",
+    "ssh_url": "git@github.com:spaship/spaship-examples.git",
+    "http_url": "https://github.com/spaship/spaship-examples.git"
+  },
+  "object_attributes": {
+    "assignee_id": 3611,
+    "author_id": 3611,
+    "created_at": "2021-04-19 09:51:45 UTC",
+    "description": "Trying Preview Apps - https://github.com/spaship/operator/issues/48",
+    "head_pipeline_id": 1045136,
+    "id": 303885,
+    "iid": 1,
+    "last_edited_at": null,
+    "last_edited_by_id": null,
+    "merge_commit_sha": null,
+    "merge_error": null,
+    "merge_params": {
+    },
+    "merge_status": "can_be_merged",
+    "merge_user_id": null,
+    "merge_when_pipeline_succeeds": false,
+    "milestone_id": null,
+    "source_branch": "integration-test",
+    "source_project_id": 41858,
+    "state_id": 2,
+    "target_branch": "main",
+    "target_project_id": 41049,
+    "time_estimate": 0,
+    "title": "Added new SPA in advanced examples (By Fork)",
+    "updated_at": "2021-04-20 08:05:57 UTC",
+    "updated_by_id": null,
+    "url": "https://github.com/spaship/spaship-examples/-/merge_requests/1",
+    "source": {
+      "id": 41858,
+      "name": "spaship-examples",
+      "description": "Mirror of https://github.com/spaship/spaship-examples",
+      "web_url": "https://github.com/lkrzyzan/spaship-examples",
+      "avatar_url": null,
+      "git_ssh_url": "git@github.com:lkrzyzan/spaship-examples.git",
+      "git_http_url": "https://github.com/lkrzyzan/spaship-examples.git",
+      "namespace": "lkrzyzan",
+      "visibility_level": 20,
+      "path_with_namespace": "lkrzyzan/spaship-examples",
+      "default_branch": "main",
+      "ci_config_path": "",
+      "homepage": "https://github.com/lkrzyzan/spaship-examples",
+      "url": "git@github.com:lkrzyzan/spaship-examples.git",
+      "ssh_url": "git@github.com:lkrzyzan/spaship-examples.git",
+      "http_url": "https://github.com/spaship/spaship-examples.git"
+    },
+    "target": {
+      "id": 41049,
+      "name": "spaship-examples",
+      "description": "Mirror of https://github.com/spaship/spaship-examples",
+      "web_url": "https://github.com/spaship/spaship-examples",
+      "avatar_url": null,
+      "git_ssh_url": "git@github.com:spaship/spaship-examples.git",
+      "git_http_url": "https://github.com/spaship/spaship-examples.git",
+      "namespace": "SPAship",
+      "visibility_level": 20,
+      "path_with_namespace": "spaship/spaship-examples",
+      "default_branch": "main",
+      "ci_config_path": "",
+      "homepage": "https://github.com/spaship/spaship-examples",
+      "url": "git@github.com:spaship/spaship-examples.git",
+      "ssh_url": "git@github.com:spaship/spaship-examples.git",
+      "http_url": "https://github.com/spaship/spaship-examples.git"
+    },
+    "last_commit": {
+      "id": "688373313d0c726172a05bb9d43fa8e1b8dee7d6",
+      "message": "Update website.yaml",
+      "title": "Update website.yaml",
+      "timestamp": "2021-04-20T07:31:50+00:00",
+      "url": "https://github.com/spaship/spaship-examples/-/commit/688373313d0c726172a05bb9d43fa8e1b8dee7d6",
+      "author": {
+        "name": "lkrzyzan",
+        "email": "lkrzyzan@redhat.com"
+      }
+    },
+    "work_in_progress": false,
+    "total_time_spent": 0,
+    "human_total_time_spent": null,
+    "human_time_estimate": null,
+    "assignee_ids": [
+      3611
+    ],
+    "state": "closed",
+    "action": "close"
+  },
+  "labels": [
+
+  ],
+  "changes": {
+    "state_id": {
+      "previous": 1,
+      "current": 2
+    },
+    "updated_at": {
+      "previous": "2021-04-20 07:31:52 UTC",
+      "current": "2021-04-20 08:05:57 UTC"
+    }
+  },
+  "repository": {
+    "name": "spaship-examples",
+    "url": "git@github.com:spaship/spaship-examples.git",
+    "description": "Mirror of https://github.com/spaship/spaship-examples",
+    "homepage": "https://github.com/spaship/spaship-examples"
+  },
+  "assignees": [
+    {
+      "id": 3611,
+      "name": "lkrzyzan",
+      "username": "lkrzyzan",
+      "avatar_url": "https://seccdn.libravatar.org/avatar/6029b8a70a9e305525aa8f750d2a01c4?s=80&d=identicon",
+      "email": "lkrzyzan@redhat.com"
+    }
+  ]
+}

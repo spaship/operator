@@ -58,7 +58,7 @@ public class WebhookService {
         GitWebHookManager manager = getManager(request);
         if (manager == null) {
             if (githubWebHookManager.isPingRequest(data)) {
-                log.infof("Ping event registered. gitUrl=%s", githubWebHookManager.getGitUrl(data));
+                log.infof("Ping event registered. gitUrl=%s", githubWebHookManager.getGitUrl(request, data));
                 resultObject.setStatus(STATUS_PING);
                 return Future.succeededFuture(resultObject);
             } else {
@@ -79,6 +79,13 @@ public class WebhookService {
                 return Future.failedFuture(new NotAuthorizedException("no matched website", "token"));
             }
 
+            if (manager.isMergeRequest(request)) {
+                updatedSites = handlePreview(authorizedWebsites, manager.getPreviewId(data), manager.getPreviewGitUrl(data), manager.getPreviewRef(data), manager.getMergeStatus(data));
+                resultObject.setWebsites(updatedSites);
+                resultObject.setComponents(new ArrayList<>());
+                return Future.succeededFuture(resultObject);
+            }
+
             updatedSites = handleWebsites(authorizedWebsites);
             resultObject.setWebsites(updatedSites);
             someWebsitesUpdated = updatedSites.size() != 0;
@@ -91,7 +98,7 @@ public class WebhookService {
                 .map(site -> site.getNamespace() + "-" + site.getName())
                 .collect(Collectors.toSet());
 
-        String gitUrl = manager.getGitUrl(data);
+        final String gitUrl = manager.getGitUrl(request, data);
         String ref = manager.getRef(data);
         List<Future> updates = operatorService.updateRelatedComponents(authorizedWebsites, gitUrl, ref, updatedWebsiteIds);
         log.infof("Update components with same gitUrl and branch. gitUrl=%s ref=%s matchedComponents=%s", gitUrl, ref, updates.size());
@@ -121,6 +128,28 @@ public class WebhookService {
                     website.getMetadata().getName(),
                     website.getMetadata().getNamespace(),
                     updatePerformed ? STATUS_UPDATING : STATUS_IGNORED);
+            updatedSites.add(result);
+        }
+        return updatedSites;
+    }
+
+    protected List<UpdatedWebsite> handlePreview(List<Website> websites, String previewId, String previewGitUrl, String previewRef, GitWebHookManager.MergeStatus mergeStatus) throws GitAPIException, IOException {
+        List<UpdatedWebsite> updatedSites = new ArrayList<>();
+
+        for (Website website : websites) {
+            UpdatedWebsite result;
+            if (website.getSpec().getPreviews()) {
+                Website websiteCopy = OperatorService.createWebsiteCopy(website, previewId, previewGitUrl, previewRef);
+                if (mergeStatus == GitWebHookManager.MergeStatus.CLOSE) {
+                    operatorService.deleteWebsite(websiteCopy);
+                } else {
+                    operatorService.createOrUpdateWebsite(websiteCopy);
+                }
+                result = new UpdatedWebsite(website.getMetadata().getName(), website.getMetadata().getNamespace(), mergeStatus.toResponseStatus());
+            } else {
+                result = new UpdatedWebsite(website.getMetadata().getName(), website.getMetadata().getNamespace(), STATUS_IGNORED);
+                log.debugf("previews are disabled for website=%s", website.getMetadata().getName());
+            }
             updatedSites.add(result);
         }
         return updatedSites;

@@ -69,7 +69,7 @@ class GithubWebHookBasicTest extends WebhookTestCommon {
                 .then()
                 .log().ifValidationFails()
                 .statusCode(400)
-                .body(is("Unsupported Event"));
+                .body(is("Ref or branch not defined"));
     }
 
     @Test

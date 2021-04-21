@@ -37,6 +37,9 @@ spec:
                   default: true
                 secretToken:
                   type: string
+                previews:
+                  type: boolean
+                  default: false
                 displayName:
                   type: string
                 envs:

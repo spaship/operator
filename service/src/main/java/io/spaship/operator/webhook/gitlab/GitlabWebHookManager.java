@@ -23,14 +23,34 @@ public class GitlabWebHookManager implements GitWebHookManager {
     @Inject
     WebsiteRepository websiteRepository;
 
+    protected String getEventHeader(HttpServerRequest request) {
+        return WebHookResource.getHeader(request, "X-Gitlab-Event");
+    }
+
     @Override
     public boolean canHandleRequest(HttpServerRequest request) {
-        List<String> eventName = request.headers().getAll("X-Gitlab-Event");
+        String eventName = getEventHeader(request);
         log.tracef("X-Gitlab-Event=%s", eventName);
-        if (eventName != null && eventName.size() > 0 && StringUtils.isNotEmpty(eventName.get(0))) {
-            return true;
+        return StringUtils.isNotEmpty(eventName);
+    }
+
+    @Override
+    public boolean isMergeRequest(HttpServerRequest request) {
+        return StringUtils.equals("Merge Request Hook", getEventHeader(request));
+    }
+
+    @Override
+    public MergeStatus getMergeStatus(JsonObject data) {
+        String state = data.getJsonObject("object_attributes").getString("state");
+        String action = data.getJsonObject("object_attributes").getString("action");
+
+        if (StringUtils.equals(state, "opened")) {
+            return StringUtils.equals(action, "update") ? MergeStatus.UPDATE : MergeStatus.OPEN;
         }
-        return false;
+        if (StringUtils.equals(state, "closed")){
+            return MergeStatus.CLOSE;
+        }
+        return null;
     }
 
     @Override
@@ -42,23 +62,46 @@ public class GitlabWebHookManager implements GitWebHookManager {
             throw new NotAuthorizedException("X-Gitlab-Token missing", "token");
         }
 
-        if (StringUtils.isEmpty(getGitUrl(data)) || StringUtils.isEmpty(getRef(data))) {
+        if (StringUtils.isEmpty(getGitUrl(request, data))) {
             throw new BadRequestException("Unsupported Event");
+        }
+        if (isMergeRequest(request)) {
+            if (StringUtils.isEmpty(getPreviewGitUrl(data)) || StringUtils.isEmpty(getPreviewRef(data))) {
+                throw new BadRequestException("Merge Event Data missing");
+            }
+        } else {
+            if (StringUtils.isEmpty(getRef(data))) {
+                throw new BadRequestException("Ref or branch not defined");
+            }
         }
     }
 
     @Override
     public List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject event) {
-        String gitUrl = getGitUrl(event);
+        String gitUrl = getGitUrl(request, event);
         String signature = WebHookResource.getHeader(request, "X-Gitlab-Token");
 
         return websiteRepository.getByGitUrl(gitUrl, signature, false);
     }
 
     @Override
-    public String getGitUrl(JsonObject postData) {
+    public String getGitUrl(HttpServerRequest request, JsonObject postData) {
+        if (isMergeRequest(request)) {
+            if (postData.containsKey("project")) {
+                return postData.getJsonObject("project").getString("git_http_url");
+            }
+        }
+
         if (postData != null && postData.containsKey("repository")) {
             return postData.getJsonObject("repository").getString("git_http_url");
+        }
+        return null;
+    }
+
+    @Override
+    public String getPreviewGitUrl(JsonObject postData) {
+        if (postData.containsKey("object_attributes")) {
+            return postData.getJsonObject("object_attributes").getJsonObject("source").getString("git_http_url");
         }
         return null;
     }
@@ -71,4 +114,19 @@ public class GitlabWebHookManager implements GitWebHookManager {
         return null;
     }
 
+    @Override
+    public String getPreviewRef(JsonObject postData) {
+        if (postData != null && postData.containsKey("object_attributes")) {
+            return postData.getJsonObject("object_attributes").getString("source_branch");
+        }
+        return null;
+    }
+
+    @Override
+    public String getPreviewId(JsonObject postData) {
+        if (postData != null && postData.containsKey("object_attributes")) {
+            return postData.getJsonObject("object_attributes").getInteger("iid").toString();
+        }
+        return null;
+    }
 }
