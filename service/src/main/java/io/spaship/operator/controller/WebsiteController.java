@@ -116,6 +116,12 @@ public class WebsiteController {
     }
 
     public void websiteAdded(Website website) {
+        if (website.getStatus() != null && StringUtils.isNotEmpty(website.getStatus().getStatus())
+                && !StringUtils.equalsIgnoreCase(website.getStatus().getStatus(), STATUS.FAILED.toString())) {
+            registerDeployedWebsite(website);
+            return;
+        }
+
         log.infof("Website added, websiteId=%s status=%s", website.getId(), website.getStatus());
 
         Website websiteCrd;
@@ -126,6 +132,15 @@ public class WebsiteController {
         } catch (Exception e) {
             log.error("Error on CRD added", e);
             updateStatus(websiteCrd, STATUS.FAILED, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void registerDeployedWebsite(Website website) {
+        try {
+            operatorService.updateAndRegisterWebsite(website, false);
+        } catch (Exception e) {
+            log.error("Error on registering Deployed Website", e);
             throw new RuntimeException(e);
         }
     }
@@ -182,7 +197,8 @@ public class WebsiteController {
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus) {
         return updateStatus(websiteToUpdate, newStatus, "", null);
     }
-    public Website updateStatus(Website websiteToUpdate, STATUS newStatus,String message) {
+
+    public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message) {
         return updateStatus(websiteToUpdate, newStatus, message, null);
     }
 
@@ -233,8 +249,6 @@ public class WebsiteController {
             Website website = websiteClient.inNamespace(namespace).withName(name).get();
             if (website == null) return;
 
-            log.infof("Website updated env for websiteId=%s envName=%s value=%s", website.getId(), envName, value);
-
             List<String> envs = website.getStatus().getEnvs();
             String envValue = envName + value;
             int existingIndex = -1;
@@ -248,12 +262,22 @@ public class WebsiteController {
                     }
                 }
             }
+            boolean updated = false;
             if (existingIndex != -1) {
-                envs.set(existingIndex, envValue);
+                if (!StringUtils.equals(envs.get(existingIndex), envValue)) {
+                    envs.set(existingIndex, envValue);
+                    updated = true;
+                }
             } else {
                 envs.add(envValue);
+                updated = true;
+            }
+            if (!updated) {
+                log.debugf("Website updated env IGNORED, websiteId=%s envName=%s value=%s", website.getId(), envName, value);
+                return;
             }
 
+            log.infof("Website updated env, websiteId=%s envName=%s value=%s", website.getId(), envName, value);
 
             website.getStatus().setEnvs(envs);
             websiteClient.inNamespace(namespace).withName(name).updateStatus(website);

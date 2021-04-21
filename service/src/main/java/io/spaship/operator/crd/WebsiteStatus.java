@@ -12,7 +12,6 @@ public class WebsiteStatus {
     public static enum STATUS {
         GIT_CLONING,
         GIT_PULLING,
-        CREATING,
         FAILED,
         DEPLOYED;
         @Override
@@ -22,8 +21,6 @@ public class WebsiteStatus {
                     return "Git Cloning";
                 case GIT_PULLING:
                     return "Git Pulling";
-                case CREATING:
-                    return "Creating";
                 case FAILED:
                     return "Failed";
                 case DEPLOYED:

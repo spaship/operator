@@ -261,10 +261,16 @@ public class OperatorService {
         }
     }
 
-    public WebsiteStatus deployNewWebsite(Website website, boolean updateIfExists) throws IOException, GitAPIException {
-        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website, updateIfExists);
+    public WebsiteStatus deployNewWebsite(Website website, boolean updateGitIfExists) throws IOException, GitAPIException {
+        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website, updateGitIfExists);
         website.setConfig(websiteConfig);
         return initNewWebsite(website);
+    }
+
+    public void updateAndRegisterWebsite(Website website, boolean updateGitIfExists) throws GitAPIException, IOException {
+        WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website, updateGitIfExists);
+        website.setConfig(websiteConfig);
+        websiteRepository.addWebsite(website);
     }
 
 }
