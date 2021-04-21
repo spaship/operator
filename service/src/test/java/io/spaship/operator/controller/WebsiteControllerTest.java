@@ -2,7 +2,9 @@ package io.spaship.operator.controller;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.spaship.operator.QuarkusTestBase;
+import io.spaship.operator.crd.Website;
 import io.spaship.operator.crd.WebsiteList;
+import io.spaship.operator.crd.WebsiteStatus;
 import io.spaship.operator.rest.WebhookTestCommon;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,10 @@ class WebsiteControllerTest extends QuarkusTestBase {
 
     @Inject
     WebsiteController websiteController;
+
+    List<String> envs = List.of("dev", "prod");
+    List<String> addedPaths;
+    List<String> deletedPaths;
 
     @BeforeEach
     protected void setupCrdMock() {
@@ -41,25 +47,42 @@ class WebsiteControllerTest extends QuarkusTestBase {
                 .andReturn(200, WebhookTestCommon.SIMPLE_WEBSITE)
                 .always();
         websiteController.initWebsiteCrd();
+
+        addedPaths = expectedRegisterWebRequests(2);
+        addedPaths.add("/apis/spaship.io/v1/namespaces/spaship-examples/websites/simple");
+        addedPaths.add("/apis/spaship.io/v1/namespaces/spaship-examples/websites/simple/status");
+        addedPaths.add("/apis/spaship.io/v1/namespaces/spaship-examples/websites/simple");
+        addedPaths.add("/apis/spaship.io/v1/namespaces/spaship-examples/websites/simple/status");
+
+        deletedPaths = expectedDeleteWebRequests(envs, "spaship-examples", "simple");
     }
 
     @Test
     void websiteAddedAndDeleted() {
-        mockDeleted("simple", List.of("dev", "prod"));
+        Website website = WebhookTestCommon.SIMPLE_WEBSITE;
 
-        websiteController.websiteAdded(WebhookTestCommon.SIMPLE_WEBSITE);
+        websiteController.websiteAdded(website);
+        assertPathsRequested(addedPaths);
 
-        List<String> paths = expectedRegisterWebRequests(2);
-        paths.add("/apis/spaship.io/v1/namespaces/spaship-examples/websites/simple");
-        paths.add("/apis/spaship.io/v1/namespaces/spaship-examples/websites/simple/status");
-        paths.add("/apis/spaship.io/v1/namespaces/spaship-examples/websites/simple");
-        paths.add("/apis/spaship.io/v1/namespaces/spaship-examples/websites/simple/status");
+        mockDeleted(website.getMetadata().getName(), envs);
 
-        assertPathsRequested(paths);
+        websiteController.websiteDeleted(website);
+        assertPathsRequested(deletedPaths);
 
-        websiteController.websiteDeleted(WebhookTestCommon.SIMPLE_WEBSITE);
-        assertPathsRequested(expectedDeleteWebRequests(List.of("prod", "dev"), "spaship-examples", "simple"));
+    }
 
+    @Test
+    void websiteAddedStatusFailed() {
+        Website website = WebhookTestCommon.SIMPLE_WEBSITE;
+        website.getStatus().setStatus(WebsiteStatus.STATUS.FAILED);
+
+        websiteController.websiteAdded(website);
+        assertPathsRequested(addedPaths);
+
+        mockDeleted(website.getMetadata().getName(), envs);
+
+        websiteController.websiteDeleted(website);
+        assertPathsRequested(deletedPaths);
     }
 
 }
