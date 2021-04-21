@@ -12,6 +12,7 @@ import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.content.ContentController;
 import io.spaship.operator.content.UpdatedComponent;
 import io.spaship.operator.crd.Website;
+import io.spaship.operator.crd.WebsiteEnvs;
 import io.spaship.operator.crd.WebsiteSpec;
 import io.spaship.operator.crd.WebsiteStatus;
 import io.spaship.operator.router.IngressController;
@@ -226,10 +227,17 @@ public class OperatorService {
         Website previewWebsite = new Website();
 
         WebsiteSpec sourceSpec = website.getSpec();
+        log.tracef("source spec to copy=%s", sourceSpec);
         // Git Spec is from Merge request
-        WebsiteSpec spec = new WebsiteSpec(previewGitUrl, previewRef, sourceSpec.getDir(), sourceSpec.getSslVerify(), sourceSpec.getSecretToken());
+        // For some reason Openshift reject "null" values even they're not required. That's why "trimToEmpty"
+        WebsiteSpec spec = new WebsiteSpec(previewGitUrl, previewRef, StringUtils.trimToEmpty(sourceSpec.getDir()),
+                sourceSpec.getSslVerify(), StringUtils.trimToEmpty(sourceSpec.getSecretToken()));
         spec.setPreviews(false);
-        spec.setEnvs(sourceSpec.getEnvs());
+        spec.setDisplayName(StringUtils.trimToEmpty(sourceSpec.getDisplayName()));
+        spec.setEnvs(sourceSpec.getEnvs() != null ? sourceSpec.getEnvs() : new WebsiteEnvs());
+        if (spec.getEnvs().getIncluded() == null) spec.getEnvs().setIncluded(new ArrayList<>());
+        if (spec.getEnvs().getExcluded() == null) spec.getEnvs().setExcluded(new ArrayList<>());
+
         previewWebsite.setSpec(spec);
 
         // Just change the name to "name"-<previewId>

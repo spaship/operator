@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.spaship.operator.crd.matcher.EnvIncluded.isEnvEnabled;
@@ -56,6 +57,18 @@ class EnvIncludedTest {
     }
 
     @Test
+    void isEnvIncludedEmptyList() {
+        website.getConfig().setEnvs(configEnvs);
+        WebsiteEnvs envs = new WebsiteEnvs();
+        website.getSpec().setEnvs(envs);
+
+        envs.setIncluded(List.of());
+        assertTrue(isEnvEnabled(website,"env1"));
+        assertTrue(isEnvEnabled(website,"env2"));
+        assertTrue(isEnvEnabled(website,"env3"));
+    }
+
+    @Test
     void isEnvIncludedRegexp() {
         website.getConfig().setEnvs(configEnvs);
         WebsiteEnvs envs = new WebsiteEnvs();
@@ -88,6 +101,19 @@ class EnvIncludedTest {
         assertFalse(isEnvEnabled(website,"env2"));
         assertTrue(isEnvEnabled(website,"env3"));
     }
+
+    @Test
+    void isEnvExcludedEmptyList() {
+        website.getConfig().setEnvs(configEnvs);
+        WebsiteEnvs envs = new WebsiteEnvs();
+        website.getSpec().setEnvs(envs);
+
+        envs.setExcluded(List.of());
+        assertTrue(isEnvEnabled(website,"env1"));
+        assertTrue(isEnvEnabled(website,"env2"));
+        assertTrue(isEnvEnabled(website,"env3"));
+    }
+
 
     @Test
     void isEnvExcludedRegexp() {

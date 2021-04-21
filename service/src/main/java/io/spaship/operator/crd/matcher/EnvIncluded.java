@@ -23,7 +23,7 @@ public class EnvIncluded implements Predicate<String> {
             return true;
         }
         WebsiteEnvs envs = website.getSpec().getEnvs();
-        if (envs.getIncluded() != null) {
+        if (envs.getIncluded() != null && envs.getIncluded().size() > 0) {
             for (String include : envs.getIncluded()) {
                 if (env.matches(include)) {
                     return true;
@@ -31,7 +31,7 @@ public class EnvIncluded implements Predicate<String> {
             }
             return false;
         }
-        if (envs.getExcluded() != null) {
+        if (envs.getExcluded() != null && envs.getExcluded().size() > 0) {
             for (String exclude : envs.getExcluded()) {
                 if (env.matches(exclude)) {
                     return false;
