@@ -105,7 +105,7 @@ public class WebsiteConfigEnvProvider {
     }
 
     public void registerWebsite(Website website, boolean updateIfExists) throws IOException, GitAPIException {
-        operatorService.deployNewWebsite(website, updateIfExists);
+        operatorService.deployNewWebsite(website, updateIfExists, false);
         log.infof("Initialization completed from ENV provider.");
     }
 

@@ -10,7 +10,6 @@ import io.spaship.operator.controller.WebsiteRepository;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.crd.WebsiteSpec;
 import io.spaship.operator.openshift.OperatorServiceTest;
-import io.spaship.operator.openshift.WebsiteConfigEnvProvider;
 import io.spaship.operator.websiteconfig.GitWebsiteConfigService;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -54,8 +53,6 @@ public class WebhookTestCommon extends QuarkusTestBase {
     WebsiteRepository websiteRepository;
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
-    @Inject
-    WebsiteConfigEnvProvider websiteConfigEnvProvider;
 
     protected static Vertx vertx;
     protected static ContentApiMock apiMock;
@@ -86,7 +83,7 @@ public class WebhookTestCommon extends QuarkusTestBase {
         if (reset) {
             websiteRepository.reset();
         }
-        websiteConfigEnvProvider.registerWebsite(website, false);
+        operatorService.deployNewWebsite(website, false, false);
         assertPathsRequested(expectedRegisterWebRequests(2, website.getMetadata().getNamespace()));
     }
 

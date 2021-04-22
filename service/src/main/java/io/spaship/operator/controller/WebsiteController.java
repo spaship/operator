@@ -127,7 +127,7 @@ public class WebsiteController {
         Website websiteCrd;
         websiteCrd = updateStatus(website, STATUS.GIT_CLONING);
         try {
-            WebsiteStatus status = operatorService.deployNewWebsite(website, true);
+            WebsiteStatus status = operatorService.deployNewWebsite(website, true, false);
             updateStatus(websiteCrd, STATUS.DEPLOYED, "", status.getEnvHosts());
         } catch (Exception e) {
             log.error("Error on CRD added", e);
@@ -163,7 +163,7 @@ public class WebsiteController {
             }
             newWebsite.setConfig(newConfig);
 
-            WebsiteStatus status = operatorService.initInfrastructure(newWebsite, true);
+            WebsiteStatus status = operatorService.initNewWebsite(newWebsite, true);
             updateStatus(websiteCrd, STATUS.DEPLOYED, "", status.getEnvHosts());
         } catch (Exception e) {
             log.error("Error on CRD modified", e);

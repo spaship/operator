@@ -65,6 +65,19 @@ public class QuarkusTestBase {
                 .always();
     }
 
+    protected void setupMockServerRedeploy(List<String> envs, String namespace, String name) {
+        for (String env : envs) {
+            String deploymentName = name + "-content-" + env;
+            mockServer.expect()
+                    .get().withPath("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + deploymentName)
+                    .andReturn(200, new DeploymentBuilder().withMetadata(new ObjectMetaBuilder().withName(deploymentName).build()).build()).always();
+            mockServer.expect()
+                    .patch().withPath("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + deploymentName)
+                    .andReturn(200, new DeploymentBuilder().withMetadata(new ObjectMetaBuilder().withName(deploymentName).build()).build()).always();
+
+        }
+    }
+
     protected void mockDeleted(String websiteName, List<String> envs) {
         for (String env : envs) {
             mockServer.expect()
@@ -130,6 +143,16 @@ public class QuarkusTestBase {
         for (String env : envs) {
             result.add("/api/v1/namespaces/" + namespace + "/configmaps/" + name + "-content-init-" + env);
             result.add("/api/v1/namespaces/" + namespace + "/services/" + name + "-content-" + env);
+            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
+        }
+        return result;
+    }
+
+    public static List<String> expectedRedeployWebRequests(List<String> envs, String namespace, String name) {
+        ArrayList<String> result = new ArrayList<>();
+        for (String env : envs) {
+            //get + patch
+            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
             result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
         }
         return result;

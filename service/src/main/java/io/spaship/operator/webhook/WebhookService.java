@@ -143,7 +143,7 @@ public class WebhookService {
                 if (mergeStatus == GitWebHookManager.MergeStatus.CLOSE) {
                     operatorService.deleteWebsite(websiteCopy);
                 } else {
-                    operatorService.createOrUpdateWebsite(websiteCopy);
+                    operatorService.createOrUpdateWebsite(websiteCopy, true);
                 }
                 result = new UpdatedWebsite(website.getMetadata().getName(), website.getMetadata().getNamespace(), mergeStatus.toResponseStatus());
             } else {

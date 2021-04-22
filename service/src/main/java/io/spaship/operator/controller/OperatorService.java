@@ -69,13 +69,9 @@ public class OperatorService {
     void startup(@Observes StartupEvent event) {
     }
 
-    public WebsiteStatus initNewWebsite(Website website) {
-        return initInfrastructure(website, false);
-    }
-
-    public WebsiteStatus initInfrastructure(Website website, boolean redeploy) {
+    public WebsiteStatus initNewWebsite(Website website, boolean redeploy) {
         Set<String> enabledEnvs = website.getEnabledEnvs();
-        log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s", website.getId(), enabledEnvs);
+        log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s redeploy=%s", website.getId(), enabledEnvs, redeploy);
         websiteRepository.addWebsite(website);
 
         RuntimeException exception = null;
@@ -208,7 +204,7 @@ public class OperatorService {
             try {
                 website.setConfig(newConfig);
 
-                initInfrastructure(website, true);
+                initNewWebsite(website, true);
                 future.complete();
             } catch (Exception e) {
                 future.fail(e.getMessage());
@@ -248,13 +244,13 @@ public class OperatorService {
         return previewWebsite;
     }
 
-    public void createOrUpdateWebsite(Website website) throws GitAPIException, IOException {
+    public void createOrUpdateWebsite(Website website, boolean redeploy) throws GitAPIException, IOException {
         log.infof("Deploying website website_id=%s", website.getId());
 
         if (websiteController.isCrdEnabled()) {
             websiteController.getWebsiteClient().inNamespace(website.getMetadata().getNamespace()).createOrReplace(website);
         } else {
-            deployNewWebsite(website, true);
+            deployNewWebsite(website, true, redeploy);
         }
     }
 
@@ -269,10 +265,10 @@ public class OperatorService {
         }
     }
 
-    public WebsiteStatus deployNewWebsite(Website website, boolean updateGitIfExists) throws IOException, GitAPIException {
+    public WebsiteStatus deployNewWebsite(Website website, boolean updateGitIfExists, boolean redeploy) throws IOException, GitAPIException {
         WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website, updateGitIfExists);
         website.setConfig(websiteConfig);
-        return initNewWebsite(website);
+        return initNewWebsite(website, redeploy);
     }
 
     public void updateAndRegisterWebsite(Website website, boolean updateGitIfExists) throws GitAPIException, IOException {

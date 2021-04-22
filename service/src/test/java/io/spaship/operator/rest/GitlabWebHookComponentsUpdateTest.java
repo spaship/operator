@@ -94,7 +94,7 @@ class GitlabWebHookComponentsUpdateTest extends WebhookTestCommon {
         websiteConfig.getComponents().get(1).getSpec().setUrl("COMPONENT2_URL");
 
         website.setConfig(websiteConfig);
-        operatorService.initNewWebsite(website);
+        operatorService.initNewWebsite(website, false);
 
         String body = getGitlabEventBody("COMPONENT_URL", "main");
 

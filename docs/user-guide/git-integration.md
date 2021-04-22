@@ -28,7 +28,7 @@ to avoid unnecessary deployment/content refresh.
 
 ## Merge Request Previews
 
-On Merge request event the operator creates a copy of forked website with website name suffixed by `-pr-<pr_number>`.
+On Merge request event the operator creates a copy of forked website with website name suffixed by `-pr-<pr_number>-<env_name>`.
 The copied website is deployed in exactly same way as source website - same included/excluded environments, secret token etc.
 
 The only difference is that `git url` and `branch` is used from the Merge Request and display name is suffixed by ` - Fork`.

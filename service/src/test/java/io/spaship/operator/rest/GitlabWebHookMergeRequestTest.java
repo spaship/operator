@@ -22,6 +22,8 @@ class GitlabWebHookMergeRequestTest extends WebhookTestCommon {
         website.getSpec().setPreviews(true);
         registerWeb(website, true);
 
+        setupMockServerRedeploy(List.of("dev", "prod"), EXAMPLES_NAMESPACE, "simple-pr-1");
+
         // CRD is disabled
 //        websiteController.initWebsiteCrd();
 //        mockServer.expect()
@@ -43,7 +45,10 @@ class GitlabWebHookMergeRequestTest extends WebhookTestCommon {
                 .body("websites[0].name", is("simple")).body("websites[0].status", is("PREVIEW_CREATING"))
                 .body("components.size()", is(0));  // no matched component
 
-        assertPathsRequested(expectedRegisterWebRequests(2, website.getMetadata().getNamespace()));
+        List<String> paths = expectedRegisterWebRequests(2, website.getMetadata().getNamespace());
+        paths.addAll(expectedRedeployWebRequests(List.of("dev", "prod"), EXAMPLES_NAMESPACE, "simple-pr-1"));
+
+        assertPathsRequested(paths);
     }
 
     @Test
@@ -51,6 +56,8 @@ class GitlabWebHookMergeRequestTest extends WebhookTestCommon {
         Website website = SIMPLE_WEBSITE;
         website.getSpec().setPreviews(true);
         registerWeb(website, true);
+
+        setupMockServerRedeploy(List.of("dev", "prod"), EXAMPLES_NAMESPACE, "simple-pr-1");
 
         given()
                 .header("Content-type", "application/json")
@@ -66,7 +73,10 @@ class GitlabWebHookMergeRequestTest extends WebhookTestCommon {
                 .body("websites[0].name", is("simple")).body("websites[0].status", is("PREVIEW_UPDATING"))
                 .body("components.size()", is(0));  // no matched component
 
-        assertPathsRequested(expectedRegisterWebRequests(2, website.getMetadata().getNamespace()));
+        List<String> paths = expectedRegisterWebRequests(2, website.getMetadata().getNamespace());
+        paths.addAll(expectedRedeployWebRequests(List.of("dev", "prod"), EXAMPLES_NAMESPACE, "simple-pr-1"));
+
+        assertPathsRequested(paths);
     }
 
     @Test

@@ -7,6 +7,8 @@ import io.spaship.operator.openshift.OperatorServiceTest;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
@@ -37,6 +39,8 @@ class GithubWebHookMergeRequestTest extends WebhookTestCommon {
         website.getSpec().setPreviews(true);
         registerWeb(website, true);
 
+        setupMockServerRedeploy(List.of("dev", "prod"), EXAMPLES_NAMESPACE, "simple-pr-1");
+
         given()
                 .header("Content-type", "application/json")
                 .header("X-GitHub-Event", "pull_request")
@@ -51,7 +55,10 @@ class GithubWebHookMergeRequestTest extends WebhookTestCommon {
                 .body("websites[0].name", is("simple")).body("websites[0].status", is("PREVIEW_CREATING"))
                 .body("components.size()", is(0));  // no matched component
 
-        assertPathsRequested(expectedRegisterWebRequests(2, website.getMetadata().getNamespace()));
+        List<String> paths = expectedRegisterWebRequests(2, website.getMetadata().getNamespace());
+        paths.addAll(expectedRedeployWebRequests(List.of("dev", "prod"), EXAMPLES_NAMESPACE, "simple-pr-1"));
+
+        assertPathsRequested(paths);
     }
 
 }
