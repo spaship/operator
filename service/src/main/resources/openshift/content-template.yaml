@@ -97,7 +97,7 @@ objects:
                   memory: 100Mi
                 limits:
                   cpu: 100m
-                  memory: 100Mi
+                  memory: 250Mi
               env:
                 - name: CONFIG_PATH
                   value: "/app/config/content-config-git.yaml"
