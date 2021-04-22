@@ -233,7 +233,7 @@ public class OperatorService {
         WebsiteSpec spec = new WebsiteSpec(previewGitUrl, previewRef, StringUtils.trimToEmpty(sourceSpec.getDir()),
                 sourceSpec.getSslVerify(), StringUtils.trimToEmpty(sourceSpec.getSecretToken()));
         spec.setPreviews(false);
-        spec.setDisplayName(StringUtils.trimToEmpty(sourceSpec.getDisplayName()));
+        spec.setDisplayName(StringUtils.trimToEmpty(sourceSpec.getDisplayName()) + " - Fork");
         spec.setEnvs(sourceSpec.getEnvs() != null ? sourceSpec.getEnvs() : new WebsiteEnvs());
         if (spec.getEnvs().getIncluded() == null) spec.getEnvs().setIncluded(new ArrayList<>());
         if (spec.getEnvs().getExcluded() == null) spec.getEnvs().setExcluded(new ArrayList<>());

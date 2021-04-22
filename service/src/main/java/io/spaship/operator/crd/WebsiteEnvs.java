@@ -12,6 +12,14 @@ public class WebsiteEnvs {
 
     List<String> excluded;
 
+    public WebsiteEnvs() {
+    }
+
+    public WebsiteEnvs(List<String> included, List<String> excluded) {
+        this.included = included;
+        this.excluded = excluded;
+    }
+
     public List<String> getIncluded() {
         return included;
     }
