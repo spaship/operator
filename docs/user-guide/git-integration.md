@@ -26,9 +26,13 @@ Once webhook is triggered following steps are performed:
 Operator exposes `api/webhook` endpoint to all websites. To secure your website use unique security token in `spec.secretToken` 
 to avoid unnecessary deployment/content refresh.
 
-## Previews based on Pull (Merge) Request
+## Merge Request Previews
 
-On pull (merge) request event operator creates a copy of forked website with website name suffixed by `pr-<pr_number>.
+On Merge request event the operator creates a copy of forked website with website name suffixed by `-pr-<pr_number>`.
+The copied website is deployed in exactly same way as source website - same included/excluded environments, secret token etc.
+
+The only difference is that `git url` and `branch` is used from the Merge Request and display name is suffixed by ` - Fork`.
+
 Once request is closed the forked website is deleted.
 
 Deployment descriptor can control if preview environments are created or not via `previews` field.
