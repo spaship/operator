@@ -4,5 +4,7 @@
 
 # Package Files #
 target/
-website.git/
+git-website_spaship-examples-simple/
+git-website_spaship-examples-simple-pr-1/
+git-website_spaship-examples-advanced/
 jmeter.log

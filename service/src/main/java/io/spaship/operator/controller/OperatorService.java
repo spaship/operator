@@ -30,7 +30,6 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -241,12 +240,9 @@ public class OperatorService {
         ObjectMeta sourceMetadata = website.getMetadata();
         String previewName = sourceMetadata.getName() + "-pr-" + previewId;
 
-        String updated = WebsiteController.updatedDateFormat.format(new Date());
         ObjectMetaBuilder metadata = new ObjectMetaBuilder()
                 .withName(previewName).withNamespace(sourceMetadata.getNamespace())
                 .addToLabels("websiteFork", sourceMetadata.getName());
-
-        website.setStatus(new WebsiteStatus(updated));
 
         previewWebsite.setMetadata(metadata.build());
         return previewWebsite;

@@ -4,7 +4,6 @@ import io.spaship.operator.crd.Website;
 import io.spaship.operator.crd.WebsiteEnvs;
 import io.spaship.operator.crd.WebsiteSpec;
 import io.spaship.operator.rest.WebhookTestCommon;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -33,6 +32,6 @@ class OperatorServiceTest {
         assertEquals(websiteSpec.getSecretToken(), specCopy.getSecretToken());
         assertEquals(websiteSpec.getSslVerify(), specCopy.getSslVerify());
         assertEquals("simple", websiteCopy.getMetadata().getLabels().get("websiteFork"));
-        assertTrue(StringUtils.isNotEmpty(websiteCopy.getMetadata().getLabels().get("updated")));
+        assertNull(websiteCopy.getStatus());
     }
 }

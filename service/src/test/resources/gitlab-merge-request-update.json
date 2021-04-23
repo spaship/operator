@@ -58,18 +58,18 @@
       "id": 41858,
       "name": "spaship-examples",
       "description": "Mirror of https://github.com/spaship/spaship-examples",
-      "web_url": "https://github.com/lkrzyzan/spaship-examples",
+      "web_url": "https://github.com/spaship/spaship-examples",
       "avatar_url": null,
-      "git_ssh_url": "git@github.com:lkrzyzan/spaship-examples.git",
-      "git_http_url": "https://github.com/lkrzyzan/spaship-examples.git",
-      "namespace": "lkrzyzan",
+      "git_ssh_url": "git@github.com:spaship/spaship-examples.git",
+      "git_http_url": "https://github.com/spaship/spaship-examples.git",
+      "namespace": "spaship",
       "visibility_level": 20,
-      "path_with_namespace": "lkrzyzan/spaship-examples",
+      "path_with_namespace": "spaship/spaship-examples",
       "default_branch": "main",
       "ci_config_path": "",
-      "homepage": "https://github.com/lkrzyzan/spaship-examples",
-      "url": "git@github.com:lkrzyzan/spaship-examples.git",
-      "ssh_url": "git@github.com:lkrzyzan/spaship-examples.git",
+      "homepage": "https://github.com/spaship/spaship-examples",
+      "url": "git@github.com:spaship/spaship-examples.git",
+      "ssh_url": "git@github.com:spaship/spaship-examples.git",
       "http_url": "https://github.com/spaship/spaship-examples.git"
     },
     "target": {
@@ -97,8 +97,8 @@
       "timestamp": "2021-04-19T09:50:09+00:00",
       "url": "https://github.com/spaship/spaship-examples/-/commit/a10270e204d075b3085d7a1505a39d5b1c3215bb",
       "author": {
-        "name": "lkrzyzan",
-        "email": "lkrzyzan@redhat.com"
+        "name": "spaship",
+        "email": "spaship@redhat.com"
       }
     },
     "work_in_progress": false,
@@ -129,10 +129,10 @@
   "assignees": [
     {
       "id": 3611,
-      "name": "lkrzyzan",
-      "username": "lkrzyzan",
+      "name": "spaship",
+      "username": "spaship",
       "avatar_url": "https://seccdn.libravatar.org/avatar/6029b8a70a9e305525aa8f750d2a01c4?s=80&d=identicon",
-      "email": "lkrzyzan@redhat.com"
+      "email": "spaship@redhat.com"
     }
   ]
 }
