@@ -207,6 +207,7 @@ public class WebsiteController {
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus) {
         return updateStatus(websiteToUpdate, newStatus, false);
     }
+
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus, boolean updated) {
         return updateStatus(websiteToUpdate, newStatus, null, null, updated);
     }
@@ -214,9 +215,11 @@ public class WebsiteController {
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message) {
         return updateStatus(websiteToUpdate, newStatus, message, null, false);
     }
+
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message, Map<String, String> envHosts) {
         return updateStatus(websiteToUpdate, newStatus, message, envHosts, false);
     }
+
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message, Map<String, String> envHosts, boolean updated) {
         String ns = websiteToUpdate.getMetadata().getNamespace();
         String name = websiteToUpdate.getMetadata().getName();
@@ -232,6 +235,7 @@ public class WebsiteController {
             if (envHosts != null) status.setEnvHosts(envHosts);
             if (newStatus != null) status.setStatus(newStatus);
             if (updated) status.setUpdated(updatedDateFormat.format(new Date()));
+            if (status.getUpdated() == null) status.setUpdated("");
 
             website.setStatus(status);
 
