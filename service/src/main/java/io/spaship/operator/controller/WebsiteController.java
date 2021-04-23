@@ -22,10 +22,9 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
@@ -55,6 +54,8 @@ public class WebsiteController {
     Vertx vertx;
 
     private boolean ready = false;
+
+    static DateFormat updatedDateFormat = new SimpleDateFormat("yyyy-MM-dd_hhmmss");
 
     MixedOperation<Website, WebsiteList, Resource<Website>> websiteClient;
 
@@ -91,7 +92,10 @@ public class WebsiteController {
                 if (oldWebsite.getMetadata().getResourceVersion().equals(newWebsite.getMetadata().getResourceVersion())) {
                     return;
                 }
-                if (oldWebsite.getSpec().equals(newWebsite.getSpec())) {
+                if (Objects.equals(oldWebsite.getMetadata().getLabels(), newWebsite.getMetadata().getLabels())
+                        && (oldWebsite.getStatus() != null && !STATUS.FORCE_UPDATE.equalsTo(newWebsite.getStatus().getStatus()))
+                        && oldWebsite.getSpec().equals(newWebsite.getSpec())) {
+                    log.debug("website update event dropped. spec, labels, status.updated are same.");
                     return;
                 }
                 websiteModified(newWebsite);
@@ -150,9 +154,15 @@ public class WebsiteController {
 
         Website websiteCrd = newWebsite;
         try {
+            // oldWebsite can be null if website initialization failed
             Website oldWebsite = websiteRepository.getWebsite(newWebsite.getId());
             WebsiteConfig newConfig;
-            if (websiteSpecGitChanged(oldWebsite.getSpec(), newWebsite.getSpec())) {
+            boolean redeploy = true;
+            if (oldWebsite == null) {
+                websiteCrd = updateStatus(websiteCrd, STATUS.GIT_CLONING);
+                newConfig = gitWebsiteConfigService.cloneRepo(newWebsite, true);
+                redeploy = false;
+            } else if (websiteSpecGitChanged(oldWebsite.getSpec(), newWebsite.getSpec())) {
                 log.infof("Spec changed. Refreshing setup");
                 gitWebsiteConfigService.deleteRepo(oldWebsite);
                 websiteCrd = updateStatus(websiteCrd, STATUS.GIT_CLONING);
@@ -163,8 +173,8 @@ public class WebsiteController {
             }
             newWebsite.setConfig(newConfig);
 
-            WebsiteStatus status = operatorService.initNewWebsite(newWebsite, true);
-            updateStatus(websiteCrd, STATUS.DEPLOYED, "", status.getEnvHosts());
+            WebsiteStatus status = operatorService.initNewWebsite(newWebsite, redeploy);
+            updateStatus(websiteCrd, STATUS.DEPLOYED, "", status.getEnvHosts(), true);
         } catch (Exception e) {
             log.error("Error on CRD modified", e);
             updateStatus(websiteCrd, STATUS.FAILED, e.getMessage());
@@ -195,14 +205,19 @@ public class WebsiteController {
     }
 
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus) {
-        return updateStatus(websiteToUpdate, newStatus, "", null);
+        return updateStatus(websiteToUpdate, newStatus, false);
+    }
+    public Website updateStatus(Website websiteToUpdate, STATUS newStatus, boolean updated) {
+        return updateStatus(websiteToUpdate, newStatus, null, null, updated);
     }
 
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message) {
-        return updateStatus(websiteToUpdate, newStatus, message, null);
+        return updateStatus(websiteToUpdate, newStatus, message, null, false);
     }
-
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message, Map<String, String> envHosts) {
+        return updateStatus(websiteToUpdate, newStatus, message, envHosts, false);
+    }
+    public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message, Map<String, String> envHosts, boolean updated) {
         String ns = websiteToUpdate.getMetadata().getNamespace();
         String name = websiteToUpdate.getMetadata().getName();
         final String lock = getLock(ns, name);
@@ -211,19 +226,13 @@ public class WebsiteController {
 
             log.infof("Update Status, websiteId=%s status=%s host=%s", website.getId(), newStatus, envHosts);
             WebsiteStatus status = website.getStatus();
-            if (status == null) {
-                status = new WebsiteStatus("", "", new ArrayList<>());
-            }
-            if (status.getEnvs() == null) {
-                status.setEnvs(new ArrayList<>());
-            }
-            if (message != null) {
-                status.setMessage(message);
-            }
-            if (envHosts != null) {
-                status.setEnvHosts(envHosts);
-            }
-            status.setStatus(newStatus);
+            if (status == null) status = new WebsiteStatus("", "", new ArrayList<>());
+            if (status.getEnvs() == null) status.setEnvs(new ArrayList<>());
+            if (message != null) status.setMessage(message);
+            if (envHosts != null) status.setEnvHosts(envHosts);
+            if (newStatus != null) status.setStatus(newStatus);
+            if (updated) status.setUpdated(updatedDateFormat.format(new Date()));
+
             website.setStatus(status);
 
             try {

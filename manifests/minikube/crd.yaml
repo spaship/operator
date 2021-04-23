@@ -68,6 +68,8 @@ spec:
                     type: string
                 message:
                   type: string
+                updated:
+                  type: string
       additionalPrinterColumns:
         - name: Git URL
           type: string
@@ -93,6 +95,10 @@ spec:
           type: string
           description: Status
           jsonPath: .status.status
+        - name: Updated
+          type: string
+          description: Last Website Update
+          jsonPath: .status.updated
         - name: Message
           type: string
           description: Status message

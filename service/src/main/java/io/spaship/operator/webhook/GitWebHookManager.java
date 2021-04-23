@@ -28,6 +28,8 @@ public interface GitWebHookManager {
 
     boolean canHandleRequest(HttpServerRequest request);
 
+    public String getEventHeader(HttpServerRequest request);
+
     boolean isMergeRequest(HttpServerRequest request);
 
     MergeStatus getMergeStatus(JsonObject data);

@@ -1,6 +1,7 @@
 package io.spaship.operator.crd;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +10,8 @@ import java.util.Map;
 @RegisterForReflection
 public class WebsiteStatus {
 
-    public static enum STATUS {
+    public enum STATUS {
+        FORCE_UPDATE,
         GIT_CLONING,
         GIT_PULLING,
         FAILED,
@@ -17,6 +19,8 @@ public class WebsiteStatus {
         @Override
         public String toString() {
             switch (this) {
+                case FORCE_UPDATE:
+                    return "Force Update";
                 case GIT_CLONING:
                     return "Git Cloning";
                 case GIT_PULLING:
@@ -26,8 +30,11 @@ public class WebsiteStatus {
                 case DEPLOYED:
                     return "Deployed";
                 default:
-                    return this.toString();
+                    return super.toString();
             }
+        }
+        public boolean equalsTo(String otherStatus) {
+            return StringUtils.equalsIgnoreCase(this.toString(), otherStatus);
         }
     }
 
@@ -39,6 +46,8 @@ public class WebsiteStatus {
 
     Map<String, String> envHosts;
 
+    String updated;
+
     public WebsiteStatus() {
     }
 
@@ -46,6 +55,10 @@ public class WebsiteStatus {
         this.status = status;
         this.message = message;
         this.envs = envs;
+    }
+
+    public WebsiteStatus(String updated) {
+        this.updated = updated;
     }
 
     public String getStatus() {
@@ -97,13 +110,22 @@ public class WebsiteStatus {
         return null;
     }
 
+    public String getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(String updated) {
+        this.updated = updated;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("WebsiteStatus{");
         sb.append("status='").append(status).append('\'');
         sb.append(", message='").append(message).append('\'');
         sb.append(", envs=").append(envs);
-        sb.append(", envHosts='").append(envHosts).append('\'');
+        sb.append(", envHosts=").append(envHosts);
+        sb.append(", updated='").append(updated).append('\'');
         sb.append('}');
         return sb.toString();
     }

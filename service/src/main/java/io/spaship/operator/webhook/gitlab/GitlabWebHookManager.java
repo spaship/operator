@@ -23,7 +23,8 @@ public class GitlabWebHookManager implements GitWebHookManager {
     @Inject
     WebsiteRepository websiteRepository;
 
-    protected String getEventHeader(HttpServerRequest request) {
+    @Override
+    public String getEventHeader(HttpServerRequest request) {
         return WebHookResource.getHeader(request, "X-Gitlab-Event");
     }
 

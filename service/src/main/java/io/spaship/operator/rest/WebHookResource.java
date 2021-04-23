@@ -48,7 +48,7 @@ public class WebHookResource {
     public void webhook(RoutingContext rc) {
         JsonObject body = rc.getBodyAsJson();
         HttpServerRequest request = rc.request();
-        log.infof("webhook called from url=%s", request.remoteAddress());
+        log.debugf("webhook called from url=%s", request.remoteAddress());
 
         if (body == null || body.size() == 0) {
             rc.response().setStatusCode(400).end("Body is empty");

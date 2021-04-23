@@ -75,6 +75,8 @@ public class WebhookService {
             manager.validateRequest(request, data);
 
             authorizedWebsites = manager.getAuthorizedWebsites(request, data);
+
+            log.infof("Webhook call event=%s websites=%s", manager.getEventHeader(request), authorizedWebsites.size());
             if (authorizedWebsites.size() == 0) {
                 return Future.failedFuture(new NotAuthorizedException("no matched website", "token"));
             }
