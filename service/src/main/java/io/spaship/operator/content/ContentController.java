@@ -201,10 +201,17 @@ public class ContentController {
                 // override operator's defaults
                 DeploymentConfig operatorOverride = getOperatorDeploymentOverride(contentEnvs, env, website.getSpec().getPreviews());
                 if (operatorOverride != null) {
+                    log.infof("Applying operator deployment override");
+                    log.tracef("operator-override=%s", operatorOverride);
                     deployment = overrideDeployment(deployment, operatorOverride);
                 }
                 // override website's defaults
-                deployment = overrideDeployment(deployment, config.getEnvironment(env).getDeployment());
+                DeploymentConfig websiteOverride = config.getEnvironment(env).getDeployment();
+                if (websiteOverride != null) {
+                    log.info("Applying website deployment override");
+                    log.tracef("website-override=%s", websiteOverride);
+                    deployment = overrideDeployment(deployment, websiteOverride);
+                }
 
                 Container httpdContainer = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
 
