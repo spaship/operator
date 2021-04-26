@@ -24,6 +24,8 @@ data:
 #  WEBSITE_CONFIG_DIR: 'websites/02-advanced'            # Optional
 #  WEBSITE_WEBHOOK_SECRET: 'CHANGEIT'
 #  WEBSITE_PREVIEWS: 'true'
+#  WEBSITE_ENVS_INCLUDED: 'dev'
+#  WEBSITE_ENVS_EXCLUDED: 'prod'
 
 # JAVA OPTIONS
 #  JAVA_OPTIONS: '-Dquarkus.log.category."io.spaship".min-level=TRACE -Dquarkus.log.category."io.spaship".level=TRACE'

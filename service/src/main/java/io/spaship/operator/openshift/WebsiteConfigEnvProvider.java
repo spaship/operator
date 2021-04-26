@@ -4,6 +4,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.spaship.operator.controller.OperatorService;
 import io.spaship.operator.controller.WebsiteRepository;
 import io.spaship.operator.crd.Website;
+import io.spaship.operator.crd.WebsiteEnvs;
 import io.spaship.operator.crd.WebsiteSpec;
 import io.vertx.core.Vertx;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -15,6 +16,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -40,6 +42,11 @@ public class WebsiteConfigEnvProvider {
     @ConfigProperty(name = "website.config.dir")
     Optional<String> configDir;
 
+    @ConfigProperty(name = "website.envs.included")
+    Optional<List<String>> websiteEnvIncluded;
+    @ConfigProperty(name = "website.envs.excluded")
+    Optional<List<String>> websiteEnvExcluded;
+
     @ConfigProperty(name = "app.operator.provider.env.delay")
     protected long initDelay;
 
@@ -61,21 +68,22 @@ public class WebsiteConfigEnvProvider {
             return;
         }
         Website website = createWebsiteFromEnv();
+        log.debugf("Website from envs=%s", website);
         start(initDelay, website);
     }
 
     protected Website createWebsiteFromEnv() throws WebsiteConfigEnvException {
-        if (gitUrl.isEmpty())
-            throw new WebsiteConfigEnvException("gitUrl is missing");
-        if (secret.isEmpty())
-            throw new WebsiteConfigEnvException("secret is missing");
-        if (websiteName.isEmpty())
-            throw new WebsiteConfigEnvException("websiteName is missing");
-        if (namespace.isEmpty())
-            throw new WebsiteConfigEnvException("namespace is missing");
+        if (gitUrl.isEmpty()) throw new WebsiteConfigEnvException("gitUrl is missing");
+        if (secret.isEmpty()) throw new WebsiteConfigEnvException("secret is missing");
+        if (websiteName.isEmpty()) throw new WebsiteConfigEnvException("websiteName is missing");
+        if (namespace.isEmpty()) throw new WebsiteConfigEnvException("namespace is missing");
 
         WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.orElse(null), configDir.orElse(null), sslVerify.orElse(true), secret.get());
         websiteSpec.setPreviews(previews.orElse(false));
+        WebsiteEnvs envs = new WebsiteEnvs();
+        websiteEnvIncluded.ifPresent(envs::setIncluded);
+        websiteEnvExcluded.ifPresent(envs::setExcluded);
+        websiteSpec.setEnvs(envs);
         return WebsiteRepository.createWebsite(websiteName.get(), websiteSpec, namespace.get());
     }
 
