@@ -1,0 +1,127 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spaship-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: spaship-operator
+  labels:
+    spaship: operator
+rules:
+  - apiGroups: [ "route.openshift.io" ]
+    resources: [  "routes" ]
+    verbs: [ "create", "update", "get", "watch", "list", "delete" ]
+  # When APP_OPERATOR_ROUTER_MODE=openshift this permission needs to be enabled
+  - apiGroups: [ "route.openshift.io" ]
+    resources:
+      - "routes/custom-host"    # Openshift 4
+      - "custom-host"           # Openshift 3
+    verbs: [ "create" ]
+  # When APP_OPERATOR_ROUTER_MODE=ingress this permission needs to be enabled
+  - apiGroups: [ "networking.k8s.io" ]
+    resources: [  "ingresses" ]
+    verbs: [ "create", "update", "get", "watch", "list", "delete" ]
+  - apiGroups: [ "" ]
+    resources: [  "configmaps", "services" ]
+    verbs: [ "create", "update", "get", "watch", "list", "delete" ]
+  - apiGroups: [ "apps" ]
+    resources: [ "deployments" ]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: spaship-operator
+  labels:
+    spaship: operator
+roleRef:
+  kind: Role
+  name: spaship-operator
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: spaship-operator
+#    namespace: spaship-operator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spaship-operator
+  labels:
+    spaship: operator
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      name: http
+  selector:
+    spaship: operator
+    spaship-operator-layer: service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spaship-operator
+  labels:
+    app: spaship-operator
+    spaship: operator
+spec:
+  selector:
+    matchLabels:
+      spaship: operator
+      spaship-operator-layer: service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        spaship: operator
+        spaship-operator-layer: service
+    spec:
+      serviceAccountName: spaship-operator
+      containers:
+        - name: operator
+          image: "quay.io/spaship/operator-jvm:1.2.5"
+          livenessProbe:
+            httpGet:
+              path: "/health/live"
+              port: 8080
+            initialDelaySeconds: 5
+            failureThreshold: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: "/health/ready"
+              port: 8080
+            initialDelaySeconds: 5
+            failureThreshold: 5
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 2
+              memory: 500Mi
+          ports:
+            - containerPort: 8080
+          # CACERTS Volume Mount
+          #          volumeMounts:
+          #            - mountPath: /deployments/config/cacerts
+          #              name: cacerts
+          env:
+            # JAVA_OPTIONS including CACERTS
+            #            - name: JAVA_OPTIONS
+            #              value: "-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -Djavax.net.ssl.trustStore=/deployments/config/cacerts/cacerts"
+            - name: XDG_CONFIG_HOME
+              value: "/deployments"
+          envFrom:
+            - configMapRef:
+                name: "spaship-operator-config"
+# CACERTS Volume
+#      volumes:
+#        - name: cacerts
+#          secret:
+#            secretName: spaship-operator-cacerts

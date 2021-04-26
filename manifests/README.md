@@ -10,3 +10,4 @@
 
 * `install.yaml` - Standard installation with cluster access
 * `install-ns.yaml` - Namespaced installation (no ClusterRole needed)
+* `install-ns-nocrd.yaml` - Namespaced installation without CRD. Only One Tenant configuration enabled
