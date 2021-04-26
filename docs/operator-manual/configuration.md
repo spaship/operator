@@ -30,6 +30,8 @@ It's common to have defined deployment defaults for particular environment. Typi
 The value of `APP_OPERATOR_CONTENT_ENVS` property can define in JSON format the default values for `env` section for all websites.
 Each website but can override this default in its `website.yaml` spec. 
 
+If the deployed website is `preview website` created from Merge Request then `preview` name is used.
+
 Example:
 ```json
 {

@@ -198,8 +198,11 @@ public class ContentController {
                 Deployment deployment = (Deployment) item;
 
                 // override operator's defaults
-                if (contentEnvs.containsKey(env)) {
-                    deployment = overrideDeployment(deployment, contentEnvs.get(env).getDeployment());
+                String contentEnvName = env;
+                if (website.getSpec().getPreviews()) contentEnvName = "preview";
+
+                if (contentEnvs.containsKey(contentEnvName)) {
+                    deployment = overrideDeployment(deployment, contentEnvs.get(contentEnvName).getDeployment());
                 }
                 // override website's defaults
                 deployment = overrideDeployment(deployment, config.getEnvironment(env).getDeployment());
