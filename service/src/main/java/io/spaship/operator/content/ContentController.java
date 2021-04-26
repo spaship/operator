@@ -219,9 +219,9 @@ public class ContentController {
                         .map(this::createVolumeMountBuilder)
                         .forEach(vmb -> httpdContainer.getVolumeMounts().add(vmb.build()));
 
-                log.tracef("VolumeMounts=%s", httpdContainer.getVolumeMounts());
+                log.tracef("deployment=%s", deployment);
 
-                client.inNamespace(namespace).apps().deployments().createOrReplace((Deployment) item);
+                client.inNamespace(namespace).apps().deployments().createOrReplace(deployment);
             }
             if (item instanceof Route) {
                 client.inNamespace(namespace).routes().createOrReplace((Route) item);
