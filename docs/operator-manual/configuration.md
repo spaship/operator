@@ -32,23 +32,45 @@ Each website but can override this default in its `website.yaml` spec.
 
 If the deployed website is `preview website` created from Merge Request then `preview` name is used.
 
+The env name can be also regexp but exact match (e.g. `prod` env name) overrides the regexp.
+
 Example:
 ```json
 {
   "envs": {
+    ".*": {
+      "deployment": {
+        "httpd": {
+          "resources": {
+            "requests": { "cpu": "100m", "memory": "100Mi"},
+            "limits":   { "cpu": "150m", "memory": "150Mi"}
+          }
+        }
+      }
+    },
+    "preview": {
+      "deployment": {
+        "httpd": {
+          "resources": {
+            "requests": { "cpu": "10m", "memory": "50Mi"},
+            "limits":   { "cpu": "50m", "memory": "50Mi"}
+          }
+        },
+        "api": {
+          "resources": {
+            "requests": { "cpu": "10m", "memory": "50Mi"},
+            "limits":   { "cpu": "50m", "memory": "50Mi"}
+          }
+        }
+      }
+    },
     "prod": {
       "deployment": {
         "replicas": 2,
         "httpd": {
           "resources": {
-            "requests": {
-              "cpu": "100m",
-              "memory": "150Mi"
-            },
-            "limits": {
-              "cpu": "500m",
-              "memory": "250Mi"
-            }
+            "requests": { "cpu": "100m", "memory": "150Mi"},
+            "limits":   { "cpu": "500m", "memory": "250Mi"}
           }
         }
       }
@@ -59,5 +81,5 @@ Example:
 
 Compressed:
 ```json
-{"envs":{"prod":{"deployment":{"replicas":2,"httpd":{"resources":{"requests":{"cpu":"100m","memory":"150Mi"},"limits":{"cpu":"500m","memory":"250Mi"}}}}}}}
+{"envs":{".*":{"deployment":{"httpd":{"resources":{"requests":{"cpu":"100m","memory":"100Mi"},"limits":{"cpu":"150m","memory":"150Mi"}}}}},"preview":{"deployment":{"httpd":{"resources":{"requests":{"cpu":"10m","memory":"50Mi"},"limits":{"cpu":"50m","memory":"50Mi"}}},"api":{"resources":{"requests":{"cpu":"10m","memory":"50Mi"},"limits":{"cpu":"50m","memory":"50Mi"}}}}},"prod":{"deployment":{"replicas":2,"httpd":{"resources":{"requests":{"cpu":"100m","memory":"150Mi"},"limits":{"cpu":"500m","memory":"250Mi"}}}}}}}
 ```

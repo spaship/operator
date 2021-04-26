@@ -1,6 +1,14 @@
 apiVersion: v1
 
 envs:
+  regexp:
+    branch: dev
+    deployment:
+      replicas: 20
+  preview:
+    branch: dev
+    deployment:
+      replicas: 10
   dev:
     branch: dev
   prod:
