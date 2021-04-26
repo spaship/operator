@@ -199,7 +199,8 @@ public class ContentController {
                 Deployment deployment = (Deployment) item;
 
                 // override operator's defaults
-                DeploymentConfig operatorOverride = getOperatorDeploymentOverride(contentEnvs, env, website.getSpec().getPreviews());
+                boolean isPreview = website.getMetadata().getLabels() != null && website.getMetadata().getLabels().containsKey("websiteFork");
+                DeploymentConfig operatorOverride = getOperatorDeploymentOverride(contentEnvs, env, isPreview);
                 if (operatorOverride != null) {
                     log.infof("Applying operator deployment override");
                     log.tracef("operator-override=%s", operatorOverride);
