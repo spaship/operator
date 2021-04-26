@@ -54,7 +54,7 @@ class ContentControllerTest extends QuarkusTestBase {
 
         DeploymentSpec newDeploymentSpec = contentController.overrideDeployment(deployment, config.getEnvironment(env).getDeployment()).getSpec();
 
-        assertEquals(Integer.valueOf(1), newDeploymentSpec.getReplicas());
+        assertEquals(1, newDeploymentSpec.getReplicas());
     }
 
     @Test
@@ -70,7 +70,7 @@ class ContentControllerTest extends QuarkusTestBase {
 
         DeploymentSpec newDeploymentSpec = contentController.overrideDeployment(deployment, config.getEnvironment(env).getDeployment()).getSpec();
 
-        assertEquals(Integer.valueOf(5), newDeploymentSpec.getReplicas());
+        assertEquals(5, newDeploymentSpec.getReplicas());
 
         ResourceRequirements initResources = newDeploymentSpec.getTemplate().getSpec().getInitContainers().get(0).getResources();
         assertEquals("105", initResources.getRequests().get("cpu").getAmount());
@@ -142,17 +142,17 @@ class ContentControllerTest extends QuarkusTestBase {
 
     @Test
     void operatorOverrideRegexp() {
-        DeploymentConfig override = contentController.getOperatorDeploymentOverride(Map.of("pr-.*", config.getEnvironment("regexp")), "pr-1", false);
+        DeploymentConfig override = contentController.getOperatorDeploymentOverride(Map.of("pr-.*", config.getEnvironment(".*")), "pr-1", false);
         assertEquals(20, override.getReplicas());
 
-        override = contentController.getOperatorDeploymentOverride(Map.of("pr-.*", config.getEnvironment("regexp")), "notfound-1", false);
+        override = contentController.getOperatorDeploymentOverride(Map.of("pr-.*", config.getEnvironment(".*")), "notfound-1", false);
         assertNull(override);
     }
 
     @Test
     void operatorOverrideWildcard() {
         Map<String, Environment> envs = Map.of(
-                ".*", config.getEnvironment("regexp"),
+                ".*", config.getEnvironment(".*"),
                 "prod", config.getEnvironment("prod"),
                 "preview", config.getEnvironment("preview"));
         // exact match
