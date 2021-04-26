@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @ApplicationScoped
 public class ContentController {
@@ -198,11 +199,9 @@ public class ContentController {
                 Deployment deployment = (Deployment) item;
 
                 // override operator's defaults
-                String contentEnvName = env;
-                if (website.getSpec().getPreviews()) contentEnvName = "preview";
-
-                if (contentEnvs.containsKey(contentEnvName)) {
-                    deployment = overrideDeployment(deployment, contentEnvs.get(contentEnvName).getDeployment());
+                DeploymentConfig operatorOverride = getOperatorDeploymentOverride(contentEnvs, env, website.getSpec().getPreviews());
+                if (operatorOverride != null) {
+                    deployment = overrideDeployment(deployment, operatorOverride);
                 }
                 // override website's defaults
                 deployment = overrideDeployment(deployment, config.getEnvironment(env).getDeployment());
@@ -252,6 +251,27 @@ public class ContentController {
                 result.getItems().get(0).getMetadata().getName(),
                 result.getItems().size());
         return result;
+    }
+
+    public DeploymentConfig getOperatorDeploymentOverride(Map<String, Environment> contentEnvs, String env, boolean isPreview) {
+        if (contentEnvs == null || contentEnvs.isEmpty()) return null;
+
+        String contentEnvName = env;
+        if (isPreview) contentEnvName = "preview";
+
+        if (!contentEnvs.containsKey(contentEnvName)) {
+            // exact match not found. try to find via regexp
+            for (String envRegexp : contentEnvs.keySet()) {
+                if (Pattern.matches(envRegexp, contentEnvName)) {
+                    contentEnvName = envRegexp;
+                    break;
+                }
+            }
+        }
+
+        if (!contentEnvs.containsKey(contentEnvName)) return null;
+
+        return contentEnvs.get(contentEnvName).getDeployment();
     }
 
     public Deployment overrideDeployment(Deployment deployment, DeploymentConfig config) {

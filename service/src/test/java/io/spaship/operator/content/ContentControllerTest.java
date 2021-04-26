@@ -9,6 +9,8 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.quarkus.test.junit.QuarkusTest;
 import io.spaship.operator.QuarkusTestBase;
 import io.spaship.operator.config.OperatorConfigUtils;
+import io.spaship.operator.config.model.DeploymentConfig;
+import io.spaship.operator.config.model.Environment;
 import io.spaship.operator.config.model.WebsiteConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @QuarkusTest
 class ContentControllerTest extends QuarkusTestBase {
@@ -123,6 +126,41 @@ class ContentControllerTest extends QuarkusTestBase {
             }
         }
         return null;
+    }
+
+    @Test
+    void operatorOverrideNoConfig() {
+        assertNull(contentController.getOperatorDeploymentOverride(null, "dev", true));
+        assertNull(contentController.getOperatorDeploymentOverride(Map.of(), "dev", true));
+    }
+
+    @Test
+    void operatorOverridePreview() {
+        DeploymentConfig override = contentController.getOperatorDeploymentOverride(Map.of("preview", config.getEnvironment("preview")), "dev", true);
+        assertEquals(10, override.getReplicas());
+    }
+
+    @Test
+    void operatorOverrideRegexp() {
+        DeploymentConfig override = contentController.getOperatorDeploymentOverride(Map.of("pr-.*", config.getEnvironment("regexp")), "pr-1", false);
+        assertEquals(20, override.getReplicas());
+
+        override = contentController.getOperatorDeploymentOverride(Map.of("pr-.*", config.getEnvironment("regexp")), "notfound-1", false);
+        assertNull(override);
+    }
+
+    @Test
+    void operatorOverrideWildcard() {
+        Map<String, Environment> envs = Map.of(
+                ".*", config.getEnvironment("regexp"),
+                "prod", config.getEnvironment("prod"),
+                "preview", config.getEnvironment("preview"));
+        // exact match
+        assertEquals(5, contentController.getOperatorDeploymentOverride(envs, "prod", false).getReplicas());
+        // wildcard
+        assertEquals(20, contentController.getOperatorDeploymentOverride(envs, "some-new-env", false).getReplicas());
+        // preview
+        assertEquals(10, contentController.getOperatorDeploymentOverride(envs, "some-new-env", true).getReplicas());
     }
 
 }
