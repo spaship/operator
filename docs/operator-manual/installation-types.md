@@ -27,6 +27,7 @@ data:
   WEBSITE_BRANCH: 'main'                                # Optional
   WEBSITE_CONFIG_DIR: 'websites/02-advanced'            # Optional
   WEBSITE_WEBHOOK_SECRET: 'CHANGEIT'
+  WEBSITE_PREVIEWS: 'true'
 ```
 
 Then Operator manage the website within same namespace as is installed.
