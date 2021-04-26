@@ -9,4 +9,4 @@
 
 
 * `install.yaml` - Standard installation with cluster access
-* `install-namespace.yaml` - TODO: Namespaced installation
+* `install-ns.yaml` - Namespaced installation (no ClusterRole needed)

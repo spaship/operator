@@ -31,3 +31,7 @@ data:
 
 Then Operator manage the website within same namespace as is installed.
 
+## Namespaced Installation
+
+For limited installation without ClusterRole permissions it's possible to install the Operator within the namespace
+with `Role` instead of `ClusterRole`. It's up to configuration if Multi or One tenant way of management is used. Both are supported.
