@@ -22,6 +22,7 @@ can be overridden via env variable but in uppercase and dot is replaced by under
 | APP_OPERATOR_CONTENT_ENVS | | Operator's website environment overrides. Useful for defining default deployment overrides for particular environments e.g. prod |
 | QUARKUS_OIDC_AUTH_SERVER_URL |  | Open ID Connect Auth Server for REST API authentication. See [Complete reference](https://quarkus.io/guides/security-openid-connect#configuring-using-the-application-properties-file) |
 | QUARKUS_OIDC_CLIENT_ID |  | Open ID Connect Client ID |
+| JAVA_OPTIONS |  | Additional JAVA Options |
 
 ## Environment Defaults
 

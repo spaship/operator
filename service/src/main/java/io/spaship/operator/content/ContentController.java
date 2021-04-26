@@ -84,6 +84,8 @@ public class ContentController {
     Optional<String> contentEnvsStr;
 
     Map<String, Environment> contentEnvs;
+    @ConfigProperty(name = "app.operator.content.env.preview")
+    String contentEnvPreview;
 
     void startup(@Observes StartupEvent event) {
         log.infof("ContentController init. contentApiHost=%s staticContentApiPort=%s rootContext=%s " +
@@ -265,7 +267,7 @@ public class ContentController {
         if (contentEnvs == null || contentEnvs.isEmpty()) return null;
 
         String contentEnvName = env;
-        if (isPreview) contentEnvName = "preview";
+        if (isPreview && contentEnvs.containsKey(contentEnvPreview)) contentEnvName = contentEnvPreview;
 
         if (!contentEnvs.containsKey(contentEnvName)) {
             // exact match not found. try to find via regexp

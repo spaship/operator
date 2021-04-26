@@ -163,4 +163,13 @@ class ContentControllerTest extends QuarkusTestBase {
         assertEquals(10, contentController.getOperatorDeploymentOverride(envs, "some-new-env", true).getReplicas());
     }
 
+    @Test
+    void operatorOverrideNoPreview() {
+        Map<String, Environment> envs = Map.of(
+                ".*", config.getEnvironment(".*"),
+                "prod", config.getEnvironment("prod"));
+        // exact match
+        assertEquals(5, contentController.getOperatorDeploymentOverride(envs, "prod", true).getReplicas());
+    }
+
 }
