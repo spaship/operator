@@ -16,9 +16,7 @@ rules:
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
   # When APP_OPERATOR_ROUTER_MODE=openshift this permission needs to be enabled
   - apiGroups: [ "route.openshift.io" ]
-    resources:
-      - "routes/custom-host"    # Openshift 4
-      - "custom-host"           # Openshift 3
+    resources: [ "routes/custom-host" ]
     verbs: [ "create" ]
   # When APP_OPERATOR_ROUTER_MODE=ingress this permission needs to be enabled
   - apiGroups: [ "networking.k8s.io" ]
