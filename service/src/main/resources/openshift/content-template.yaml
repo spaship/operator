@@ -25,13 +25,13 @@ parameters:
     value: "quay.io/spaship/content-git-api"
     required: false
   - name: "IMAGE_INIT_VERSION"
-    value: "1.3.3"
+    value: "1.3.4"
     required: false
   - name: "IMAGE_HTTPD_VERSION"
     value: "0.1.0"
     required: false
   - name: "IMAGE_API_VERSION"
-    value: "1.3.3"
+    value: "1.3.4"
     required: false
 
 objects:
