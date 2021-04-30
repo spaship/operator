@@ -67,20 +67,23 @@ public class RouterController {
         return config.getEnabledServiceComponents(targetEnv);
     }
 
+    protected static String getHost(Optional<String> domain, String websiteName, String targetEnv, String namespace) {
+        if (domain.isPresent()) {
+            return websiteName + "-" + targetEnv + "-" + namespace + "." + domain.get();
+        }
+        return null;
+    }
+
     public List<Route> updateWebsiteRoutes(String targetEnv, Website website) {
         String namespace = website.getMetadata().getNamespace();
         WebsiteConfig config = website.getConfig();
         final String websiteName = Utils.getWebsiteName(website);
 
-        String host = null;
-        if (domain.isPresent()) {
-            host = websiteName + "-" + targetEnv + "-" + namespace + "." + domain.get();
-        }
+        String finalHost = getHost(domain, websiteName, targetEnv, namespace);
 
         Map<String, String> defaultLabels = Utils.defaultLabels(targetEnv, website);
         String contentServiceName = getContentServiceName(websiteName, targetEnv);
 
-        String finalHost = host;
         List<Route> routes = new ArrayList<>();
         getGitComponents(config, targetEnv)
                 .map(component -> createRouteBuilder(component, contentServiceName, finalHost, websiteName, targetEnv, defaultLabels))
@@ -139,8 +142,11 @@ public class RouterController {
         return context.replace("/", "").replace("_", "");
     }
 
-    public Route updateApiRoute(String targetEnv, Website website) {
+    protected Route createApiRoute(String targetEnv, Website website) {
         final String websiteName = Utils.getWebsiteName(website);
+        String namespace = website.getMetadata().getNamespace();
+
+        String host = getHost(domain, websiteName, targetEnv + "-api", namespace);
 
         RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
         RoutePortBuilder routePortBuilder = new RoutePortBuilder();
@@ -151,13 +157,21 @@ public class RouterController {
                 .withTo(targetReference.build())
                 .withPort(routePortBuilder.build());
 
+        if (StringUtils.isNotEmpty(host)) {
+            specBuilder.withHost(host);
+        }
+
         String name = getRouteName(websiteName, apiRouteName, targetEnv);
 
         RouteBuilder builder = new RouteBuilder()
                 .withMetadata(new ObjectMetaBuilder().withName(name).withLabels(Utils.defaultLabels(targetEnv, website)).build())
                 .withSpec(specBuilder.build());
 
-        Route route = builder.build();
+        return builder.build();
+    }
+
+    public Route updateApiRoute(String targetEnv, Website website) {
+        Route route = createApiRoute(targetEnv, website);
         log.infof("Deploying route=%s", route.getMetadata().getName());
 
         return client.inNamespace(website.getMetadata().getNamespace()).routes().createOrReplace(route);
