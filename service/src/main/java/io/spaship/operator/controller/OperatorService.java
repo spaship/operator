@@ -101,7 +101,7 @@ public class OperatorService {
                     }
                     Route apiRoute = routerController.updateApiRoute(env, website);
                     apiHost = apiRoute.getSpec().getHost();
-                    port = 80;
+                    port = routerController.isApiTls() ? 443 : 80;
                 } else {
                     log.infof("No routing created");
                 }
