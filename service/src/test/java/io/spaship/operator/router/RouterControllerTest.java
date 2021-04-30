@@ -100,7 +100,17 @@ class RouterControllerTest extends QuarkusTestBase {
 
     @Test
     void testApiRouteHost() {
-        Route route = controller.createApiRoute("test", createTestWebsite(List.of(componentRoot, componentSearch, componentService)));
+        Route route = controller.createApiRoute("test", createTestWebsite(List.of(componentRoot, componentSearch, componentService)), Optional.empty(), Optional.empty());
         assertEquals("simple-test-api-spaship-examples.test.info", route.getSpec().getHost());
+        assertNull(route.getSpec().getTls());
     }
+
+    @Test
+    void testApiRouteHostTls() {
+        Route route = controller.createApiRoute("test", createTestWebsite(List.of(componentRoot, componentSearch, componentService)), Optional.of("edge"), Optional.of("Redirect"));
+        assertEquals("simple-test-api-spaship-examples.test.info", route.getSpec().getHost());
+        assertEquals("edge", route.getSpec().getTls().getTermination());
+        assertEquals("Redirect", route.getSpec().getTls().getInsecureEdgeTerminationPolicy());
+    }
+
 }

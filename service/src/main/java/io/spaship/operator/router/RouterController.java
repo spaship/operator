@@ -36,8 +36,12 @@ public class RouterController {
     @ConfigProperty(name = "app.operator.website.domain")
     protected Optional<String> domain;
 
-    @ConfigProperty(name = "app.operator.router.openshift.api.route")
+    @ConfigProperty(name = "app.operator.router.openshift.api.route.name")
     String apiRouteName;
+    @ConfigProperty(name = "app.operator.router.openshift.api.route.tls.termination")
+    Optional<String> apiRouteTlsTermination;
+    @ConfigProperty(name = "app.operator.router.openshift.api.route.tls.insecureEdgeTerminationPolicy")
+    Optional<String> apiRouteTlsInsecurePolicy;
 
     @ConfigProperty(name = "app.operator.router.mode")
     String routerMode;
@@ -142,7 +146,7 @@ public class RouterController {
         return context.replace("/", "").replace("_", "");
     }
 
-    protected Route createApiRoute(String targetEnv, Website website) {
+    protected Route createApiRoute(String targetEnv, Website website, Optional<String> apiRouteTlsTermination, Optional<String> apiRouteTlsInsecurePolicy) {
         final String websiteName = Utils.getWebsiteName(website);
         String namespace = website.getMetadata().getNamespace();
 
@@ -160,6 +164,11 @@ public class RouterController {
         if (StringUtils.isNotEmpty(host)) {
             specBuilder.withHost(host);
         }
+        if (apiRouteTlsTermination.isPresent()) {
+            specBuilder.withNewTls().withNewTermination(apiRouteTlsTermination.get())
+                    .withInsecureEdgeTerminationPolicy(apiRouteTlsInsecurePolicy.orElse(null))
+                    .endTls();
+        }
 
         String name = getRouteName(websiteName, apiRouteName, targetEnv);
 
@@ -171,10 +180,14 @@ public class RouterController {
     }
 
     public Route updateApiRoute(String targetEnv, Website website) {
-        Route route = createApiRoute(targetEnv, website);
+        Route route = createApiRoute(targetEnv, website, apiRouteTlsTermination, apiRouteTlsInsecurePolicy);
         log.infof("Deploying route=%s", route.getMetadata().getName());
 
         return client.inNamespace(website.getMetadata().getNamespace()).routes().createOrReplace(route);
+    }
+
+    public boolean isApiTls() {
+        return apiRouteTlsTermination.isPresent();
     }
 
     public static String getRouteName(String websiteName, String sanityContext, String env) {
