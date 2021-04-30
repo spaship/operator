@@ -1,7 +1,7 @@
 package io.spaship.operator.router;
 
-import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
 import io.fabric8.openshift.api.model.Route;
+import io.fabric8.openshift.api.model.RouteBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.spaship.operator.QuarkusTestBase;
 import io.spaship.operator.config.model.ComponentConfig;
@@ -17,9 +17,11 @@ import org.junit.jupiter.api.Test;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @QuarkusTest
 class RouterControllerTest extends QuarkusTestBase {
@@ -35,7 +37,7 @@ class RouterControllerTest extends QuarkusTestBase {
     protected void setupNetworking() {
         mockServer.expect()
                 .post().withPath("/apis/route.openshift.io/v1/namespaces/spaship-examples/routes")
-                .andReturn(200, new IngressBuilder().build()).always();
+                .andReturn(200, new RouteBuilder().build()).always();
     }
 
     public static WebsiteConfig createTestWebsiteConfig(List<ComponentConfig> components) {
@@ -52,9 +54,19 @@ class RouterControllerTest extends QuarkusTestBase {
     }
 
     @Test
+    void testHostDomainNull() {
+        assertNull(RouterController.getHost(Optional.empty(), null, null, null));
+    }
+
+    @Test
+    void testHostDomain() {
+        assertEquals("web-env-nm.test.info", RouterController.getHost(Optional.of("test.info"), "web", "env", "nm"));
+    }
+
+    @Test
     void testWebsiteRoutes() {
         List<Route> routes = controller.updateWebsiteRoutes("test", createTestWebsite(List.of(componentRoot, componentSearch, componentService)));
-        Assertions.assertEquals(2, routes.size());
+        assertEquals(2, routes.size());
         assertPathsRequested("/apis/route.openshift.io/v1/namespaces/spaship-examples/routes", "/apis/route.openshift.io/v1/namespaces/spaship-examples/routes");
     }
 
@@ -79,4 +91,16 @@ class RouterControllerTest extends QuarkusTestBase {
         assertEquals("/api", components.get(0).getContext());
     }
 
+    @Test
+    void testApiRoute() {
+        Route route = controller.updateApiRoute("test", createTestWebsite(List.of(componentRoot, componentSearch, componentService)));
+        Assertions.assertNotNull(route);
+        assertPathsRequested("/apis/route.openshift.io/v1/namespaces/spaship-examples/routes");
+    }
+
+    @Test
+    void testApiRouteHost() {
+        Route route = controller.createApiRoute("test", createTestWebsite(List.of(componentRoot, componentSearch, componentService)));
+        assertEquals("simple-test-api-spaship-examples.test.info", route.getSpec().getHost());
+    }
 }
