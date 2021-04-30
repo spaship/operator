@@ -4,7 +4,8 @@
 ```shell
 mvn clean package
 ```
-2. Update operator's target version `quay.io/spaship/operator-jvm:<VERSION>` in [install.yaml](/manifests/install.yaml) manifest.
+2. Update operator's target version `quay.io/spaship/operator-jvm:<VERSION>` in [install.yaml](/manifests/install.yaml), 
+   [install-ns.yaml](/manifests/install-ns.yaml) and [install-ns-nocrd.yaml](/manifests/install-ns-nocrd.yaml) manifests.
 3. Perform maven release - prompted for target version which creates a tag
 ```shell
 mvn clean release:prepare release:perform
