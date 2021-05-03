@@ -215,7 +215,7 @@ spec:
       serviceAccountName: spaship-operator
       containers:
         - name: operator
-          image: "quay.io/spaship/operator-jvm:1.3.2"
+          image: "quay.io/spaship/operator-jvm:1.3.3"
           livenessProbe:
             httpGet:
               path: "/health/live"
