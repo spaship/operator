@@ -64,4 +64,16 @@ public class UpdatedComponent {
     public void setEnv(String env) {
         this.env = env;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("UpdatedComponent{");
+        sb.append("name='").append(name).append('\'');
+        sb.append(", status='").append(status).append('\'');
+        sb.append(", namespace='").append(namespace).append('\'');
+        sb.append(", website='").append(website).append('\'');
+        sb.append(", env='").append(env).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }
