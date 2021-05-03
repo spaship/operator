@@ -99,13 +99,10 @@ public class OperatorService {
                         String contentHost = contentRoutes.get(0).getSpec().getHost();
                         status.addEnvHost(env, contentHost);
                     }
-                    Route apiRoute = routerController.updateApiRoute(env, website);
-                    apiHost = apiRoute.getSpec().getHost();
-                    port = routerController.isApiTls() ? 443 : 80;
+                    routerController.updateApiRoute(env, website);
                 } else {
                     log.infof("No routing created");
                 }
-                contentController.createClient(env, website, apiHost, port);
 
                 if (redeploy) {
                     contentController.redeploy(env, website);
@@ -148,8 +145,6 @@ public class OperatorService {
             } else {
                 log.infof("No routing deleted");
             }
-
-            contentController.removeClient(env, website);
         }
     }
 

@@ -17,11 +17,14 @@ import io.spaship.operator.config.model.DeploymentConfig;
 import io.spaship.operator.config.model.Environment;
 import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.crd.Website;
+import io.spaship.operator.router.IngressController;
+import io.spaship.operator.router.RouterController;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
@@ -35,7 +38,6 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
-import javax.ws.rs.ServiceUnavailableException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,13 +57,10 @@ public class ContentController {
     @Inject
     Vertx vertx;
 
-    Map<String, WebClient> clients = new HashMap<>();
-
     @ConfigProperty(name = "app.content.git.api.host")
     Optional<String> contentApiHost;
-
     @ConfigProperty(name = "app.content.git.api.port")
-    int staticContentApiPort;
+    Optional<Integer> staticContentApiPort;
 
     // Content Image Spec
     @ConfigProperty(name = "app.operator.image.init.name")
@@ -87,14 +86,22 @@ public class ContentController {
     @ConfigProperty(name = "app.operator.content.env.preview")
     String contentEnvPreview;
 
+    @Inject
+    RouterController routerController;
+    @Inject
+    IngressController ingressController;
+
+    WebClient webClient;
+
     void startup(@Observes StartupEvent event) {
         log.infof("ContentController init. contentApiHost=%s staticContentApiPort=%s rootContext=%s " +
                         "imageInitName=%s imageInitVersion=%s imageHttpdName=%s imageHttpdVersion=%s imageApiName=%s imageApiVersion=%s ",
-                contentApiHost.orElse("N/A"), staticContentApiPort, rootContext,
+                contentApiHost.orElse("N/A"), staticContentApiPort.orElse(null), rootContext,
                 imageInitName.orElse("N/A"), imageInitVersion.orElse("N/A"),
                 imageHttpdName.orElse("N/A"), imageHttpdVersion.orElse("N/A"),
                 imageApiName.orElse("N/A"), imageApiVersion.orElse("N/A")
         );
+        webClient = WebClient.create(vertx, new WebClientOptions().setVerifyHost(false));
         log.infof("contentEnvs=%s", contentEnvsStr.orElse("N/A"));
         try {
             contentEnvs = OperatorConfigUtils.getContentEnvsJson(contentEnvsStr.orElse(null));
@@ -108,37 +115,32 @@ public class ContentController {
         if (contentApiHost.isPresent()) {
             return contentApiHost.get();
         }
-        String serviceName = Utils.getWebsiteName(config) + "-content-" + env;
-        String namespace = config.getMetadata().getNamespace();
-        return serviceName + "." + namespace + ".svc.cluster.local";
+        if (routerController.isEnabled()) {
+            return routerController.getHostApi(config, env);
+        } else if (ingressController.isEnabled()) {
+            return ingressController.getHostApi(config, env);
+        }
+        throw new ConfigurationException("Cannot get API host. Router or Ingress is not configured.");
     }
 
-    protected static String getClientId(Website website, String env) {
-        return website.getMetadata().getNamespace() + "_" + website.getMetadata().getName() + "_" + env;
+    public int getContentPort() {
+        if (staticContentApiPort.isPresent()) {
+            return staticContentApiPort.get();
+        }
+        if (routerController.isEnabled() && routerController.isApiTls()) {
+            return routerController.isApiTls() ? 443 : 80;
+        }
+        return 8090;
     }
 
-    public void createClient(String env, Website config, String host, Integer port) {
-        String clientId = getClientId(config, env);
-        if (clients.containsKey(clientId)) {
-            log.debugf("Client already exists. skipping. clientId=%s", clientId);
-            return;
+    public WebClientOptions getRequestOptions(Website website, String env) {
+        WebClientOptions options = new WebClientOptions()
+                .setDefaultHost(getContentHost(env, website))
+                .setDefaultPort(getContentPort());
+        if (options.getDefaultPort() == 443) {
+            options.setTrustAll(true).setSsl(true).setVerifyHost(false);
         }
-        if (StringUtils.isEmpty(host)) {
-            host = getContentHost(env, config);
-        }
-        if (port == null) {
-            port = staticContentApiPort;
-        }
-        WebClient websiteClient = WebClient.create(vertx, new WebClientOptions()
-                .setDefaultHost(host)
-                .setDefaultPort(port)
-                .setTrustAll(true));
-        clients.put(clientId, websiteClient);
-        log.infof("Content client API created. clientId=%s host=%s port=%s", clientId, host, port);
-    }
-
-    public void removeClient(String env, Website config) {
-        clients.remove(getClientId(config, env));
+        return options;
     }
 
     public void updateConfigs(String env, String namespace, Website website) {
@@ -328,30 +330,23 @@ public class ContentController {
     public Future<UpdatedComponent> refreshComponent(Website website, String env, String name) {
         String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
         log.infof("Update components on %s", componentDesc);
-        String clientId = getClientId(website, env);
-        WebClient webClient = clients.get(clientId);
 
         Promise<UpdatedComponent> promise = Promise.promise();
-        if (webClient == null) {
-            ServiceUnavailableException exception = new ServiceUnavailableException("Client not available clientId=" + clientId);
-            log.error("Content client not found", exception);
-            promise.tryFail(exception);
-            return promise.future();
-        }
 
-        webClient.get("/api/update/" + name)
+        WebClientOptions options = getRequestOptions(website, env);
+        getApiGet("/api/update/" + name, options)
                 .expect(ResponsePredicate.SC_OK)
                 .send(ar -> {
-                    log.tracef("update result=%s", ar);
                     if (ar.succeeded()) {
                         UpdatedComponent result = new UpdatedComponent(name,
                                 ar.result().bodyAsString(),
                                 website.getMetadata().getNamespace(),
                                 website.getMetadata().getName(),
                                 env);
+                        log.tracef("update result=%s", result);
                         promise.tryComplete(result);
                     } else {
-                        String message = String.format("Cannot update content on %s clientId=%s", componentDesc, clientId);
+                        String message = String.format("Cannot update content on %s", componentDesc);
                         log.error(message, ar.cause());
                         promise.tryFail(new InternalServerErrorException(message));
                     }
@@ -362,25 +357,16 @@ public class ContentController {
     public Future<JsonObject> componentInfo(Website website, String env, String name) {
         String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
         log.infof("Get Info components on %s", componentDesc);
-        String clientId = getClientId(website, env);
-        WebClient webClient = clients.get(clientId);
 
         Promise<JsonObject> promise = Promise.promise();
-        if (webClient == null) {
-            ServiceUnavailableException exception = new ServiceUnavailableException("Client not available clientId=" + clientId);
-            log.error("Content client not found", exception);
-            promise.tryFail(exception);
-            return promise.future();
-        }
 
-        webClient.get("/api/info/" + name)
+        WebClientOptions options = getRequestOptions(website, env);
+        getApiGet("/api/info/" + name, options)
                 .send(ar -> {
                     if (ar.result().statusCode() == 404) {
                         promise.tryFail(new NotFoundException("Component not found. name=" + name));
-                        return;
-                    }
-                    if (ar.result().statusCode() != 200) {
-                        log.error(String.format("Error getting info on %s clientId=%s", componentDesc, clientId), ar.cause());
+                    } else if (ar.result().statusCode() != 200) {
+                        log.error(String.format("Error getting info on %s", componentDesc, ar.cause()));
                         promise.tryFail(ar.cause());
                     } else {
                         JsonObject result = ar.result().bodyAsJsonObject();
@@ -391,25 +377,29 @@ public class ContentController {
         return promise.future();
     }
 
-    public Future<JsonArray> listComponents(WebClient webClient) {
-        log.infof("List components");
-
-        Promise<JsonArray> promise = Promise.promise();
-        webClient.get("/api/list").send(result -> {
-            if (result.failed()) {
-                promise.fail(result.cause());
-                return;
-            }
-            if (result.result().statusCode() != 200) {
-                promise.tryFail(result.result().bodyAsString());
-            } else {
-                promise.tryComplete(result.result().bodyAsJsonArray());
-            }
-        });
-        return promise.future();
+    protected HttpRequest<Buffer> getApiGet(String requestURI, WebClientOptions options) {
+        return webClient.get(requestURI)
+                .host(options.getDefaultHost())
+                .port(options.getDefaultPort())
+                .ssl(options.isSsl());
     }
 
-    public int getStaticContentApiPort() {
-        return staticContentApiPort;
-    }
+//    public Future<JsonArray> listComponents(WebClient webClient) {
+//        log.infof("List components");
+//
+//        Promise<JsonArray> promise = Promise.promise();
+//        webClient.get("/api/list").send(result -> {
+//            if (result.failed()) {
+//                promise.fail(result.cause());
+//                return;
+//            }
+//            if (result.result().statusCode() != 200) {
+//                promise.tryFail(result.result().bodyAsString());
+//            } else {
+//                promise.tryComplete(result.result().bodyAsJsonArray());
+//            }
+//        });
+//        return promise.future();
+//    }
+
 }

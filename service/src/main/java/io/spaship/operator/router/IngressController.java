@@ -43,6 +43,12 @@ public class IngressController {
         return routerMode.equals("ingress");
     }
 
+    public String getHostApi(Website website, String env) {
+        String serviceName = Utils.getWebsiteName(website) + "-content-" + env;
+        String namespace = website.getMetadata().getNamespace();
+        return serviceName + "." + namespace + ".svc.cluster.local";
+    }
+
     public String getContentHost(String targetEnv, Website website) {
         if (domain.isEmpty()) {
             return null;

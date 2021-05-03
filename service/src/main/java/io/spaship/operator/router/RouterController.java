@@ -71,6 +71,10 @@ public class RouterController {
         return config.getEnabledServiceComponents(targetEnv);
     }
 
+    public String getHostApi(Website website, String targetEnv) {
+        return getHost(domain, Utils.getWebsiteName(website), targetEnv + "-api", website.getMetadata().getNamespace());
+    }
+
     protected static String getHost(Optional<String> domain, String websiteName, String targetEnv, String namespace) {
         if (domain.isPresent()) {
             return websiteName + "-" + targetEnv + "-" + namespace + "." + domain.get();
@@ -148,9 +152,8 @@ public class RouterController {
 
     protected Route createApiRoute(String targetEnv, Website website, Optional<String> apiRouteTlsTermination, Optional<String> apiRouteTlsInsecurePolicy) {
         final String websiteName = Utils.getWebsiteName(website);
-        String namespace = website.getMetadata().getNamespace();
 
-        String host = getHost(domain, websiteName, targetEnv + "-api", namespace);
+        String host = getHostApi(website, targetEnv);
 
         RouteTargetReferenceBuilder targetReference = new RouteTargetReferenceBuilder().withKind("Service").withWeight(100);
         RoutePortBuilder routePortBuilder = new RoutePortBuilder();
