@@ -292,7 +292,10 @@ public class WebsiteController {
 
             log.infof("Website updated env, websiteId=%s envName=%s value=%s", website.getId(), envName, value);
 
+            WebsiteStatus status = website.getStatus();
             website.getStatus().setEnvs(envs);
+            if (status.getUpdated() == null) status.setUpdated("");
+
             websiteClient.inNamespace(namespace).withName(name).updateStatus(website);
         }
     }
