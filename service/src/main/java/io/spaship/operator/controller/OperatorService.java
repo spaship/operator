@@ -123,9 +123,13 @@ public class OperatorService {
     private void setupCoreServices(String env, Website website) {
         String namespace = website.getMetadata().getNamespace();
         final String websiteName = Utils.getWebsiteName(website);
-        log.infof("Create core services websiteName=%s env=%s namespace=%s", websiteName, env, namespace);
+        final String websiteInfo = String.format("websiteName=%s env=%s namespace=%s", websiteName, env, namespace);
+        log.infof("Create core services %s", websiteInfo);
         contentController.updateConfigs(env, namespace, website);
         contentController.deploy(env, namespace, websiteName, website);
+        website.getConfig().getEnabledGitComponents(env)
+                .forEach(c -> log.infof("Deployed component for %s context=%s gitUrl=%s ref=%s",
+                        websiteInfo, c.getContext(), c.getSpec().getUrl(), GitContentUtils.getRef(website.getConfig(), env, c.getContext())));
     }
 
     public void deleteInfrastructure(Website website) {
