@@ -73,7 +73,7 @@ objects:
         spec:
           initContainers:
             # Init data
-            - name: init
+            - name: init-spaship-operator
               image: "${IMAGE_INIT}:${IMAGE_INIT_VERSION}"
               imagePullPolicy: IfNotPresent       # Always / IfNotPresent
               resources:
@@ -98,7 +98,7 @@ objects:
                   name: data
           containers:
             # Main container to serve data
-            - name: httpd
+            - name: httpd-spaship-operator
               image: "${IMAGE_HTTPD}:${IMAGE_HTTPD_VERSION}"
               imagePullPolicy: IfNotPresent
               resources:
@@ -113,7 +113,7 @@ objects:
               volumeMounts:
                 # Dynamically generated
             # Side car container providing API
-            - name: api
+            - name: api-spaship-operator
               image: "${IMAGE_API}:${IMAGE_API_VERSION}"
               imagePullPolicy: IfNotPresent     # Always / IfNotPresent
               livenessProbe:
