@@ -62,9 +62,12 @@ public class WebsiteConfigEnvProvider {
     @Inject
     Vertx vertx;
 
+    private boolean ready = false;
+
     void onStart(@Observes StartupEvent ev) throws Exception {
         log.infof("WebsiteConfigEnvProvider enabled=%s", providerEnabled.orElse(false));
         if (!providerEnabled.orElse(false)) {
+            ready = true;
             return;
         }
         Website website = createWebsiteFromEnv();
@@ -112,9 +115,10 @@ public class WebsiteConfigEnvProvider {
         }
     }
 
-    public void registerWebsite(Website website, boolean updateIfExists) throws IOException, GitAPIException {
+    private void registerWebsite(Website website, boolean updateIfExists) throws IOException, GitAPIException {
         operatorService.deployNewWebsite(website, updateIfExists, false);
         log.infof("Initialization completed from ENV provider.");
+        ready = true;
     }
 
 
@@ -148,5 +152,9 @@ public class WebsiteConfigEnvProvider {
 
     public void setNamespace(Optional<String> namespace) {
         this.namespace = namespace;
+    }
+
+    public boolean isReady() {
+        return ready;
     }
 }

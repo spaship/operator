@@ -1,6 +1,7 @@
 package io.spaship.operator.rest;
 
 import io.spaship.operator.controller.WebsiteController;
+import io.spaship.operator.openshift.WebsiteConfigEnvProvider;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
@@ -18,6 +19,8 @@ public class HealthCheckResource {
 
     @Inject
     WebsiteController websiteController;
+    @Inject
+    WebsiteConfigEnvProvider websiteConfigEnvProvider;
 
     @GET
     @Path("live")
@@ -29,11 +32,11 @@ public class HealthCheckResource {
 
     @GET
     @Path("ready")
-    @Operation(summary = "Readiness check", description = "Check if Website CRD Controller is ready to manage CRDs (if enabled)")
+    @Operation(summary = "Readiness check", description = "Check if Website CRD Controller resp. Config env provider is ready  (if enabled)")
     @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN, example = "ready"))
     @APIResponse(responseCode = "204", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public Response ready() {
-        if (websiteController.isReady()) {
+        if (websiteController.isReady() && websiteConfigEnvProvider.isReady()) {
             return Response.ok("ready").build();
         }
         return Response.noContent().build();
