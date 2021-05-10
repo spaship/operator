@@ -16,7 +16,7 @@ can be overridden via env variable but in uppercase and dot is replaced by under
 | APP_OPERATOR_IMAGE_INIT_NAME | quay.io/spaship/content-git-init | Init image name |
 | APP_OPERATOR_IMAGE_INIT_VERSION | 1.3.5 | Init image version |
 | APP_OPERATOR_IMAGE_HTTPD_NAME | quay.io/spaship/httpd | Httpd image name |
-| APP_OPERATOR_IMAGE_HTTPD_VERSION | 0.1.0 | Httpd image version |
+| APP_OPERATOR_IMAGE_HTTPD_VERSION | 1.3.5 | Httpd image version |
 | APP_OPERATOR_IMAGE_API_NAME | quay.io/spaship/content-git-api | Api image name |
 | APP_OPERATOR_IMAGE_API_VERSION | 1.3.5 | Api image version |
 | APP_OPERATOR_CONTENT_ENVS | | Operator's website environment overrides. Useful for defining default deployment overrides for particular environments e.g. prod |
