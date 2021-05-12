@@ -38,6 +38,8 @@ public class WebsiteConfigEnvProvider {
     Optional<Boolean> sslVerify;
     @ConfigProperty(name = "website.previews")
     Optional<Boolean> previews;
+    @ConfigProperty(name = "website.gitApiToken")
+    Optional<String> gitApiToken;
 
     @ConfigProperty(name = "website.config.dir")
     Optional<String> configDir;
@@ -83,6 +85,7 @@ public class WebsiteConfigEnvProvider {
 
         WebsiteSpec websiteSpec = new WebsiteSpec(gitUrl.get(), branch.orElse(null), configDir.orElse(null), sslVerify.orElse(true), secret.get());
         websiteSpec.setPreviews(previews.orElse(false));
+        gitApiToken.ifPresent(websiteSpec::setGitApiToken);
         WebsiteEnvs envs = new WebsiteEnvs();
         websiteEnvIncluded.ifPresent(envs::setIncluded);
         websiteEnvExcluded.ifPresent(envs::setExcluded);
