@@ -40,6 +40,8 @@ spec:
                 previews:
                   type: boolean
                   default: false
+                gitApiToken:
+                  type: string
                 displayName:
                   type: string
                 envs:

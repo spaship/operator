@@ -38,6 +38,8 @@ spec:
                 previews:
                   type: boolean
                   default: false
+                gitApiToken:
+                  type: string
                 secretToken:
                   type: string
                 displayName:
