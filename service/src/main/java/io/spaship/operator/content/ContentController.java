@@ -328,12 +328,12 @@ public class ContentController {
     }
 
     public Future<UpdatedComponent> refreshComponent(Website website, String env, String name) {
-        String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
-        log.infof("Update components on %s", componentDesc);
-
         Promise<UpdatedComponent> promise = Promise.promise();
-
         WebClientOptions options = getRequestOptions(website, env);
+
+        String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
+        log.infof("Update components on %s apiHost=%s apiPort=%s", componentDesc, options.getDefaultHost(), options.getDefaultPort());
+
         getApiGet("/api/update/" + name, options)
                 .expect(ResponsePredicate.SC_OK)
                 .send(ar -> {
@@ -355,18 +355,18 @@ public class ContentController {
     }
 
     public Future<JsonObject> componentInfo(Website website, String env, String name) {
-        String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
-        log.infof("Get Info components on %s", componentDesc);
-
         Promise<JsonObject> promise = Promise.promise();
-
         WebClientOptions options = getRequestOptions(website, env);
+
+        String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
+        log.infof("Get Info components on %s apiHost=%s apiPort=%s", componentDesc, options.getDefaultHost(), options.getDefaultPort());
+
         getApiGet("/api/info/" + name, options)
                 .send(ar -> {
                     if (ar.result().statusCode() == 404) {
                         promise.tryFail(new NotFoundException("Component not found. name=" + name));
                     } else if (ar.result().statusCode() != 200) {
-                        log.error(String.format("Error getting info on %s", componentDesc, ar.cause()));
+                        log.error(String.format("Error getting info on %s", componentDesc), ar.cause());
                         promise.tryFail(ar.cause());
                     } else {
                         JsonObject result = ar.result().bodyAsJsonObject();
