@@ -69,7 +69,7 @@ public class ContentApiMock extends AbstractVerticle {
                 .exceptionHandler(t -> log.error("Error", t))
                 .requestHandler(router)
                 .listen(port);
-        log.infof("Mock started port=%s", port);
+        log.infof("ContentApiMock started port=%s", port);
 
     }
 
