@@ -4,7 +4,9 @@ import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +26,8 @@ public class GitlabApi implements GitApi {
 
     private static final Logger log = Logger.getLogger(GitlabApi.class);
 
+    public static final String MR_COMMENT_API = "/api/v4/projects/%s/merge_requests/%s/notes?body=%s";
+
     @Inject
     Vertx vertx;
 
@@ -41,27 +45,30 @@ public class GitlabApi implements GitApi {
             return Future.succeededFuture(new JsonObject().put("status", "ignored"));
         }
 
-        String commentApi = "/api/v4/projects/%s/merge_requests/%s/notes?body=%s";
-        String requestURI = String.format(commentApi, projectId, mergeRequestId, body);
+        String requestURI = String.format(MR_COMMENT_API, projectId, mergeRequestId, encodeURI(body));
+        log.debugf("comment mr url=%s", requestURI);
 
         URI uri = getURI(gitUrl);
         int port = uri.getPort();
 
         Promise<JsonObject> promise = Promise.promise();
-        webClient.post(uri.getHost(), encodeURI(requestURI))
+        HttpRequest<Buffer> request = webClient.post(uri.getHost(), requestURI)
                 .port(port).ssl(port == 433)
-                .putHeader("PRIVATE-TOKEN", accessToken)
-                .send(ar -> {
-                    if (ar.result().statusCode() != 200) {
-                        log.errorf(ar.cause(), "Error commenting MR url=%s", requestURI);
-                        promise.tryFail(ar.cause());
-                    } else {
-                        JsonObject result = ar.result().bodyAsJsonObject();
-                        log.infof("Merge Request commented");
-                        log.tracef("Merge request comment result=%s", result);
-                        promise.tryComplete(result);
-                    }
-                });
+                .putHeader("PRIVATE-TOKEN", accessToken);
+
+        request.send(ar -> {
+            if (ar.result().statusCode() != 200) {
+                String result = ar.result().bodyAsString();
+                log.errorf("Error commenting MR url=%s reason=%s", requestURI, result);
+                promise.fail(new GitlabApiException(result));
+            } else {
+                JsonObject result = ar.result().bodyAsJsonObject();
+                log.infof("Merge Request commented");
+                log.tracef("Merge request comment result=%s", result);
+                promise.complete(result);
+            }
+        });
+
         return promise.future();
     }
 
