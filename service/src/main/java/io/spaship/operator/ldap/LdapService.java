@@ -11,12 +11,7 @@ import javax.enterprise.event.Observes;
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapContext;
+import javax.naming.directory.*;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Properties;
@@ -49,7 +44,7 @@ public class LdapService {
     @ConfigProperty(name = "app.ldap.adminLogin.password")
     Optional<String> adminLoginPassword;
 
-    LdapContext ldapContext;
+    Properties properties;
     SearchControls controls;
 
     void onStart(@Observes StartupEvent ev) throws NamingException {
@@ -71,14 +66,13 @@ public class LdapService {
 
     protected void initLdap() throws NamingException {
         // Initialize properties
-        Properties properties = new Properties();
+        // https://docs.oracle.com/javase/jndi/tutorial/ldap/connect/pool.html
+        properties = new Properties();
         properties.put(Context.INITIAL_CONTEXT_FACTORY, ldapCtxFactory);
         properties.put(Context.PROVIDER_URL, ldapUrl.get());
+        properties.put("com.sun.jndi.ldap.connect.pool", "true");
         adminLoginUsername.ifPresent(s -> properties.put(Context.SECURITY_PRINCIPAL, s));
         adminLoginPassword.ifPresent(s -> properties.put(Context.SECURITY_CREDENTIALS, s));
-
-        // Initialize ldap context
-        ldapContext = new InitialLdapContext(properties, null);
 
         controls = new SearchControls();
         controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -92,30 +86,30 @@ public class LdapService {
     @CacheResult(cacheName = "ldap-roles")
     public Set<String> getRoles(String filterValue) {
         log.infof("LDAP Search Roles. filterValue=%s", filterValue);
-        Set<String> result = new HashSet<>();
+        Set<String> roles = new HashSet<>();
         try {
+            // Initialize ldap context
+            DirContext ldapContext = new InitialDirContext(properties);
+
             String filter = String.format(searchFilter, filterValue);
             NamingEnumeration<SearchResult> results = ldapContext.search(searchName.get(), filter, controls);
-            if (results == null) {
-                return result;
-            }
-            while (results.hasMore()) {
+            while (results != null && results.hasMore()) {
                 SearchResult searchResult = results.next();
-                Attributes attributes = searchResult.getAttributes();
-                Attribute groups = attributes.get(searchGroupAttrName.get());
+                Attribute groups = searchResult.getAttributes().get(searchGroupAttrName.get());
                 log.tracef("groups=%s", groups);
-                if (groups.contains(searchRoleUserAttrValue.get())) {
-                    result.add(WebsiteResource.ROLE_SPASHIP_USER);
+                if (groups != null && groups.contains(searchRoleUserAttrValue.get())) {
+                    roles.add(WebsiteResource.ROLE_SPASHIP_USER);
                 }
-                if (groups.contains(searchRoleAdminAttrValue.get())) {
-                    result.add(WebsiteResource.ROLE_SPASHIP_ADMIN);
+                if (groups != null && groups.contains(searchRoleAdminAttrValue.get())) {
+                    roles.add(WebsiteResource.ROLE_SPASHIP_ADMIN);
                 }
             }
-            return result;
+            ldapContext.close();   // Return connection to pool
         } catch (NamingException e) {
             log.error("Cannot query LDAP", e);
             throw new LdapException(e);
         }
+        return roles;
     }
 
 }
