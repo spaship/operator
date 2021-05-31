@@ -6,6 +6,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
+import javax.inject.Singleton;
 import java.util.Optional;
 
 @Dependent
@@ -21,6 +22,7 @@ public class EventConfiguration {
     }
 
     @Produces
+    @Singleton
     public EventSourcing eventSourcingService(){
         return new EventSourcing(vertx, enabled);
     }

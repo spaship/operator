@@ -9,13 +9,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
 
 @ApplicationScoped
-public class EventStream implements ServerSentEvent {
+public class EventStreamResource implements ServerSentEvent2 {
 
     private final EventSourcing eventSourcing;
     private final Vertx vertx;
 
-    public EventStream(EventSourcing ob,
-                       Vertx vertx) {
+    public EventStreamResource(EventSourcing ob,
+                               Vertx vertx) {
         this.eventSourcing = ob;
         this.vertx = vertx;
     }

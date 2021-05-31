@@ -23,6 +23,7 @@ public class EventSourcing {
 
 
     public void publishMessage(String payload){
+        LOG.debug("toggleEnabled vale is {}",toggleEnabled);
         if(!toggleEnabled)
             return;
         JsonObject messageBody = buildMessageBody(payload);
@@ -48,8 +49,8 @@ public class EventSourcing {
     }
 
     public void setToggleEnabled(boolean set) {
-        LOG.debug("setting toggleEnabled value {}",set);
         this.toggleEnabled = set;
+        LOG.debug(">toggleEnabled after set {}",this.toggleEnabled);
     }
 
     public static String getBusAddress() {

@@ -1,4 +1,4 @@
-package io.spaship.operator.resource;
+package io.spaship.operator.event;
 
 import io.smallrye.mutiny.Multi;
 
@@ -9,16 +9,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/events")
-public interface ServerSentEvent {
-
+public interface ServerSentEvent2 {
     @GET
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @Path("/stream")
     Multi<String> streamEvents();
 
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
     @Path("/disable")
+    @Produces(MediaType.TEXT_PLAIN)
     Response disableMessageSourcing();
 
     @GET
