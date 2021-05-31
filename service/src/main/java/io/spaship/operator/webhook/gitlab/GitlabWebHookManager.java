@@ -48,7 +48,7 @@ public class GitlabWebHookManager implements GitWebHookManager {
         if (StringUtils.equals(state, "opened")) {
             return StringUtils.equals(action, "update") ? MergeStatus.UPDATE : MergeStatus.OPEN;
         }
-        if (StringUtils.equals(state, "closed")){
+        if (StringUtils.equals(state, "closed")) {
             return MergeStatus.CLOSE;
         }
         return null;

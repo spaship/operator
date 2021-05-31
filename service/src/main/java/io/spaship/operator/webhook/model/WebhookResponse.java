@@ -5,7 +5,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.util.List;
 
-@Schema(description="Webhook Response - status and list of updated components and websites")
+@Schema(description = "Webhook Response - status and list of updated components and websites")
 public class WebhookResponse {
     public static final String STATUS_SUCCESS = "SUCCESS";
     public static final String STATUS_PING = "PING";

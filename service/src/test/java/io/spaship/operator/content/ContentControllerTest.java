@@ -27,12 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @QuarkusTest
 class ContentControllerTest extends QuarkusTestBase {
 
+    static final String testedConfig = "/deployment-config-test.yaml";
+    static WebsiteConfig config;
     @Inject
     ContentController contentController;
-
-    static final String testedConfig = "/deployment-config-test.yaml";
-
-    static WebsiteConfig config;
 
     @BeforeAll
     public static void beforeAll() throws IOException {

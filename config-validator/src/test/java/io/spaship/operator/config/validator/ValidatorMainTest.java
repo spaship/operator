@@ -12,13 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTest
 class ValidatorMainTest {
 
+    static String validFile, invalidFile;
     @Inject
     ValidatorMain validatorMain;
-
-    @Test
-    void noInput() throws Exception {
-        assertEquals(1, validatorMain.checkAndValidate(Optional.empty(), (String[]) null));
-    }
 
     @BeforeAll
     public static void loadFile() {
@@ -26,7 +22,10 @@ class ValidatorMainTest {
         invalidFile = ValidatorMainTest.class.getResource("/invalid-apiVersion.yaml").getFile();
     }
 
-    static String validFile, invalidFile;
+    @Test
+    void noInput() throws Exception {
+        assertEquals(1, validatorMain.checkAndValidate(Optional.empty(), (String[]) null));
+    }
 
     @Test
     void validFilePath() throws Exception {
@@ -52,6 +51,7 @@ class ValidatorMainTest {
     void invalidOneFile() throws Exception {
         assertEquals(1, validatorMain.checkAndValidate(Optional.of(invalidFile), (String[]) null));
     }
+
     @Test
     void invalidTwoFiles() throws Exception {
         assertEquals(2, validatorMain.checkAndValidate(Optional.of(invalidFile), invalidFile));

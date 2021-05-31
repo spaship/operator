@@ -24,18 +24,13 @@ import java.util.concurrent.TimeUnit;
 public class ContentWatcher {
 
     private static final Logger log = Logger.getLogger(ContentWatcher.class);
-
+    private final long resyncPeriodSec = 60;
     @Inject
     DefaultOpenShiftClient client;
-
     @Inject
     WebsiteController websiteController;
-
     @ConfigProperty(name = "app.operator.provider.crd.enabled")
     boolean crdEnabled;
-
-    private final long resyncPeriodSec = 60;
-
     @Inject
     Vertx vertx;
 
@@ -111,6 +106,7 @@ public class ContentWatcher {
             throw new RuntimeException(e);
         }
     }
+
     protected String getStatusStr(DeploymentStatus status) {
         return String.format("[%s/%s]",
                 defaultZero(status.getReadyReplicas()),

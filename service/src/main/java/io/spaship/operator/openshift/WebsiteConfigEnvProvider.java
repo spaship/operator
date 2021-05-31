@@ -23,38 +23,30 @@ import java.util.Optional;
 public class WebsiteConfigEnvProvider {
 
     private static final Logger log = Logger.getLogger(WebsiteConfigEnvProvider.class);
-
+    @ConfigProperty(name = "app.operator.provider.env.delay")
+    protected long initDelay;
+    @ConfigProperty(name = "website.namespace")
+    protected Optional<String> namespace;
     @ConfigProperty(name = "website.name")
     Optional<String> websiteName;
     @ConfigProperty(name = "website.gitUrl")
     Optional<String> gitUrl;
-
     @ConfigProperty(name = "website.branch")
     Optional<String> branch;
     @ConfigProperty(name = "website.webhook.secret")
     Optional<String> secret;
-
     @ConfigProperty(name = "website.sslVerify")
     Optional<Boolean> sslVerify;
     @ConfigProperty(name = "website.previews")
     Optional<Boolean> previews;
     @ConfigProperty(name = "website.gitApiToken")
     Optional<String> gitApiToken;
-
     @ConfigProperty(name = "website.config.dir")
     Optional<String> configDir;
-
     @ConfigProperty(name = "website.envs.included")
     Optional<List<String>> websiteEnvIncluded;
     @ConfigProperty(name = "website.envs.excluded")
     Optional<List<String>> websiteEnvExcluded;
-
-    @ConfigProperty(name = "app.operator.provider.env.delay")
-    protected long initDelay;
-
-    @ConfigProperty(name = "website.namespace")
-    protected Optional<String> namespace;
-
     @ConfigProperty(name = "app.operator.provider.env.enabled")
     Optional<Boolean> providerEnabled;
 

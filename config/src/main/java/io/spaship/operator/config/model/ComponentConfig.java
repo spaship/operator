@@ -24,12 +24,12 @@ public class ComponentConfig {
         return context;
     }
 
-    public String getComponentName() {
-        return getContext().substring(1);  // remove starting /
-    }
-
     public void setContext(String context) {
         this.context = context;
+    }
+
+    public String getComponentName() {
+        return getContext().substring(1);  // remove starting /
     }
 
     public String getKind() {

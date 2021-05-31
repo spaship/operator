@@ -39,6 +39,10 @@ public class GitWebsiteConfigService {
 
     Map<String, GitInfo> repos = new HashMap<>();
 
+    public static String getGitDirName(String workDir, String websiteId) {
+        return workDir + "/git-website_" + websiteId.replace(".", "_").replace("/", "").replace(":", "_");
+    }
+
     void onStart(@Observes StartupEvent ev) {
         log.infof("WebsiteConfig Service init. configFilename=%s", configFilenames);
     }
@@ -148,10 +152,6 @@ public class GitWebsiteConfigService {
             }
         }
         return null;
-    }
-
-    public static String getGitDirName(String workDir, String websiteId) {
-        return workDir + "/git-website_" + websiteId.replace(".", "_").replace("/", "").replace(":", "_");
     }
 
 }

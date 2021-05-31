@@ -39,16 +39,19 @@ class WebsiteConfigEnvProviderTest extends QuarkusTestBase {
         envProvider.setGitUrl(Optional.empty());
         Assertions.assertThrows(WebsiteConfigEnvException.class, envProvider::createWebsiteFromEnv);
     }
+
     @Test
     void missingSecret() {
         envProvider.setSecret(Optional.empty());
         Assertions.assertThrows(WebsiteConfigEnvException.class, envProvider::createWebsiteFromEnv);
     }
+
     @Test
     void missingWebsiteName() {
         envProvider.setWebsiteName(Optional.empty());
         Assertions.assertThrows(WebsiteConfigEnvException.class, envProvider::createWebsiteFromEnv);
     }
+
     @Test
     void missingNamespace() {
         envProvider.setNamespace(Optional.empty());

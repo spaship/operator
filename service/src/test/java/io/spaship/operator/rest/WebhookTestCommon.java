@@ -45,23 +45,28 @@ public class WebhookTestCommon extends QuarkusTestBase {
 
     public static final Website SIMPLE_WEBSITE = WebsiteRepository.createWebsite("simple", SIMPLE_WEB, NAMESPACE);
     public static final Website ADVANCED_WEBSITE = WebsiteRepository.createWebsite("advanced", ADVANCED_WEB, NAMESPACE);
-
-    @Inject
-    OperatorService operatorService;
+    protected static final String AUTH_SPASHIP_USER = "spaship-user";
+    protected static final String AUTH_SPASHIP_ROLE = "spaship-user";
+    protected static Vertx vertx;
+    protected static ContentApiMock apiMock;
     @Inject
     protected
     WebsiteRepository websiteRepository;
     @Inject
+    OperatorService operatorService;
+    @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
-
-    protected static Vertx vertx;
-    protected static ContentApiMock apiMock;
 
     @BeforeAll
     static void beforeAll() {
         vertx = Vertx.vertx();
         apiMock = new ContentApiMock(8001);
         vertx.deployVerticle(apiMock);
+    }
+
+    @AfterAll
+    static void afterAll() {
+        vertx.close();
     }
 
     @BeforeEach
@@ -72,11 +77,6 @@ public class WebhookTestCommon extends QuarkusTestBase {
     @AfterEach
     void afterEach() {
         apiMock.reset();
-    }
-
-    @AfterAll
-    static void afterAll() {
-        vertx.close();
     }
 
     public void registerWeb(Website website, boolean reset) throws IOException, GitAPIException {
@@ -112,15 +112,13 @@ public class WebhookTestCommon extends QuarkusTestBase {
                 .header("X-Gitlab-Event", "Push Hook")
                 .header("X-Gitlab-Token", OperatorServiceTest.SECRET_SIMPLE);
     }
+
     public RequestSpecification givenAdvancedGitlabWebhookRequest() {
         return given()
                 .header("Content-type", "application/json")
                 .header("X-Gitlab-Event", "Push Hook")
                 .header("X-Gitlab-Token", OperatorServiceTest.SECRET_ADVANCED);
     }
-
-    protected static final String AUTH_SPASHIP_USER = "spaship-user";
-    protected static final String AUTH_SPASHIP_ROLE = "spaship-user";
 
     protected String getAccessToken(String userName, String... role) {
         JwtClaimsBuilder builder = Jwt.preferredUserName(userName);

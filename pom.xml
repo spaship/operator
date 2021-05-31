@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.spaship.operator</groupId>
     <artifactId>operator-root</artifactId>
@@ -53,13 +54,13 @@
         <dependencies>
             <!-- Remove it once client is upgraded to 5.1.0 in quarkus -->
             <!-- https://github.com/quarkusio/quarkus/issues/15250 -->
-<!--            <dependency>-->
-<!--                <groupId>io.fabric8</groupId>-->
-<!--                <artifactId>kubernetes-client-bom</artifactId>-->
-<!--                <version>5.1.1</version>-->
-<!--                <type>pom</type>-->
-<!--                <scope>import</scope>-->
-<!--            </dependency>-->
+            <!--            <dependency>-->
+            <!--                <groupId>io.fabric8</groupId>-->
+            <!--                <artifactId>kubernetes-client-bom</artifactId>-->
+            <!--                <version>5.1.1</version>-->
+            <!--                <type>pom</type>-->
+            <!--                <scope>import</scope>-->
+            <!--            </dependency>-->
             <dependency>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-bom</artifactId>

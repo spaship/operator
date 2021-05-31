@@ -2,16 +2,16 @@ package io.spaship.operator.content;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
-@Schema(description="Response from Component response call")
+@Schema(description = "Response from Component response call")
 public class UpdatedComponent {
-    @Schema(description="Component name")
+    @Schema(description = "Component name")
     String name;
-    @Schema(description="Git update result")
+    @Schema(description = "Git update result")
     String status;
     String namespace;
-    @Schema(description="Website name")
+    @Schema(description = "Website name")
     String website;
-    @Schema(description="Website environment")
+    @Schema(description = "Website environment")
     String env;
 
     public UpdatedComponent(String name, String status, String namespace, String website, String env) {

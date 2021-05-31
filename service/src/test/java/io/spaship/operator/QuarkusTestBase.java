@@ -23,14 +23,46 @@ import java.util.concurrent.TimeUnit;
 @QuarkusTestResource(OpenShiftMockServerTestResource.class)
 public class QuarkusTestBase {
 
-    private static final Logger log = Logger.getLogger(QuarkusTestBase.class);
-
     public static final String EXAMPLES_NAMESPACE = "spaship-examples";
-
+    private static final Logger log = Logger.getLogger(QuarkusTestBase.class);
     @MockServer
     protected OpenShiftMockServer mockServer;
 
     long defaultWaitingTime = 100;
+
+    public static List<String> expectedRegisterWebRequests(int envsCount) {
+        return expectedRegisterWebRequests(envsCount, EXAMPLES_NAMESPACE);
+    }
+
+    public static List<String> expectedRegisterWebRequests(int envsCount, String namespace) {
+        ArrayList<String> result = new ArrayList<>();
+        for (int i = 0; i < envsCount; i++) {
+            result.add("/api/v1/namespaces/" + namespace + "/configmaps");
+            result.add("/api/v1/namespaces/" + namespace + "/services");
+            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments");
+        }
+        return result;
+    }
+
+    public static List<String> expectedDeleteWebRequests(List<String> envs, String namespace, String name) {
+        ArrayList<String> result = new ArrayList<>();
+        for (String env : envs) {
+            result.add("/api/v1/namespaces/" + namespace + "/configmaps/" + name + "-content-init-" + env);
+            result.add("/api/v1/namespaces/" + namespace + "/services/" + name + "-content-" + env);
+            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
+        }
+        return result;
+    }
+
+    public static List<String> expectedRedeployWebRequests(List<String> envs, String namespace, String name) {
+        ArrayList<String> result = new ArrayList<>();
+        for (String env : envs) {
+            //get + patch
+            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
+            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
+        }
+        return result;
+    }
 
     @BeforeEach
     protected void setupMockServer() {
@@ -122,39 +154,5 @@ public class QuarkusTestBase {
             throw new RuntimeException(e);
         }
         log.info("Website meets all requested paths");
-    }
-
-    public static List<String> expectedRegisterWebRequests(int envsCount) {
-        return expectedRegisterWebRequests(envsCount, EXAMPLES_NAMESPACE);
-    }
-
-    public static List<String> expectedRegisterWebRequests(int envsCount, String namespace) {
-        ArrayList<String> result = new ArrayList<>();
-        for (int i = 0; i < envsCount; i++) {
-            result.add("/api/v1/namespaces/" + namespace + "/configmaps");
-            result.add("/api/v1/namespaces/" + namespace + "/services");
-            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments");
-        }
-        return result;
-    }
-
-    public static List<String> expectedDeleteWebRequests(List<String> envs, String namespace, String name) {
-        ArrayList<String> result = new ArrayList<>();
-        for (String env : envs) {
-            result.add("/api/v1/namespaces/" + namespace + "/configmaps/" + name + "-content-init-" + env);
-            result.add("/api/v1/namespaces/" + namespace + "/services/" + name + "-content-" + env);
-            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
-        }
-        return result;
-    }
-
-    public static List<String> expectedRedeployWebRequests(List<String> envs, String namespace, String name) {
-        ArrayList<String> result = new ArrayList<>();
-        for (String env : envs) {
-            //get + patch
-            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
-            result.add("/apis/apps/v1/namespaces/" + namespace + "/deployments/" + name + "-content-" + env);
-        }
-        return result;
     }
 }

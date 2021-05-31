@@ -20,8 +20,9 @@ Project consists of three modules
 
 Maven artefacts are pushed to [jboss.org repository](https://repository.jboss.org/nexus/#nexus-search;quick~io.spaship).
 
-If other project depends on e.g. operator-config artefact
-Add this repository to pom.xml: `https://repository.jboss.org/nexus/content/repositories/DXP/` and dependency:
+If other project depends on e.g. operator-config artefact Add this repository to
+pom.xml: `https://repository.jboss.org/nexus/content/repositories/DXP/` and dependency:
+
 ```xml
 <dependency>
   <groupId>io.spaship.operator</groupId>

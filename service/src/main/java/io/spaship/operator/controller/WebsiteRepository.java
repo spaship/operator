@@ -19,6 +19,15 @@ public class WebsiteRepository {
 
     private Map<String, Website> websites = new HashMap<>();
 
+    public static Website createWebsite(String name, WebsiteSpec websiteSpec, String namespace) {
+        Website website = new Website();
+        website.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
+        website.setSpec(websiteSpec);
+        website.setStatus(new WebsiteStatus());
+
+        return website;
+    }
+
     public Website addWebsite(Website website) {
         if (website.getConfig() == null) {
             throw new RuntimeException("Cannot register new website without configuration");
@@ -33,15 +42,6 @@ public class WebsiteRepository {
 
     public Website getWebsite(String id) {
         return websites.get(id);
-    }
-
-    public static Website createWebsite(String name, WebsiteSpec websiteSpec, String namespace) {
-        Website website = new Website();
-        website.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
-        website.setSpec(websiteSpec);
-        website.setStatus(new WebsiteStatus());
-
-        return website;
     }
 
     public List<Website> getByGitUrl(String gitUrl, String secretToken, boolean sha256Hex) {

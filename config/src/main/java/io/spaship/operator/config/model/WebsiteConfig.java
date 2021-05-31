@@ -61,6 +61,7 @@ public class WebsiteConfig {
     public Stream<ComponentConfig> getEnabledGitComponents(String targetEnv) {
         return getEnabledComponents(targetEnv).filter(ComponentGitMatcher);
     }
+
     @JsonIgnore
     public Stream<ComponentConfig> getEnabledServiceComponents(String targetEnv) {
         return getEnabledComponents(targetEnv).filter(ComponentServiceMatcher);

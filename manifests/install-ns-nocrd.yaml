@@ -12,7 +12,7 @@ metadata:
     spaship: operator
 rules:
   - apiGroups: [ "route.openshift.io" ]
-    resources: [  "routes" ]
+    resources: [ "routes" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
   # When APP_OPERATOR_ROUTER_MODE=openshift this permission needs to be enabled
   - apiGroups: [ "route.openshift.io" ]
@@ -20,14 +20,14 @@ rules:
     verbs: [ "create" ]
   # When APP_OPERATOR_ROUTER_MODE=ingress this permission needs to be enabled
   - apiGroups: [ "networking.k8s.io" ]
-    resources: [  "ingresses" ]
+    resources: [ "ingresses" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
   - apiGroups: [ "" ]
-    resources: [  "configmaps", "services" ]
+    resources: [ "configmaps", "services" ]
     verbs: [ "create", "update", "get", "watch", "list", "delete" ]
   - apiGroups: [ "apps" ]
     resources: [ "deployments" ]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

@@ -13,11 +13,6 @@ public class EnvIncluded implements Predicate<String> {
         this.website = website;
     }
 
-    @Override
-    public boolean test(String env) {
-        return isEnvEnabled(website, env);
-    }
-
     public static boolean isEnvEnabled(Website website, String env) {
         if (website.getSpec() == null || website.getSpec().getEnvs() == null) {
             return true;
@@ -40,5 +35,10 @@ public class EnvIncluded implements Predicate<String> {
             return true;
         }
         return true;
+    }
+
+    @Override
+    public boolean test(String env) {
+        return isEnvEnabled(website, env);
     }
 }

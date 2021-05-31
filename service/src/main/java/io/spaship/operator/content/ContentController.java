@@ -47,21 +47,18 @@ import java.util.regex.Pattern;
 @ApplicationScoped
 public class ContentController {
 
-    private static final Logger log = Logger.getLogger(ContentController.class);
-
     static final String CONFIG_INIT = "-content-init-";
-
+    private static final Logger log = Logger.getLogger(ContentController.class);
+    @ConfigProperty(name = "app.content.git.rootcontext")
+    protected String rootContext;
     @Inject
     DefaultOpenShiftClient client;
-
     @Inject
     Vertx vertx;
-
     @ConfigProperty(name = "app.content.git.api.host")
     Optional<String> contentApiHost;
     @ConfigProperty(name = "app.content.git.api.port")
     Optional<Integer> staticContentApiPort;
-
     // Content Image Spec
     @ConfigProperty(name = "app.operator.image.init.name")
     Optional<String> imageInitName;
@@ -75,10 +72,6 @@ public class ContentController {
     Optional<String> imageApiName;
     @ConfigProperty(name = "app.operator.image.api.version")
     Optional<String> imageApiVersion;
-
-    @ConfigProperty(name = "app.content.git.rootcontext")
-    protected String rootContext;
-
     @ConfigProperty(name = "app.operator.content.envs")
     Optional<String> contentEnvsStr;
 

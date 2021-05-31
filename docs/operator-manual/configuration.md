@@ -2,7 +2,8 @@
 
 ## Configuration Properties
 
-Any Operator's configuration defined in [application.properties](https://github.com/spaship/operator/blob/main/service/src/main/resources/application.properties)
+Any Operator's configuration defined
+in [application.properties](https://github.com/spaship/operator/blob/main/service/src/main/resources/application.properties)
 can be overridden via env variable but in uppercase and dot is replaced by underscore.
 
 ### Important Configurations
@@ -28,14 +29,15 @@ can be overridden via env variable but in uppercase and dot is replaced by under
 
 It's common to have defined deployment defaults for particular environment. Typically production.
 
-The value of `APP_OPERATOR_CONTENT_ENVS` property can define in JSON format the default values for `env` section for all websites.
-Each website but can override this default in its `website.yaml` spec. 
+The value of `APP_OPERATOR_CONTENT_ENVS` property can define in JSON format the default values for `env` section for all
+websites. Each website but can override this default in its `website.yaml` spec.
 
 If the deployed website is `preview website` created from Merge Request then `preview` name is used.
 
 The env name can be also regexp but exact match (e.g. `prod` env name) overrides the regexp.
 
 Example:
+
 ```json
 {
   "envs": {
@@ -81,6 +83,7 @@ Example:
 ```
 
 Compressed:
+
 ```json
 {"envs":{".*":{"deployment":{"httpd":{"resources":{"requests":{"cpu":"100m","memory":"100Mi"},"limits":{"cpu":"150m","memory":"150Mi"}}}}},"preview":{"deployment":{"httpd":{"resources":{"requests":{"cpu":"10m","memory":"50Mi"},"limits":{"cpu":"50m","memory":"50Mi"}}},"api":{"resources":{"requests":{"cpu":"10m","memory":"50Mi"},"limits":{"cpu":"50m","memory":"50Mi"}}}}},"prod":{"deployment":{"replicas":2,"httpd":{"resources":{"requests":{"cpu":"100m","memory":"150Mi"},"limits":{"cpu":"500m","memory":"250Mi"}}}}}}}
 ```

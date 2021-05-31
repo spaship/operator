@@ -37,6 +37,14 @@ public class WebHookResource {
         return apis;
     }
 
+    public static String getHeader(HttpServerRequest request, String name) {
+        List<String> headers = request.headers().getAll(name);
+        if (headers == null || headers.size() == 0) {
+            return null;
+        }
+        return StringUtils.trimToNull(headers.get(0));
+    }
+
     @Route(methods = HttpMethod.POST, path = API_WEBHOOK, produces = MediaType.APPLICATION_JSON)
     @Operation(summary = "Git Webhook", description = "Handles git webhook")
     @APIResponse(responseCode = "200",
@@ -67,14 +75,6 @@ public class WebHookResource {
                         rc.fail(err);
                     }
                 });
-    }
-
-    public static String getHeader(HttpServerRequest request, String name) {
-        List<String> headers = request.headers().getAll(name);
-        if (headers == null || headers.size() == 0) {
-            return null;
-        }
-        return StringUtils.trimToNull(headers.get(0));
     }
 
 }

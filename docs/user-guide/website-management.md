@@ -5,7 +5,9 @@
 ```shell
 kubectl get websites.spaship.io -n spaship-examples
 ```
+
 Output is:
+
 ```shell
 NAME       GIT URL                                               BRANCH   DIR                    SSL VERIFY   ENVIRONMENTS               STATUS     MESSAGE
 advanced   https://github.com/spaship/spaship-examples.git                websites/02-advanced   true         ["dev[1/1]"]               Deployed
@@ -19,6 +21,7 @@ simple     https://github.com/spaship/spaship-examples.git                websit
 ## Register Website in Cluster
 
 ### Step 1: Create a namespace
+
 ```shell
 kubectl create namespace spaship-examples
 ```
@@ -45,9 +48,11 @@ kubectl apply -n spaship-examples -f my-website.yaml
 
 ### Optional - Control Mapping Environments to Namespaces
 
-Thanks to `exclusion` and `inclusion` an administrator has under full control which environment will be deployed in which namespace.
+Thanks to `exclusion` and `inclusion` an administrator has under full control which environment will be deployed in
+which namespace.
 
 #### Example - excluded prod environment
+
 ```yaml
 spec:
   envs:
@@ -56,6 +61,7 @@ spec:
 ```
 
 #### Example - included only prod environment
+
 ```yaml
 spec:
   envs:
@@ -64,6 +70,7 @@ spec:
 ```
 
 #### Example - included only `pr-*` environments
+
 ```yaml
 spec:
   envs:

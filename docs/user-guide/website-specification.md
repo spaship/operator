@@ -23,8 +23,7 @@ envs:
 
 ## Components
 
-Every component needs to define its `kind`.
-This allows design a website as different components with their sources.
+Every component needs to define its `kind`. This allows design a website as different components with their sources.
 
 ### Component `git`
 
@@ -57,8 +56,7 @@ components:
 
 ## Defaults and Overrides
 
-The `website.yaml` strongly uses defaults & overrides strategy.
-For example branch name is defined on following places:
+The `website.yaml` strongly uses defaults & overrides strategy. For example branch name is defined on following places:
 
 `Environment` -> `Component` -> `Component's environment`
 
@@ -67,6 +65,7 @@ For example branch name is defined on following places:
 This offers flexibility to design each environment differently.
 
 ## Complete Spec Reference
+
 The complete `website.yaml` reference
 
 ```yaml

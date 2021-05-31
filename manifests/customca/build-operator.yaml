@@ -9,12 +9,12 @@ spec:
     type: Git
     git:
       uri: "https://github.com/spaship/operator.git"
-# The another way how to pass Dockerfile
-#    dockerfile: |
-#      FROM quay.io/spaship/operator-jvm:${TAG}
-#      USER root
-#      RUN curl -k ${CA_CERT_URL} --create-dirs -o /usr/share/pki/ca-trust-source/anchors/website-cd-ca.crt && update-ca-trust
-#      USER 1001
+  # The another way how to pass Dockerfile
+  #    dockerfile: |
+  #      FROM quay.io/spaship/operator-jvm:${TAG}
+  #      USER root
+  #      RUN curl -k ${CA_CERT_URL} --create-dirs -o /usr/share/pki/ca-trust-source/anchors/website-cd-ca.crt && update-ca-trust
+  #      USER 1001
   strategy:
     type: Docker
     dockerStrategy:
@@ -29,8 +29,8 @@ spec:
     to:
       kind: ImageStreamTag
       name: 'spaship-operator-jvm:latest'
-#      kind: 'DockerImage'
-#      name: 'my-registry.mycompany.com:5000/spaship/operator-jvm:latest'
+    #      kind: 'DockerImage'
+    #      name: 'my-registry.mycompany.com:5000/spaship/operator-jvm:latest'
     pushSecret:
       name: 'push-secret'
 ---

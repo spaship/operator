@@ -40,30 +40,51 @@ import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentG
 public class OperatorService {
 
     private static final Logger log = Logger.getLogger(OperatorService.class);
-
-    @Inject
-    ContentController contentController;
-
-    @Inject
-    RouterController routerController;
-
-    @Inject
-    IngressController ingressController;
-
-    @Inject
-    WebsiteRepository websiteRepository;
-
-    @Inject
-    GitWebsiteConfigService gitWebsiteConfigService;
-
-    @Inject
-    WebsiteController websiteController;
-
     @ConfigProperty(name = "app.content.git.rootcontext")
     protected String rootContext;
-
+    @Inject
+    ContentController contentController;
+    @Inject
+    RouterController routerController;
+    @Inject
+    IngressController ingressController;
+    @Inject
+    WebsiteRepository websiteRepository;
+    @Inject
+    GitWebsiteConfigService gitWebsiteConfigService;
+    @Inject
+    WebsiteController websiteController;
     @Inject
     Vertx vertx;
+
+    public static Website createWebsiteCopy(Website website, String previewId, String previewGitUrl, String previewRef) {
+        Website previewWebsite = new Website();
+
+        WebsiteSpec sourceSpec = website.getSpec();
+        log.tracef("source spec to copy=%s", sourceSpec);
+        // Git Spec is from Merge request
+        // For some reason Openshift reject "null" values even they're not required. That's why "trimToEmpty"
+        WebsiteSpec spec = new WebsiteSpec(previewGitUrl, previewRef, StringUtils.trimToEmpty(sourceSpec.getDir()),
+                sourceSpec.getSslVerify(), StringUtils.trimToEmpty(sourceSpec.getSecretToken()));
+        spec.setPreviews(false);
+        spec.setDisplayName(StringUtils.trimToEmpty(sourceSpec.getDisplayName()) + " - Fork");
+        spec.setEnvs(sourceSpec.getEnvs() != null ? sourceSpec.getEnvs() : new WebsiteEnvs());
+        if (spec.getEnvs().getIncluded() == null) spec.getEnvs().setIncluded(new ArrayList<>());
+        if (spec.getEnvs().getExcluded() == null) spec.getEnvs().setExcluded(new ArrayList<>());
+
+        previewWebsite.setSpec(spec);
+
+        // Just change the name to "name"-<previewId>
+        ObjectMeta sourceMetadata = website.getMetadata();
+        String previewName = sourceMetadata.getName() + "-pr-" + previewId;
+
+        ObjectMetaBuilder metadata = new ObjectMetaBuilder()
+                .withName(previewName).withNamespace(sourceMetadata.getNamespace())
+                .addToLabels("websiteFork", sourceMetadata.getName());
+
+        previewWebsite.setMetadata(metadata.build());
+        return previewWebsite;
+    }
 
     // eager start
     void startup(@Observes StartupEvent event) {
@@ -216,35 +237,6 @@ public class OperatorService {
             }
         });
         return true;
-    }
-
-    public static Website createWebsiteCopy(Website website, String previewId, String previewGitUrl, String previewRef) {
-        Website previewWebsite = new Website();
-
-        WebsiteSpec sourceSpec = website.getSpec();
-        log.tracef("source spec to copy=%s", sourceSpec);
-        // Git Spec is from Merge request
-        // For some reason Openshift reject "null" values even they're not required. That's why "trimToEmpty"
-        WebsiteSpec spec = new WebsiteSpec(previewGitUrl, previewRef, StringUtils.trimToEmpty(sourceSpec.getDir()),
-                sourceSpec.getSslVerify(), StringUtils.trimToEmpty(sourceSpec.getSecretToken()));
-        spec.setPreviews(false);
-        spec.setDisplayName(StringUtils.trimToEmpty(sourceSpec.getDisplayName()) + " - Fork");
-        spec.setEnvs(sourceSpec.getEnvs() != null ? sourceSpec.getEnvs() : new WebsiteEnvs());
-        if (spec.getEnvs().getIncluded() == null) spec.getEnvs().setIncluded(new ArrayList<>());
-        if (spec.getEnvs().getExcluded() == null) spec.getEnvs().setExcluded(new ArrayList<>());
-
-        previewWebsite.setSpec(spec);
-
-        // Just change the name to "name"-<previewId>
-        ObjectMeta sourceMetadata = website.getMetadata();
-        String previewName = sourceMetadata.getName() + "-pr-" + previewId;
-
-        ObjectMetaBuilder metadata = new ObjectMetaBuilder()
-                .withName(previewName).withNamespace(sourceMetadata.getNamespace())
-                .addToLabels("websiteFork", sourceMetadata.getName());
-
-        previewWebsite.setMetadata(metadata.build());
-        return previewWebsite;
     }
 
     public void createOrUpdateWebsite(Website website, boolean redeploy) throws GitAPIException, IOException {

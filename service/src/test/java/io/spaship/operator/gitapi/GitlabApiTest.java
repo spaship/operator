@@ -16,10 +16,9 @@ import java.io.IOException;
 @QuarkusTest
 class GitlabApiTest {
 
+    static MockWebServer gitApiMock;
     @Inject
     GitlabApi gitlabApi;
-
-    static MockWebServer gitApiMock;
 
     @BeforeAll
     static void beforeAll() throws IOException {

@@ -10,22 +10,6 @@ import static io.spaship.operator.webhook.model.UpdatedWebsite.*;
 
 public interface GitWebHookManager {
 
-    public static enum MergeStatus {
-        OPEN, UPDATE, CLOSE;
-
-        public String toResponseStatus() {
-            switch (this) {
-                case OPEN:
-                    return STATUS_PREVIEW_CREATING;
-                case UPDATE:
-                    return STATUS_PREVIEW_UPDATING;
-                case CLOSE:
-                    return STATUS_PREVIEW_DELETING;
-            }
-            return "unknown";
-        }
-    }
-
     boolean canHandleRequest(HttpServerRequest request);
 
     public String getEventHeader(HttpServerRequest request);
@@ -47,4 +31,20 @@ public interface GitWebHookManager {
     String getPreviewId(JsonObject postData);
 
     List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject postData);
+
+    public static enum MergeStatus {
+        OPEN, UPDATE, CLOSE;
+
+        public String toResponseStatus() {
+            switch (this) {
+                case OPEN:
+                    return STATUS_PREVIEW_CREATING;
+                case UPDATE:
+                    return STATUS_PREVIEW_UPDATING;
+                case CLOSE:
+                    return STATUS_PREVIEW_DELETING;
+            }
+            return "unknown";
+        }
+    }
 }

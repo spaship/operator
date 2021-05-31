@@ -29,13 +29,10 @@ import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentS
 public class RouterController {
 
     private static final Logger log = Logger.getLogger(RouterController.class);
-
-    @Inject
-    DefaultOpenShiftClient client;
-
     @ConfigProperty(name = "app.operator.website.domain")
     protected Optional<String> domain;
-
+    @Inject
+    DefaultOpenShiftClient client;
     @ConfigProperty(name = "app.operator.router.openshift.api.route.name")
     String apiRouteName;
     @ConfigProperty(name = "app.operator.router.openshift.api.route.tls.termination")
@@ -45,6 +42,35 @@ public class RouterController {
 
     @ConfigProperty(name = "app.operator.router.mode")
     String routerMode;
+
+    protected static String getHost(Optional<String> domain, String websiteName, String targetEnv, String namespace) {
+        if (domain.isPresent()) {
+            return websiteName + "-" + targetEnv + "-" + namespace + "." + domain.get();
+        }
+        return null;
+    }
+
+    public static IntOrString getIntOrString(Integer i) {
+        return new IntOrString(i);
+    }
+
+    public static String getContentServiceName(String websiteName, String targetEnv) {
+        return websiteName + "-content-" + targetEnv;
+    }
+
+    public static String sanityContext(String context) {
+        return context.replace("/", "").replace("_", "");
+    }
+
+    public static String getRouteName(String websiteName, String sanityContext, String env) {
+        StringBuilder routeName = new StringBuilder(websiteName + "-");
+        routeName.append(env);
+        if (StringUtils.isNotEmpty(sanityContext)) {
+            routeName.append("-").append(sanityContext);
+        }
+
+        return routeName.toString();
+    }
 
     void startup(@Observes StartupEvent event) {
         log.infof("RouterController enabled=%s", isEnabled());
@@ -73,13 +99,6 @@ public class RouterController {
 
     public String getHostApi(Website website, String targetEnv) {
         return getHost(domain, Utils.getWebsiteName(website), targetEnv + "-api", website.getMetadata().getNamespace());
-    }
-
-    protected static String getHost(Optional<String> domain, String websiteName, String targetEnv, String namespace) {
-        if (domain.isPresent()) {
-            return websiteName + "-" + targetEnv + "-" + namespace + "." + domain.get();
-        }
-        return null;
     }
 
     public List<Route> updateWebsiteRoutes(String targetEnv, Website website) {
@@ -138,18 +157,6 @@ public class RouterController {
                 .withSpec(spec.build());
     }
 
-    public static IntOrString getIntOrString(Integer i) {
-        return new IntOrString(i);
-    }
-
-    public static String getContentServiceName(String websiteName, String targetEnv) {
-        return websiteName + "-content-" + targetEnv;
-    }
-
-    public static String sanityContext(String context) {
-        return context.replace("/", "").replace("_", "");
-    }
-
     protected Route createApiRoute(String targetEnv, Website website, Optional<String> apiRouteTlsTermination, Optional<String> apiRouteTlsInsecurePolicy) {
         final String websiteName = Utils.getWebsiteName(website);
 
@@ -191,16 +198,6 @@ public class RouterController {
 
     public boolean isApiTls() {
         return apiRouteTlsTermination.isPresent();
-    }
-
-    public static String getRouteName(String websiteName, String sanityContext, String env) {
-        StringBuilder routeName = new StringBuilder(websiteName + "-");
-        routeName.append(env);
-        if (StringUtils.isNotEmpty(sanityContext)) {
-            routeName.append("-").append(sanityContext);
-        }
-
-        return routeName.toString();
     }
 
     public void deleteWebsiteRoutes(String targetEnv, Website website) {

@@ -1,7 +1,6 @@
 package io.spaship.operator.event;
 
 import io.smallrye.mutiny.Multi;
-import io.spaship.operator.resource.ServerSentEvent;
 import io.spaship.operator.service.EventSourcing;
 import io.vertx.mutiny.core.Vertx;
 

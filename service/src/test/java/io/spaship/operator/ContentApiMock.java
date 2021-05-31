@@ -13,18 +13,15 @@ public class ContentApiMock extends AbstractVerticle {
     private static final Logger log = Logger.getLogger(ContentApiMock.class);
 
     final int port;
+    final JsonObject themeDetail = new JsonObject().put("url", "giturl").put("branch", "main")
+            .put("lastCommit", new JsonObject().put("message", "gitMessage").put("author", "gitAuthor").put("timestamp", new Date().toString()));
     HttpServer server;
-
     RequestCountHandler apiListCount = RequestCountHandler.create();
     RequestCountHandler infoThemeCount = RequestCountHandler.create();
     RequestCountHandler updateThemeCount = RequestCountHandler.create();
     RequestCountHandler updateRootCount = RequestCountHandler.create();
     RequestCountHandler updateSearchCount = RequestCountHandler.create();
     RequestCountHandler updateSharedCount = RequestCountHandler.create();
-
-
-    final JsonObject themeDetail = new JsonObject().put("url", "giturl").put("branch", "main")
-            .put("lastCommit", new JsonObject().put("message", "gitMessage").put("author", "gitAuthor").put("timestamp", new Date().toString()));
 
     public ContentApiMock(int port) {
         this.port = port;

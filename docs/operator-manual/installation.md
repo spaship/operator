@@ -8,8 +8,8 @@ kubectl create namespace spaship-operator
 
 ## Configuration
 
-Configuration is managed via ConfigMap which is mapped as environment variables.
-List of important configuration properties is listed in [Operator Configuration](configuration.md) page.
+Configuration is managed via ConfigMap which is mapped as environment variables. List of important configuration
+properties is listed in [Operator Configuration](configuration.md) page.
 
 ### Kubernetes Configuration
 
@@ -39,12 +39,15 @@ kubectl apply -n spaship-operator -f https://raw.githubusercontent.com/spaship/o
 
 Operator doesn't create automatically Ingress/Route so they need to be created manually:
 
-[Example](https://raw.githubusercontent.com/spaship/operator/main/manifests/minikube/ingress.yaml) of ingress with host [operator-spaship.minikube.info](http://operator-spaship.minikube.info).
+[Example](https://raw.githubusercontent.com/spaship/operator/main/manifests/minikube/ingress.yaml) of ingress with
+host [operator-spaship.minikube.info](http://operator-spaship.minikube.info).
+
 ```shell
 kubectl apply -n spaship-operator -f https://raw.githubusercontent.com/spaship/operator/main/manifests/minikube/ingress.yaml
 ```
 
 Example of Openshift route:
+
 ```shell
 oc create route -n spaship-operator edge operator --service=spaship-operator --hostname=spaship-operator.example.com
 ```

@@ -2,14 +2,15 @@
 
 ## Multi Tenant Configuration
 
-Default installation is that operator is running within own namespace and controls websites within
-their namespaces defined by CRDs.
+Default installation is that operator is running within own namespace and controls websites within their namespaces
+defined by CRDs.
 
 ## One Tenant Configuration
 
 It's possible to completely disable Custom Resource Definition and define only one website that will be managed.
 
 Operator needs to have defined these properties:
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -35,4 +36,5 @@ Then Operator manage the website within same namespace as is installed.
 ## Namespaced Installation
 
 For limited installation without ClusterRole permissions it's possible to install the Operator within the namespace
-with `Role` instead of `ClusterRole`. It's up to configuration if Multi or One tenant way of management is used. Both are supported.
+with `Role` instead of `ClusterRole`. It's up to configuration if Multi or One tenant way of management is used. Both
+are supported.

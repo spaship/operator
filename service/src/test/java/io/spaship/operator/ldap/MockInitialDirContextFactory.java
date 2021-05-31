@@ -14,12 +14,10 @@ public class MockInitialDirContextFactory implements InitialContextFactory {
     public static final String LDAP_ALL_ROLES = "ldapuser-allroles";
     public static final String LDAP_USER_ONLY = "ldapuser-user";
     public static final String LDAP_ADMIN_ONLY = "ldapuser-admin";
-
+    private static DirContext mockContext = null;
     final String groupUser = "cn=spaship-users,ou=adhoc,ou=managedGroups,dc=test,dc=com";
     final String groupAdmin = "cn=spaship-admins,ou=adhoc,ou=managedGroups,dc=test,dc=com";
     final String search = "ou=users,dc=test,dc=com";
-
-    private static DirContext mockContext = null;
 
     public Context getInitialContext(Hashtable environment) throws NamingException {
         synchronized (MockInitialDirContextFactory.class) {
@@ -46,12 +44,11 @@ public class MockInitialDirContextFactory implements InitialContextFactory {
     public class MockNamingEnumeration implements NamingEnumeration<SearchResult> {
 
         SearchResult result;
+        int index = 0;
 
         public MockNamingEnumeration(Attributes attributes) {
             result = new SearchResult("", null, attributes);
         }
-
-        int index = 0;
 
         @Override
         public SearchResult next() {

@@ -32,12 +32,14 @@ Operator is available under [https://operator-spaship.minikube.info/](https://op
 ## Deploy sample website
 
 Deploy Website
+
 ```shell
 kubectl create namespace spaship-examples
 kubectl apply -n spaship-examples -f tests/performance/simple/deployment-simple-dev.yaml
 ```
 
 And watch:
+
 ```shell
 kubectl get -n spaship-examples websites.spaship.io -w
 ```
@@ -45,11 +47,13 @@ kubectl get -n spaship-examples websites.spaship.io -w
 ## Prepare Watch Windows
 
 Watch operator deployments:
+
 ```shell
 kubectl get -n spaship deployment -w
 ```
 
 Dashboard:
+
 ```shell
 minikube dashboard
 ```
@@ -57,25 +61,30 @@ minikube dashboard
 ## Webhook 1 - `no matched website or components`
 
 Run jmeter
+
 ```shell
 cd tests/performance/operator
 $JMETER/bin/jmeter.sh -t perftest-operator-webhook.jmx &
 ```
 
 ### Configuration
+
 * 1 requests URL: webhook - `no matched website or components`
 * 10 concurrent requests
 * 10000 loops
 
 #### 500m CPU, 2 replicas
+
 ```shell
 kubectl apply -n spaship -f patch-cpu-500m.yaml
 kubectl scale -n spaship --replicas=2 deployment spaship-operator
 ```
 
-Website is available under [simple-dev-spaship-examples.minikube.info](http://simple-dev-spaship-examples.minikube.info/)
+Website is available
+under [simple-dev-spaship-examples.minikube.info](http://simple-dev-spaship-examples.minikube.info/)
 
 #### 500m CPU, 4 replicas
+
 ```shell
 kubectl apply -n spaship-examples -f patch-cpu-500m.yaml
 kubectl scale -n spaship --replicas=4 deployment spaship-operator

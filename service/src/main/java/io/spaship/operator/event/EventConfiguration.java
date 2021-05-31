@@ -23,7 +23,7 @@ public class EventConfiguration {
 
     @Produces
     @Singleton
-    public EventSourcing eventSourcingService(){
+    public EventSourcing eventSourcingService() {
         return new EventSourcing(vertx, enabled);
     }
 

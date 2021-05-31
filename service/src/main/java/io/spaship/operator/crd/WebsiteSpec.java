@@ -113,7 +113,7 @@ public class WebsiteSpec {
         sb.append('}');
         return sb.toString();
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

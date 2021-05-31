@@ -24,21 +24,35 @@ import java.nio.charset.StandardCharsets;
 @ApplicationScoped
 public class GitlabApi implements GitApi {
 
-    private static final Logger log = Logger.getLogger(GitlabApi.class);
-
     public static final String MR_COMMENT_API = "/api/v4/projects/%s/merge_requests/%s/notes?body=%s";
-
+    private static final Logger log = Logger.getLogger(GitlabApi.class);
     @Inject
     Vertx vertx;
 
     WebClient webClient;
 
+    public static URI getURI(String url) {
+        try {
+            return new URI(url);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // TODO: Receive "website deployed/deleted" events and comment MR appropriately
+
+    public static String encodeURI(String requestURI) {
+        try {
+            return URLEncoder.encode(requestURI, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     void startup(@Observes StartupEvent event) {
         log.infof("GitlabApi init.");
         webClient = WebClient.create(vertx, new WebClientOptions().setVerifyHost(false));
     }
-
-    // TODO: Receive "website deployed/deleted" events and comment MR appropriately
 
     public Future<JsonObject> commentMergeRequest(String gitUrl, String projectId, String mergeRequestId, String accessToken, String body) {
         if (StringUtils.isEmpty(accessToken)) {
@@ -70,22 +84,6 @@ public class GitlabApi implements GitApi {
         });
 
         return promise.future();
-    }
-
-    public static URI getURI(String url) {
-        try {
-            return new URI(url);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String encodeURI(String requestURI) {
-        try {
-            return URLEncoder.encode(requestURI, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

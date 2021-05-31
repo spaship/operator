@@ -42,7 +42,7 @@ objects:
       labels:
         website: ${NAME}
     spec:
-#      type: NodePort
+      #      type: NodePort
       ports:
         # Expose main container
         - port: 80
@@ -111,7 +111,7 @@ objects:
               ports:
                 - containerPort: 8080
               volumeMounts:
-                # Dynamically generated
+              # Dynamically generated
             # Side car container providing API
             - name: api-spaship-operator
               image: "${IMAGE_API}:${IMAGE_API_VERSION}"

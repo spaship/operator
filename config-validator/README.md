@@ -1,17 +1,20 @@
 # Config Validator
 
-1. The actual schema stored in [src/main/resources/websiteconfig-schema.json](src/main/resources/websiteconfig-schema.json).
+1. The actual schema stored
+   in [src/main/resources/websiteconfig-schema.json](src/main/resources/websiteconfig-schema.json).
 2. Validator
 3. Generates a schema during build into `target/websiteconfig-schema.json`.
 
 ## How to run in JVM mode
 
 via parameter (more files to validate)
+
 ```shell
 java -jar target/quarkus-app/quarkus-run.jar src/test/resources/valid-simple-website.yaml src/test/resources/valid-advanced-website.yaml
 ```
 
 via env variable
+
 ```shell
 APP_FILE_PATH=src/test/resources/valid-simple-website.yaml java -jar target/quarkus-app/quarkus-run.jar
 ```

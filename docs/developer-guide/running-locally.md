@@ -22,6 +22,7 @@ kubectl -n spaship logs --selector=spaship-operator-layer=service --tail 10 -f
 ## Local Development
 
 The only CRD needs to be registered:
+
 ```shell
 kubectl apply -f manifests/minikube/crd.yaml
 ```
@@ -33,7 +34,9 @@ mvn clean install
 ```
 
 ### Dev Mode
-Default values for dev mode are stored in [application.properties](https://github.com/spaship/operator/blob/main/service/src/main/resources/application.properties#L51)
+
+Default values for dev mode are stored
+in [application.properties](https://github.com/spaship/operator/blob/main/service/src/main/resources/application.properties#L51)
 in section `# DEV`
 
 ```shell
@@ -43,18 +46,22 @@ mvn quarkus:dev
 
 In few seconds the operator is up and connects to k8s cluster and listening to CRD changes.
 
-Register website [simple](https://github.com/spaship/spaship-examples/tree/main/websites/01-simple) or [advanced](https://github.com/spaship/spaship-examples/tree/main/websites/02-advanced).
+Register website [simple](https://github.com/spaship/spaship-examples/tree/main/websites/01-simple)
+or [advanced](https://github.com/spaship/spaship-examples/tree/main/websites/02-advanced).
 
 #### Setting kubectl context
+
 To view which context do you use just do:
+
 ```shell
 kubectl config current-context
 ```
+
 To switch to minikube context do:
+
 ```shell
 kubectl config use-context minikube
 ```
-
 
 ## Webhook API Development
 
@@ -88,9 +95,11 @@ curl -i -X POST $WEBHOOK_URL  -H "Content-Type: application/json" -H "X-Gitlab-E
 docker run --name keycloak -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -p 8180:8080 quay.io/keycloak/keycloak:12.0.4
 ```
 
-Import realm located at [service/src/test/resources](https://github.com/spaship/operator/tree/main/service/src/test/resources)
+Import realm located
+at [service/src/test/resources](https://github.com/spaship/operator/tree/main/service/src/test/resources)
 
 ### Get Access token
+
 ```shell
 export access_token=$(\
     curl -X POST http://localhost:8180/auth/realms/spaship/protocol/openid-connect/token \
@@ -110,7 +119,8 @@ More info in [Quarkus docs](https://quarkus.io/guides/security-openid-connect#te
 
 ## Build Docker Image
 
-You don't need to care about building docker images because they're covered by [Github Action](https://github.com/spaship/content-git/actions/workflows/docker-publish.yaml)
+You don't need to care about building docker images because they're covered
+by [Github Action](https://github.com/spaship/content-git/actions/workflows/docker-publish.yaml)
 but for development purposes you can do it locally:
 
 ```shell
@@ -120,6 +130,7 @@ docker build -f src/main/docker/Dockerfile.jvm -t spaship/operator-jvm .
 ```
 
 Run image:
+
 ```shell
 docker run -i --rm -e APP_OPERATOR_PROVIDER_ENV_ENABLED=true -e APP_OPERATOR_PROVIDER_CRD_ENABLED=false -e WEBSITE_NAMESPACE=spaship-examples \
    -e WEBSITE_NAME=simple -e WEBSITE_GITURL=https://github.com/spaship/spaship-examples.git -e WEBSITE_CONFIG_DIR=websites/02-advanced -e WEBSITE_WEBHOOK_SECRET=TOKENSIMPLE \

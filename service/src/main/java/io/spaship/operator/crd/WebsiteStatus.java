@@ -10,42 +10,10 @@ import java.util.Map;
 @RegisterForReflection
 public class WebsiteStatus {
 
-    public enum STATUS {
-        FORCE_UPDATE,
-        GIT_CLONING,
-        GIT_PULLING,
-        FAILED,
-        DEPLOYED;
-        @Override
-        public String toString() {
-            switch (this) {
-                case FORCE_UPDATE:
-                    return "Force Update";
-                case GIT_CLONING:
-                    return "Git Cloning";
-                case GIT_PULLING:
-                    return "Git Pulling";
-                case FAILED:
-                    return "Failed";
-                case DEPLOYED:
-                    return "Deployed";
-                default:
-                    return super.toString();
-            }
-        }
-        public boolean equalsTo(String otherStatus) {
-            return StringUtils.equalsIgnoreCase(this.toString(), otherStatus);
-        }
-    }
-
     String status;
-
     String message;
-
     List<String> envs;
-
     Map<String, String> envHosts;
-
     String updated;
 
     public WebsiteStatus() {
@@ -103,6 +71,7 @@ public class WebsiteStatus {
         }
         envHosts.put(env, host);
     }
+
     public String getHost(String env) {
         if (envHosts != null && envHosts.containsKey(env)) {
             return envHosts.get(env);
@@ -128,5 +97,35 @@ public class WebsiteStatus {
         sb.append(", updated='").append(updated).append('\'');
         sb.append('}');
         return sb.toString();
+    }
+
+    public enum STATUS {
+        FORCE_UPDATE,
+        GIT_CLONING,
+        GIT_PULLING,
+        FAILED,
+        DEPLOYED;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case FORCE_UPDATE:
+                    return "Force Update";
+                case GIT_CLONING:
+                    return "Git Cloning";
+                case GIT_PULLING:
+                    return "Git Pulling";
+                case FAILED:
+                    return "Failed";
+                case DEPLOYED:
+                    return "Deployed";
+                default:
+                    return super.toString();
+            }
+        }
+
+        public boolean equalsTo(String otherStatus) {
+            return StringUtils.equalsIgnoreCase(this.toString(), otherStatus);
+        }
     }
 }

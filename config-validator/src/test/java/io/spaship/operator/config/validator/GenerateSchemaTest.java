@@ -18,6 +18,15 @@ class GenerateSchemaTest {
 
     private static final Logger log = Logger.getLogger(GenerateSchemaTest.class);
 
+    public static JsonNode generateSchema() {
+        ObjectMapper mapper = new ObjectMapper();
+
+        JsonSchemaConfig config = JsonSchemaConfig.vanillaJsonSchemaDraft4().withJsonSchemaDraft(JsonSchemaDraft.DRAFT_07);
+        JsonSchemaGenerator generator = new JsonSchemaGenerator(mapper, config);
+
+        return generator.generateJsonSchema(WebsiteConfig.class);
+    }
+
     @Test
     void testGenerateWebsiteConfigSchema() throws IOException {
         JsonNode jsonSchema = generateSchema();
@@ -30,14 +39,5 @@ class GenerateSchemaTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.writeValue(json, jsonSchema);
-    }
-
-    public static JsonNode generateSchema() {
-        ObjectMapper mapper = new ObjectMapper();
-
-        JsonSchemaConfig config = JsonSchemaConfig.vanillaJsonSchemaDraft4().withJsonSchemaDraft(JsonSchemaDraft.DRAFT_07);
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(mapper, config);
-
-        return generator.generateJsonSchema(WebsiteConfig.class);
     }
 }

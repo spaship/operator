@@ -31,33 +31,33 @@ import java.util.concurrent.TimeUnit;
 public class WebsiteController {
 
     private static final Logger log = Logger.getLogger(WebsiteController.class);
-
+    static DateFormat updatedDateFormat = new SimpleDateFormat("yyyy-MM-dd_hhmmss");
     @Inject
     DefaultOpenShiftClient client;
-
     @Inject
     OperatorService operatorService;
-
     @Inject
     GitWebsiteConfigService gitWebsiteConfigService;
-
     @Inject
     WebsiteRepository websiteRepository;
-
     @ConfigProperty(name = "app.operator.provider.crd.enabled")
     boolean crdEnabled;
-
     @ConfigProperty(name = "app.operator.provider.crd.watch.resyncPeriodSec")
     int resyncPeriodSec;
-
     @Inject
     Vertx vertx;
-
-    private boolean ready = false;
-
-    static DateFormat updatedDateFormat = new SimpleDateFormat("yyyy-MM-dd_hhmmss");
-
     MixedOperation<Website, WebsiteList, Resource<Website>> websiteClient;
+    private boolean ready = false;
+    /**
+     * Simple lock for each website.
+     */
+    private Map<String, String> locks = new HashMap<>();
+
+    public static boolean websiteSpecGitChanged(WebsiteSpec oldSpec, WebsiteSpec newSpec) {
+        return (!StringUtils.equals(oldSpec.getGitUrl(), newSpec.getGitUrl())
+                || !StringUtils.equals(oldSpec.getBranch(), newSpec.getBranch())
+                || !StringUtils.equals(oldSpec.getDir(), newSpec.getDir()));
+    }
 
     void onStart(@Observes StartupEvent ev) {
         log.infof("Website CRD Controller enabled=%s", crdEnabled);
@@ -182,12 +182,6 @@ public class WebsiteController {
         }
     }
 
-    public static boolean websiteSpecGitChanged(WebsiteSpec oldSpec, WebsiteSpec newSpec) {
-        return (!StringUtils.equals(oldSpec.getGitUrl(), newSpec.getGitUrl())
-                || !StringUtils.equals(oldSpec.getBranch(), newSpec.getBranch())
-                || !StringUtils.equals(oldSpec.getDir(), newSpec.getDir()));
-    }
-
     public void websiteDeleted(Website websiteToDelete) {
         log.infof("Website deleted, websiteId=%s", websiteToDelete.getId());
         try {
@@ -299,12 +293,6 @@ public class WebsiteController {
             websiteClient.inNamespace(namespace).withName(name).updateStatus(website);
         }
     }
-
-
-    /**
-     * Simple lock for each website.
-     */
-    private Map<String, String> locks = new HashMap<>();
 
     private String getLock(String ns, String name) {
         final String id = lockId(ns, name);

@@ -23,4 +23,5 @@ Learn more about the operator - [complete documentation](https://spaship.io/oper
 
 ## Contact
 
-Feel free to create an [issue](https://github.com/spaship/operator/issues) or ask a [question](https://github.com/spaship/operator/discussions).
+Feel free to create an [issue](https://github.com/spaship/operator/issues) or ask
+a [question](https://github.com/spaship/operator/discussions).

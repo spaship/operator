@@ -33,13 +33,6 @@ class RouterControllerTest extends QuarkusTestBase {
     @Inject
     RouterController controller;
 
-    @BeforeEach
-    protected void setupNetworking() {
-        mockServer.expect()
-                .post().withPath("/apis/route.openshift.io/v1/namespaces/spaship-examples/routes")
-                .andReturn(200, new RouteBuilder().build()).always();
-    }
-
     public static WebsiteConfig createTestWebsiteConfig(List<ComponentConfig> components) {
         WebsiteConfig config = new WebsiteConfig();
         config.setComponents(components);
@@ -51,6 +44,13 @@ class RouterControllerTest extends QuarkusTestBase {
         Website website = WebhookTestCommon.SIMPLE_WEBSITE;
         website.setConfig(createTestWebsiteConfig(components));
         return website;
+    }
+
+    @BeforeEach
+    protected void setupNetworking() {
+        mockServer.expect()
+                .post().withPath("/apis/route.openshift.io/v1/namespaces/spaship-examples/routes")
+                .andReturn(200, new RouteBuilder().build()).always();
     }
 
     @Test

@@ -25,13 +25,10 @@ import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentS
 public class IngressController {
 
     private static final Logger log = Logger.getLogger(IngressController.class);
-
-    @Inject
-    DefaultOpenShiftClient client;
-
     @ConfigProperty(name = "app.operator.website.domain")
     protected Optional<String> domain;
-
+    @Inject
+    DefaultOpenShiftClient client;
     @ConfigProperty(name = "app.operator.router.mode")
     String routerMode;
 

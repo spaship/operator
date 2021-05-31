@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 public class ComponentKindsTest {
 
     String testedFile = "/git-service-test.yaml";
-    
+
     @Test
     public void testComponentKinds() throws IOException {
         WebsiteConfig config = TestUtils.loadConfig(testedFile);

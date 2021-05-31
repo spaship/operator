@@ -43,30 +43,30 @@ google_analytics:
   - 'auto'
 nav:
   - Home:
-    - index.md
-    - how-it-works.md
+      - index.md
+      - how-it-works.md
   - Getting Started:
-    - getting-started/operator-installation.md
-    - getting-started/creating-your-website.md
-    - getting-started/website-deployment.md
+      - getting-started/operator-installation.md
+      - getting-started/creating-your-website.md
+      - getting-started/website-deployment.md
   - Operator Manual:
-    - operator-manual/installation.md
-    - operator-manual/installation-types.md
-    - operator-manual/configuration.md
-    - operator-manual/custom-ca-cert.md
-    - operator-manual/restapi.md
-    - operator-manual/security.md
+      - operator-manual/installation.md
+      - operator-manual/installation-types.md
+      - operator-manual/configuration.md
+      - operator-manual/custom-ca-cert.md
+      - operator-manual/restapi.md
+      - operator-manual/security.md
   - User Guide:
-    - user-guide/website-specification.md
-    - user-guide/website-management.md
-    - user-guide/git-integration.md
-    - user-guide/live-website-coding.md
+      - user-guide/website-specification.md
+      - user-guide/website-management.md
+      - user-guide/git-integration.md
+      - user-guide/live-website-coding.md
   - Developer Guide:
-    - developer-guide/project-structure.md
-    - developer-guide/running-locally.md
-    - developer-guide/website-performance-tests.md
-    - developer-guide/operator-performance-tests.md
-    - developer-guide/release.md
+      - developer-guide/project-structure.md
+      - developer-guide/running-locally.md
+      - developer-guide/website-performance-tests.md
+      - developer-guide/operator-performance-tests.md
+      - developer-guide/release.md
   - support.md
 
 markdown_extensions:

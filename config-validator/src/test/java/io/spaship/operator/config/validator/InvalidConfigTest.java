@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class InvalidConfigTest {
 
     private static final Logger log = Logger.getLogger(InvalidConfigTest.class);
-    
+
     @Inject
     ValidatorService validatorService;
 

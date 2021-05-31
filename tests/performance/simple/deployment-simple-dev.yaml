@@ -5,9 +5,9 @@ metadata:
 spec:
   gitUrl: https://github.com/spaship/spaship-examples.git
   dir: websites/01-simple
-## Optional values:
-#  branch: main
-#  sslVerify: false
+  ## Optional values:
+  #  branch: main
+  #  sslVerify: false
   secretToken: TOKENSIMPLE
   envs:
     included:

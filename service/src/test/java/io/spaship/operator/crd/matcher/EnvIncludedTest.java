@@ -41,7 +41,7 @@ class EnvIncludedTest {
         WebsiteEnvs envs = new WebsiteEnvs();
         website.getSpec().setEnvs(envs);
 
-        assertTrue(isEnvEnabled(website,"something"));
+        assertTrue(isEnvEnabled(website, "something"));
     }
 
     @Test
@@ -51,9 +51,9 @@ class EnvIncludedTest {
         website.getSpec().setEnvs(envs);
 
         envs.setIncluded(Arrays.asList("env1", "env2"));
-        assertTrue(isEnvEnabled(website,"env1"));
-        assertTrue(isEnvEnabled(website,"env2"));
-        assertFalse(isEnvEnabled(website,"env3"));
+        assertTrue(isEnvEnabled(website, "env1"));
+        assertTrue(isEnvEnabled(website, "env2"));
+        assertFalse(isEnvEnabled(website, "env3"));
     }
 
     @Test
@@ -63,9 +63,9 @@ class EnvIncludedTest {
         website.getSpec().setEnvs(envs);
 
         envs.setIncluded(List.of());
-        assertTrue(isEnvEnabled(website,"env1"));
-        assertTrue(isEnvEnabled(website,"env2"));
-        assertTrue(isEnvEnabled(website,"env3"));
+        assertTrue(isEnvEnabled(website, "env1"));
+        assertTrue(isEnvEnabled(website, "env2"));
+        assertTrue(isEnvEnabled(website, "env3"));
     }
 
     @Test
@@ -75,19 +75,19 @@ class EnvIncludedTest {
         website.getSpec().setEnvs(envs);
 
         envs.setIncluded(Arrays.asList(".*"));
-        assertTrue(isEnvEnabled(website,"env1"));
-        assertTrue(isEnvEnabled(website,"env2"));
-        assertTrue(isEnvEnabled(website,"env3"));
+        assertTrue(isEnvEnabled(website, "env1"));
+        assertTrue(isEnvEnabled(website, "env2"));
+        assertTrue(isEnvEnabled(website, "env3"));
 
         envs.setIncluded(Arrays.asList("env.*"));
-        assertTrue(isEnvEnabled(website,"env1"));
-        assertTrue(isEnvEnabled(website,"env2"));
-        assertTrue(isEnvEnabled(website,"env3"));
+        assertTrue(isEnvEnabled(website, "env1"));
+        assertTrue(isEnvEnabled(website, "env2"));
+        assertTrue(isEnvEnabled(website, "env3"));
 
         envs.setIncluded(Arrays.asList("somethingelse.*"));
-        assertFalse(isEnvEnabled(website,"env1"));
-        assertFalse(isEnvEnabled(website,"env2"));
-        assertFalse(isEnvEnabled(website,"env3"));
+        assertFalse(isEnvEnabled(website, "env1"));
+        assertFalse(isEnvEnabled(website, "env2"));
+        assertFalse(isEnvEnabled(website, "env3"));
     }
 
     @Test
@@ -97,9 +97,9 @@ class EnvIncludedTest {
         website.getSpec().setEnvs(envs);
 
         envs.setExcluded(Arrays.asList("env2"));
-        assertTrue(isEnvEnabled(website,"env1"));
-        assertFalse(isEnvEnabled(website,"env2"));
-        assertTrue(isEnvEnabled(website,"env3"));
+        assertTrue(isEnvEnabled(website, "env1"));
+        assertFalse(isEnvEnabled(website, "env2"));
+        assertTrue(isEnvEnabled(website, "env3"));
     }
 
     @Test
@@ -109,9 +109,9 @@ class EnvIncludedTest {
         website.getSpec().setEnvs(envs);
 
         envs.setExcluded(List.of());
-        assertTrue(isEnvEnabled(website,"env1"));
-        assertTrue(isEnvEnabled(website,"env2"));
-        assertTrue(isEnvEnabled(website,"env3"));
+        assertTrue(isEnvEnabled(website, "env1"));
+        assertTrue(isEnvEnabled(website, "env2"));
+        assertTrue(isEnvEnabled(website, "env3"));
     }
 
 
@@ -122,19 +122,19 @@ class EnvIncludedTest {
         website.getSpec().setEnvs(envs);
 
         envs.setExcluded(Arrays.asList(".*"));
-        assertFalse(isEnvEnabled(website,"env1"));
-        assertFalse(isEnvEnabled(website,"env2"));
-        assertFalse(isEnvEnabled(website,"env3"));
+        assertFalse(isEnvEnabled(website, "env1"));
+        assertFalse(isEnvEnabled(website, "env2"));
+        assertFalse(isEnvEnabled(website, "env3"));
 
         envs.setExcluded(Arrays.asList("env2.*"));
-        assertTrue(isEnvEnabled(website,"env1"));
-        assertFalse(isEnvEnabled(website,"env2"));
-        assertTrue(isEnvEnabled(website,"env3"));
+        assertTrue(isEnvEnabled(website, "env1"));
+        assertFalse(isEnvEnabled(website, "env2"));
+        assertTrue(isEnvEnabled(website, "env3"));
 
         envs.setExcluded(Arrays.asList("somethingelse.*"));
-        assertTrue(isEnvEnabled(website,"env1"));
-        assertTrue(isEnvEnabled(website,"env2"));
-        assertTrue(isEnvEnabled(website,"env3"));
+        assertTrue(isEnvEnabled(website, "env1"));
+        assertTrue(isEnvEnabled(website, "env2"));
+        assertTrue(isEnvEnabled(website, "env3"));
     }
 
 }

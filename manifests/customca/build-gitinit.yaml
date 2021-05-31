@@ -22,8 +22,8 @@ spec:
     to:
       kind: ImageStreamTag
       name: 'spaship-content-git-init:1.2.5'
-#      kind: 'DockerImage'
-#      name: 'my-registry.mycompany.com:5000/spaship/content-git-init:1.2.5'
+    #      kind: 'DockerImage'
+    #      name: 'my-registry.mycompany.com:5000/spaship/content-git-init:1.2.5'
     pushSecret:
       name: 'push-secret'
 ---

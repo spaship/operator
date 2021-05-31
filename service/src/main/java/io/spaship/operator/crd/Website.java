@@ -18,20 +18,23 @@ import java.util.stream.Collectors;
 @RegisterForReflection
 public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implements Namespaced {
 
-    public Website() {
-    }
-
     @JsonIgnore
     private WebsiteConfig config;
-
+    /* Helper methods */
     @JsonIgnore
-    public String getId() {
-        return createId(getMetadata().getNamespace(), getMetadata().getName());
+    private Set<String> enabledEnvs;
+
+    public Website() {
     }
 
     @JsonIgnore
     public static String createId(String namespace, String name) {
         return namespace + "-" + name;
+    }
+
+    @JsonIgnore
+    public String getId() {
+        return createId(getMetadata().getNamespace(), getMetadata().getName());
     }
 
     @JsonIgnore
@@ -42,7 +45,7 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
     @JsonIgnore
     public void setConfig(WebsiteConfig config) {
         this.config = config;
-        if (config!= null && config.getEnvs() != null && config.getEnvs().size() > 0) {
+        if (config != null && config.getEnvs() != null && config.getEnvs().size() > 0) {
             this.enabledEnvs = config.getEnvs().keySet().stream()
                     .filter(new EnvIncluded(this))
                     .collect(Collectors.toSet());
@@ -50,10 +53,6 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
             this.enabledEnvs = new HashSet<>();
         }
     }
-
-    /* Helper methods */
-    @JsonIgnore
-    private Set<String> enabledEnvs;
 
     @JsonIgnore
     public Set<String> getEnabledEnvs() {

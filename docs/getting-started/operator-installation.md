@@ -1,7 +1,7 @@
 # Operator Installation
 
-Operator needs very few configurations in config map and namespace.
-Here is simple use case. For more details see [Operator Manual](../operator-manual/installation.md).
+Operator needs very few configurations in config map and namespace. Here is simple use case. For more details
+see [Operator Manual](../operator-manual/installation.md).
 
 If you don't have Kubernetes cluster install the [minikube](https://minikube.sigs.k8s.io/docs/start/).
 
