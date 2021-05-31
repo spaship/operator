@@ -1,6 +1,7 @@
 package io.spaship.operator.event;
 
 import io.smallrye.mutiny.Multi;
+import io.spaship.operator.resource.EventStreamSpec;
 import io.spaship.operator.service.EventSourcing;
 import io.vertx.mutiny.core.Vertx;
 
@@ -8,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
 
 @ApplicationScoped
-public class EventStreamResource implements ServerSentEvent2 {
+public class EventStreamResource implements EventStreamSpec {
 
     private final EventSourcing eventSourcing;
     private final Vertx vertx;
