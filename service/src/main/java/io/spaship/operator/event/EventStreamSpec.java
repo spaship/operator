@@ -9,7 +9,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/events")
-public interface ServerSentEvent2 {
+public interface EventStreamSpec {
     @GET
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @Path("/stream")
