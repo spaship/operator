@@ -1,6 +1,7 @@
 package io.spaship.operator.rest.website.model;
 
 import io.spaship.operator.crd.Website;
+import io.spaship.operator.rest.website.WebsiteResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,7 @@ public class WebsiteResponse {
         for (String env : crd.getEnabledEnvs()) {
             String api = null;
             if (operatorUrl.isPresent()) {
-                api = operatorUrl.get() + String.format("/api/v1/website/component/search?namespace=%s&website=%s&env=%s", namespace, name, env);
+                api = operatorUrl.get() + WebsiteResource.getApplicationApiPath(namespace, name, env);
             }
             environments.add(new WebsiteEnvironment(env, crd.getStatus().getHost(env), api));
         }

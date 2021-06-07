@@ -11,7 +11,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
 import java.util.List;
 
 @Path("/api")
@@ -34,9 +33,10 @@ public class ApiRootResource {
     @Operation(summary = "List of APIs", description = "Shows available Operator's APIs")
     @APIResponse(
             responseCode = "200", description = "List of API URLs",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON, example = "[\"/api/webhook/\",\"/api/v1/website/" +
-                    "search\",\"/api/v1/website/{namespace}/{website}/{env}/component\",\"/api/v1/website/{namespace}/" +
-                    "{website}/{env}/component/{name}\"]")
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, example = "[\"/api/webhook/\"" +
+                    ",\"/api/v1/website/search\"" +
+                    ",\"/api/v1/website/{namespace}/{website}/{env}/applications\"" +
+                    ",\"/api/v1/website/{namespace}/{website}/{env}/applications/{name}\"]")
     )
     public List<String> apis() {
         eventSourcingEngine.publishMessage("invoked /api endpoint");
