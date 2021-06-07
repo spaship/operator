@@ -26,6 +26,7 @@ public class QuarkusTestBase {
     private static final Logger log = Logger.getLogger(QuarkusTestBase.class);
 
     public static final String EXAMPLES_NAMESPACE = "spaship-examples";
+    public static final String EXAMPLES_SIMPLE = "simple";
 
     @MockServer
     protected OpenShiftMockServer mockServer;

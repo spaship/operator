@@ -12,7 +12,6 @@ import io.spaship.operator.rest.website.model.*;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -37,8 +36,8 @@ import java.util.stream.Collectors;
 public class WebsiteResource {
 
     public static final String CONTEXT = "api/v1/website";
-    public static final String API_COMPONENT = CONTEXT + "/component/search?namespace={namespace}&website={website}&env={env}";
-    public static final String API_COMPONENT_DETAIL = CONTEXT + "/component/info?namespace={namespace}&website={website}&env={env}&name={component_name}";
+    public static final String API_COMPONENT = CONTEXT + "/{namespace}/{website}/{env}/applications";
+    public static final String API_COMPONENT_DETAIL = CONTEXT + "/{namespace}/{website}/{env}/applications/{name}";
 
     public static final String ROLE_SPASHIP_USER = "spaship-user";
     public static final String ROLE_SPASHIP_ADMIN = "spaship-admin";
@@ -81,20 +80,19 @@ public class WebsiteResource {
         rc.response().end(JsonObject.mapFrom(response).toBuffer());
     }
 
-    @Route(methods = HttpMethod.GET, path = "component/search")
-    @Operation(summary = "Component Search", description = "All website components for given environment. Always returns 200")
+
+    public static String getApplicationApiPath(String namespace, String website, String env) {
+        return String.format("/api/v1/website/%s/%s/%s/applications", namespace, website, env);
+    }
+
+    @Route(methods = HttpMethod.GET, path = ":namespace/:website/:env/applications")
+    @Operation(summary = "Applications (components)", description = "All website applications for given environment. Always returns 200")
     @APIResponse(responseCode = "200",
             description = "OK Response with components",
             content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ComponentSearchResponse.class))
     )
-    public void components(RoutingContext rc, @NotNull @Param("namespace") String namespace, @NotNull @Param("website") String website, @NotNull @Param("env") String env, @Param("name") Optional<String> name) {
-        log.infof("component search. namespace=%s website=%s env=%s name=%s", namespace, website, env, name);
-
-        // bean validation is not enabled to gracefully validate input params
-        if (StringUtils.isAnyEmpty(namespace, website, env)) {
-            rc.response().setStatusCode(400).end("input parameters namespace, website, env are required");
-            return;
-        }
+    public void applications(RoutingContext rc, @NotNull @Param("namespace") String namespace, @NotNull @Param("website") String website, @NotNull @Param("env") String env) {
+        log.infof("applications search. namespace=%s website=%s env=%s", namespace, website, env);
 
         Optional<Website> web = websiteRepository.searchWebsite(Optional.of(namespace), Optional.of(website)).findFirst();
         if (web.isEmpty()) {
@@ -104,19 +102,13 @@ public class WebsiteResource {
         WebsiteConfig websiteConfig = web.get().getConfig();
 
         List<Component> data = websiteConfig.getEnabledComponents(env)
-                .filter(component -> {
-                    if (name.isEmpty() || StringUtils.isEmpty(name.get())) {
-                        return true;
-                    }
-                    return StringUtils.equals(name.get(), contentController.getComponentDirName(component));
-                })
                 .map(component -> {
                     Component result = new Component();
                     String compName = contentController.getComponentDirName(component);
                     result.setName(compName);
                     result.setPath(component.getContext());
                     result.setRef(GitContentUtils.getRef(websiteConfig, env, component.getContext()));
-                    operatorUrl.ifPresent(s -> result.setApi(s + String.format("/api/v1/website/component/info?namespace=%s&website=%s&env=%s&name=%s", namespace, website, env, compName)));
+                    operatorUrl.ifPresent(s -> result.setApi(s + getApplicationDetailApiPath(namespace, website, env, compName)));
                     return result;
                 })
                 .collect(Collectors.toList());
@@ -124,21 +116,19 @@ public class WebsiteResource {
         rc.response().end(JsonObject.mapFrom(ComponentSearchResponse.success(data)).toBuffer());
     }
 
-    @Route(methods = HttpMethod.GET, path = "component/info")
-    @Operation(summary = "Component Detail", description = "Website component detail - get actual data via Content API")
+    public static String getApplicationDetailApiPath(String namespace, String website, String env, String compName) {
+        return String.format("/api/v1/website/%s/%s/%s/applications/%s", namespace, website, env, compName);
+    }
+
+    @Route(methods = HttpMethod.GET, path = ":namespace/:website/:env/applications/:name")
+    @Operation(summary = "Application (component) Detail", description = "Website application detail - get actual data via Content API")
     @APIResponse(responseCode = "200",
             description = "OK Response with component detail",
             content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ComponentDetailResponse.class))
     )
-    @APIResponse(responseCode = "404", description = "Component not exists")
-    public void componentInfo(RoutingContext rc, @NotNull @Param("namespace") String namespace, @NotNull @Param("website") String website, @NotNull @Param("env") String env, @NotNull @Param("name") String name) {
-        log.infof("component search. namespace=%s website=%s, env=%s, name=%s", namespace, website, env, name);
-
-        // bean validation is not enabled to gracefully validate input params
-        if (StringUtils.isAnyEmpty(namespace, website, env, name)) {
-            rc.response().setStatusCode(400).end("input parameters namespace, website, env, name are required");
-            return;
-        }
+    @APIResponse(responseCode = "404", description = "Application not exists")
+    public void applicationDetail(RoutingContext rc, @NotNull @Param("namespace") String namespace, @NotNull @Param("website") String website, @NotNull @Param("env") String env, @NotNull @Param("name") String name) {
+        log.infof("application detail search. namespace=%s website=%s, env=%s, name=%s", namespace, website, env, name);
 
         Optional<Website> web = websiteRepository.searchWebsite(Optional.of(namespace), Optional.of(website)).findFirst();
         if (web.isEmpty()) {
