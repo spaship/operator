@@ -1,6 +1,5 @@
 package io.spaship.operator.rest.website;
 
-import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.spaship.operator.ldap.MockInitialDirContextFactory;
 import io.spaship.operator.rest.WebhookTestCommon;
@@ -10,18 +9,19 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Test of {@link WebsiteResource} - part component/info
+ * Test of {@link WebsiteResource} - part /application/:name
  */
 @QuarkusTest
-@TestHTTPEndpoint(WebsiteResource.class)
 class WebsiteResourceComponentInfoTest extends WebhookTestCommon {
 
-    String COMPONENT_API_INFO = "/component/info";
+    protected String getApiUrl() {
+        return WebsiteResource.getApplicationDetailApiPath(EXAMPLES_NAMESPACE, EXAMPLES_SIMPLE, "dev", "theme");
+    }
 
     @Test
     void notAuthenticated() {
         given()
-                .when().get(COMPONENT_API_INFO)
+                .when().get(getApiUrl())
                 .then().log().ifValidationFails()
                 .statusCode(401);
     }
@@ -29,7 +29,7 @@ class WebsiteResourceComponentInfoTest extends WebhookTestCommon {
     @Test
     void notAuthorized() {
         given().auth().oauth2(getAccessToken(AUTH_SPASHIP_USER, "invalid-role"))
-                .when().get(COMPONENT_API_INFO)
+                .when().get(getApiUrl())
                 .then().log().ifValidationFails()
                 .statusCode(403);
     }
@@ -38,20 +38,9 @@ class WebsiteResourceComponentInfoTest extends WebhookTestCommon {
     void authorizedByLdap() throws Exception {
         registerSimpleWeb();
         given().auth().oauth2(getAccessToken(MockInitialDirContextFactory.LDAP_USER_ONLY))
-                .when().get(COMPONENT_API_INFO + "?namespace=" + EXAMPLES_NAMESPACE + "&website=simple&env=dev&name=theme")
+                .when().get(getApiUrl())
                 .then().log().ifValidationFails()
                 .statusCode(200);
-    }
-
-    @Test
-    void badInput() {
-        websiteRepository.reset();
-
-        given().auth().oauth2(getSpashipUserToken())
-                .when().get(COMPONENT_API_INFO)
-                .then().log().ifValidationFails()
-                .statusCode(400)
-                .body(is("input parameters namespace, website, env, name are required"));
     }
 
     @Test
@@ -60,7 +49,7 @@ class WebsiteResourceComponentInfoTest extends WebhookTestCommon {
         registerAdvancedWeb(false);
 
         given().auth().oauth2(getSpashipUserToken())
-                .when().get(COMPONENT_API_INFO + "?namespace=" + EXAMPLES_NAMESPACE + "&website=simple&env=dev&name=theme")
+                .when().get(getApiUrl())
                 .then().log().ifValidationFails()
                 .statusCode(200)
                 .body("status", is("success"))
@@ -79,7 +68,7 @@ class WebsiteResourceComponentInfoTest extends WebhookTestCommon {
         registerWeb(ADVANCED_WEBSITE, false);
 
         given().auth().oauth2(getSpashipUserToken())
-                .when().get(COMPONENT_API_INFO + "?namespace=" + EXAMPLES_NAMESPACE + "&website=simple&env=dev&name=some-wrong-name")
+                .when().get(WebsiteResource.getApplicationDetailApiPath(EXAMPLES_NAMESPACE, EXAMPLES_SIMPLE, "dev", "some-wrong-name"))
                 .then().log().ifValidationFails()
                 .statusCode(404);
     }

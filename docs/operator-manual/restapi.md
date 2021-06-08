@@ -13,8 +13,8 @@ The `/api` returns actual list of APIs.
 [
   "/api/webhook",
   "/api/v1/website/search?namespace={namespace}&name={name}",
-  "/api/v1/website/component/search?namespace={namespace}&website={website}&env={env}",
-  "/api/v1/website/component/info?namespace={namespace}&website={website}&env={env}&name={component_name}"
+  "/api/v1/website/{namespace}/{website}/{env}/applications",
+  "/api/v1/website/{namespace}/{website}/{env}/applications/{name}"
 ]
 ```
 
@@ -29,11 +29,13 @@ Used by SPAship Manager UI.
 Required roles: `spaship-user`
 
 * `/api/v1/website/search?namespace={namespace}&name={name}`
-  - List of websites managed by Operator.
-  - Parameters `namespace` and `name` are optional.
-* `/api/v1/website/component/search?namespace={namespace}&website={website}&env={env}`
-  - Search Component
-  - Parameters `namespace`, `website`, `env` are required
-* `/api/v1/website/component/info?namespace={namespace}&website={website}&env={env}&name={component_name}`
-  - Website component detail - get actual data via Content API
-  - Parameters `namespace`, `website`, `env`, `name` are required
+    - List of websites managed by Operator.
+    - Parameters `namespace` and `name` are optional.
+
+* `/api/v1/website/{namespace}/{website}/{env}/applications`
+    - List of Applications (components)
+    - Path parameters `namespace`, `website`, `env` are required
+
+* `/api/v1/website/{namespace}/{website}/{env}/applications/{name}`
+    - Website application (component) detail - get actual data via Content API
+    - Path parameters `namespace`, `website`, `env`, `name` are required
