@@ -37,6 +37,9 @@ import java.util.stream.Collectors;
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
 
 @ApplicationScoped
+/**
+ * TODO change the name to WebsiteService and make it accessible only by the WebsiteController
+ */
 public class OperatorService {
 
     private static final Logger log = Logger.getLogger(OperatorService.class);
@@ -185,6 +188,11 @@ public class OperatorService {
      * @return
      * @throws GitAPIException
      * @throws IOException
+     *
+     * TODO Should be accessed by WebsiteController only
+     * clarification: without taking the WebsiteController in confidence this method is either deploying  of updating an
+     * existing deployment , it would be difficult to Figure the entry point for controlling purpose.
+     *
      */
     public boolean rolloutWebsiteNonBlocking(Website website, boolean forceRollout) throws GitAPIException, IOException {
         String websiteId = website.getId();
