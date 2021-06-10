@@ -30,7 +30,7 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
     }
 
     @JsonIgnore
-    public static String createId(String namespace, String name) {
+    public static String createId(String namespace, String name) { //TODO this should not be a function of class Website as the parameters are not bound to this class also this function is independent of this class doing so adds accidental complexity to the overall codebase
         return namespace + "-" + name;
     }
 

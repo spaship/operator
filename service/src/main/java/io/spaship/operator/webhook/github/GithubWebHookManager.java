@@ -89,6 +89,14 @@ public class GithubWebHookManager implements GitWebHookManager {
         }
     }
 
+
+    /**
+     * TODO remove this method from this class
+     * clarification : this method violets the single responsibility principal, it would be great if we can pass the Url
+     * and signature to the invoker and invoker will retrieve the websiteRepository based on those values.
+     * Look at the Return type of this method List of Websites is not a responsibility of WebHookManager, a WebHokManager
+     * already deals with the complexity with request parsing and other stuffs
+     * */
     @Override
     public List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject event) {
         String gitUrl = getGitUrl(request, event);

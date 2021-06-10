@@ -7,14 +7,18 @@ import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.quarkus.runtime.StartupEvent;
+import io.spaship.operator.Utils;
 import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.crd.WebsiteList;
 import io.spaship.operator.crd.WebsiteSpec;
 import io.spaship.operator.crd.WebsiteStatus;
 import io.spaship.operator.crd.WebsiteStatus.STATUS;
+import io.spaship.operator.event.EventSourcingEngine;
+import io.spaship.operator.utility.EventAttribute;
 import io.spaship.operator.websiteconfig.GitWebsiteConfigService;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -53,6 +57,9 @@ public class WebsiteController {
     @Inject
     Vertx vertx;
 
+    @Inject
+    EventSourcingEngine eventSourcingEngine; //TODO Preferably declare this variable final and use constructor injection,
+
     private boolean ready = false;
 
     static DateFormat updatedDateFormat = new SimpleDateFormat("yyyy-MM-dd_hhmmss");
@@ -85,6 +92,14 @@ public class WebsiteController {
             @Override
             public void onAdd(Website website) {
                 websiteAdded(website);
+
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                        EventAttribute.MESSAGE.concat("website cro on add executed")
+                );
+                eventSourcingEngine.publishMessage(eventPayload);
+                //IMPLEMENTATION OF ISSUE 59 End
             }
 
             @Override
@@ -99,11 +114,27 @@ public class WebsiteController {
                     return;
                 }
                 websiteModified(newWebsite);
+
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(newWebsite.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(newWebsite.getMetadata().getNamespace()),
+                        EventAttribute.MESSAGE.concat("website cro on update executed")
+                );
+                eventSourcingEngine.publishMessage(eventPayload);
+                //IMPLEMENTATION OF ISSUE 59 End
             }
 
             @Override
             public void onDelete(Website website, boolean deletedFinalStateUnknown) {
                 websiteDeleted(website);
+
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                        EventAttribute.MESSAGE.concat("website cro on delete executed")
+                );
+                eventSourcingEngine.publishMessage(eventPayload);
+                //IMPLEMENTATION OF ISSUE 59 End
             }
         });
         if (delay > 0) {
@@ -133,6 +164,15 @@ public class WebsiteController {
         try {
             WebsiteStatus status = operatorService.deployNewWebsite(website, true, false);
             updateStatus(websiteCrd, STATUS.DEPLOYED, "", status.getEnvHosts());
+
+            //IMPLEMENTATION OF ISSUE 59 Start
+            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                    EventAttribute.MESSAGE.concat("new website created")
+            );
+            eventSourcingEngine.publishMessage(eventPayload);
+            //IMPLEMENTATION OF ISSUE 59 End
+
         } catch (Exception e) {
             log.error("Error on CRD added", e);
             updateStatus(websiteCrd, STATUS.FAILED, e.getMessage());
@@ -149,9 +189,11 @@ public class WebsiteController {
         }
     }
 
+
+
+
     public void websiteModified(Website newWebsite) {
         log.infof("Website modified, websiteId=%s", newWebsite.getId());
-
         Website websiteCrd = newWebsite;
         try {
             // oldWebsite can be null if website initialization failed
@@ -220,11 +262,17 @@ public class WebsiteController {
         return updateStatus(websiteToUpdate, newStatus, message, envHosts, false);
     }
 
+
+    /**
+     * <pre>
+     * TODO : use java.util.concurrent.locks.Lock instead  block ;String literals, and boxed primitives such as Integers should not be used as lock objects because they are pooled and reused. it looks like an immutable function would could be the reason of making this explicitly thread safe  ;
+     * </pre>
+     */
     public Website updateStatus(Website websiteToUpdate, STATUS newStatus, String message, Map<String, String> envHosts, boolean updated) {
         String ns = websiteToUpdate.getMetadata().getNamespace();
         String name = websiteToUpdate.getMetadata().getName();
         final String lock = getLock(ns, name);
-        synchronized (lock) {
+        synchronized (lock) { //TODO
             Website website = websiteClient.inNamespace(ns).withName(name).get();
 
             log.infof("Update Status, websiteId=%s status=%s host=%s", website.getId(), newStatus, envHosts);
@@ -304,10 +352,10 @@ public class WebsiteController {
     /**
      * Simple lock for each website.
      */
-    private Map<String, String> locks = new HashMap<>();
+    private Map<String, String> locks = new HashMap<>(); //why is it a lock?
 
     private String getLock(String ns, String name) {
-        final String id = lockId(ns, name);
+        final String id = lockId(ns, name); //creates an unique id using namespace and name combination
         if (locks.containsKey(id)) {
             return locks.get(id);
         } else {
@@ -320,7 +368,7 @@ public class WebsiteController {
         locks.remove(lockId(ns, name));
     }
 
-    private String lockId(String ns, String name) {
+    private String lockId(String ns, String name) { //TODO change the name to createLockId and replace the existing body with this namespace + "-" + name
         return Website.createId(ns, name);
     }
 

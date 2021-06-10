@@ -4,6 +4,7 @@ import io.spaship.operator.config.OperatorConfigUtils;
 import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.controller.WebsiteRepository;
 import io.spaship.operator.crd.Website;
+import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ import java.util.Map;
 import static io.spaship.operator.rest.WebhookTestCommon.NAMESPACE;
 import static io.spaship.operator.rest.WebhookTestCommon.SIMPLE_WEB;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 class UtilsTest {
 
     @Test
@@ -30,6 +31,32 @@ class UtilsTest {
             assertEquals("code", labels.get("appcode"));
             assertEquals("label2value", labels.get("label2"));
         }
+    }
+
+
+    @Test
+    void testBuildEventPayloadCase1(){
+        JsonObject expectedOutcome =  new JsonObject();
+        expectedOutcome.put("name","sample").put("ns","operator-test");
+        String outcome = Utils.buildEventPayload("name:sample","ns:operator-test");
+        assertEquals(expectedOutcome.toString(),outcome);
+        assertEquals(expectedOutcome, new JsonObject(outcome));
+    }
+    @Test
+    void testBuildEventPayloadCase2(){
+        JsonObject expectedOutcome =  new JsonObject();
+        expectedOutcome.put("name","sample").put("attr_1","operator-test");
+        String outcome = Utils.buildEventPayload("name:sample","operator-test");
+        assertEquals(expectedOutcome.toString(),outcome);
+        assertEquals(expectedOutcome, new JsonObject(outcome));
+    }
+    @Test
+    void testBuildEventPayloadCase3(){
+        JsonObject expectedOutcome =  new JsonObject();
+        expectedOutcome.put("name","sample").put("ns","operator-test");
+        String outcome = Utils.buildEventPayload("name:sample","operator-test");
+        assertNotEquals(expectedOutcome.toString(),outcome);
+        assertNotEquals(expectedOutcome, new JsonObject(outcome));
     }
 
 }
