@@ -91,19 +91,26 @@ public class WebsiteController {
         websiteInformer.addEventHandler(new ResourceEventHandler<>() {
             @Override
             public void onAdd(Website website) {
-                websiteAdded(website);
-
                 //IMPLEMENTATION OF ISSUE 59 Start
                 String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                         EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                        EventAttribute.MESSAGE.concat("website cro on add executed")
+                        EventAttribute.MESSAGE.concat("website cro on add triggred")
                 );
                 eventSourcingEngine.publishMessage(eventPayload);
                 //IMPLEMENTATION OF ISSUE 59 End
+                websiteAdded(website);
             }
 
             @Override
             public void onUpdate(Website oldWebsite, Website newWebsite) {
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(newWebsite.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(newWebsite.getMetadata().getNamespace()),
+                        EventAttribute.MESSAGE.concat("website cro on update triggred")
+                );
+                eventSourcingEngine.publishMessage(eventPayload);
+                //IMPLEMENTATION OF ISSUE 59 End
+
                 if (oldWebsite.getMetadata().getResourceVersion().equals(newWebsite.getMetadata().getResourceVersion())) {
                     return;
                 }
@@ -115,26 +122,21 @@ public class WebsiteController {
                 }
                 websiteModified(newWebsite);
 
-                //IMPLEMENTATION OF ISSUE 59 Start
-                String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(newWebsite.getMetadata().getName()),
-                        EventAttribute.NAMESPACE.concat(newWebsite.getMetadata().getNamespace()),
-                        EventAttribute.MESSAGE.concat("website cro on update executed")
-                );
-                eventSourcingEngine.publishMessage(eventPayload);
-                //IMPLEMENTATION OF ISSUE 59 End
+
             }
 
             @Override
             public void onDelete(Website website, boolean deletedFinalStateUnknown) {
-                websiteDeleted(website);
-
                 //IMPLEMENTATION OF ISSUE 59 Start
                 String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                         EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                        EventAttribute.MESSAGE.concat("website cro on delete executed")
+                        EventAttribute.MESSAGE.concat("website cro on delete triggred")
                 );
                 eventSourcingEngine.publishMessage(eventPayload);
                 //IMPLEMENTATION OF ISSUE 59 End
+
+                websiteDeleted(website);
+
             }
         });
         if (delay > 0) {
@@ -240,6 +242,15 @@ public class WebsiteController {
                 websiteRepository.removeWebsite(website.getId());
             }
             removeLock(websiteToDelete.getMetadata().getNamespace(), websiteToDelete.getMetadata().getName());
+
+            //IMPLEMENTATION OF ISSUE 59 Start
+            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                    EventAttribute.MESSAGE.concat("website removed")
+            );
+            eventSourcingEngine.publishMessage(eventPayload);
+            //IMPLEMENTATION OF ISSUE 59 End
+
         } catch (Exception e) {
             log.error("Error on CRD deleted", e);
             throw new RuntimeException(e);
