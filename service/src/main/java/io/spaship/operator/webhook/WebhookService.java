@@ -94,7 +94,7 @@ public class WebhookService {
                 return Future.succeededFuture(resultObject);
             }
 
-            updatedSites = handleWebsites(authorizedWebsites);
+            updatedSites = handleWebsites(authorizedWebsites); // it's handling authorizedWebsites hence the sites already exists
             resultObject.setWebsites(updatedSites);
             someWebsitesUpdated = updatedSites.size() != 0;
         } catch (Exception e) {

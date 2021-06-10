@@ -15,8 +15,10 @@ import io.spaship.operator.crd.Website;
 import io.spaship.operator.crd.WebsiteEnvs;
 import io.spaship.operator.crd.WebsiteSpec;
 import io.spaship.operator.crd.WebsiteStatus;
+import io.spaship.operator.event.EventSourcingEngine;
 import io.spaship.operator.router.IngressController;
 import io.spaship.operator.router.RouterController;
+import io.spaship.operator.utility.EventAttribute;
 import io.spaship.operator.websiteconfig.GitWebsiteConfigService;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -67,6 +69,9 @@ public class OperatorService {
 
     @Inject
     Vertx vertx;
+
+    @Inject
+    EventSourcingEngine eventSourcingEngine; //TODO Preferably declare this variable final and use constructor injection,
 
     // eager start
     void startup(@Observes StartupEvent event) {
@@ -219,6 +224,15 @@ public class OperatorService {
         }, res -> {
             if (res.succeeded()) {
                 log.infof("Website updated websiteId=%s", websiteId);
+
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                        EventAttribute.MESSAGE.concat("website updated")
+                );
+                eventSourcingEngine.publishMessage(eventPayload);
+                //IMPLEMENTATION OF ISSUE 59 End
+
             } else {
                 log.error("Cannot update website, websiteId=" + websiteId, res.cause());
             }
@@ -269,11 +283,29 @@ public class OperatorService {
 
         if (existingWebsite != null) {
             websiteController.updateStatus(existingWebsite, WebsiteStatus.STATUS.FORCE_UPDATE);
-        } else {
+
+            //IMPLEMENTATION OF ISSUE 59 Start
+            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(existingWebsite.getMetadata().getName()),
+                    EventAttribute.NAMESPACE.concat(existingWebsite.getMetadata().getNamespace()),
+                    EventAttribute.MESSAGE.concat("updating website")
+            );
+            eventSourcingEngine.publishMessage(eventPayload);
+            //IMPLEMENTATION OF ISSUE 59 End
+
+        } else { // This is basically creation of new website
             websiteController.getWebsiteClient()
                     .inNamespace(website.getMetadata().getNamespace())
                     .withName(website.getMetadata().getName())
                     .createOrReplace(website);
+
+            //IMPLEMENTATION OF ISSUE 59 Start
+            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                    EventAttribute.MESSAGE.concat("creating new website")
+            );
+            eventSourcingEngine.publishMessage(eventPayload);
+            //IMPLEMENTATION OF ISSUE 59 End
+
         }
     }
 
