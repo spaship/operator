@@ -228,6 +228,7 @@ public class OperatorService {
                 //IMPLEMENTATION OF ISSUE 59 Start
                 String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                         EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                        EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_UPDATE.name()),
                         EventAttribute.MESSAGE.concat("website updated")
                 );
                 eventSourcingEngine.publishMessage(eventPayload);
@@ -285,9 +286,10 @@ public class OperatorService {
             websiteController.updateStatus(existingWebsite, WebsiteStatus.STATUS.FORCE_UPDATE);
 
             //IMPLEMENTATION OF ISSUE 59 Start
-            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(existingWebsite.getMetadata().getName()),
-                    EventAttribute.NAMESPACE.concat(existingWebsite.getMetadata().getNamespace()),
-                    EventAttribute.MESSAGE.concat("updating website")
+            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                    EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_UPDATE.name()),
+                    EventAttribute.MESSAGE.concat("website preview update done")
             );
             eventSourcingEngine.publishMessage(eventPayload);
             //IMPLEMENTATION OF ISSUE 59 End
@@ -301,7 +303,8 @@ public class OperatorService {
             //IMPLEMENTATION OF ISSUE 59 Start
             String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                     EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                    EventAttribute.MESSAGE.concat("creating new website")
+                    EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_CREATE.name()),
+                    EventAttribute.MESSAGE.concat("website preview update done")
             );
             eventSourcingEngine.publishMessage(eventPayload);
             //IMPLEMENTATION OF ISSUE 59 End
@@ -318,6 +321,14 @@ public class OperatorService {
             Website websiteToDelete = websiteRepository.getWebsite(website.getId());
             deleteInfrastructure(websiteToDelete);
         }
+        //IMPLEMENTATION OF ISSUE 59 Start
+        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_DELETE.name()),
+                EventAttribute.MESSAGE.concat("website preview deleted")
+        );
+        eventSourcingEngine.publishMessage(eventPayload);
+        //IMPLEMENTATION OF ISSUE 59 End
     }
 
     public WebsiteStatus deployNewWebsite(Website website, boolean updateGitIfExists, boolean redeploy) throws IOException, GitAPIException {

@@ -155,26 +155,11 @@ public class WebhookService {
             if (website.getSpec().getPreviews()) {
                 Website websiteCopy = OperatorService.createWebsiteCopy(website, previewId, previewGitUrl, previewRef);
                 if (mergeStatus == GitWebHookManager.MergeStatus.CLOSE) {
-                    operatorService.deleteWebsite(websiteCopy);
-
-                    //IMPLEMENTATION OF ISSUE 59 Start
-                    String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
-                            EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                            EventAttribute.MESSAGE.concat("website preview deleted")
-                    );
-                    eventSourcingEngine.publishMessage(eventPayload);
-                    //IMPLEMENTATION OF ISSUE 59 End
+                    operatorService.deleteWebsite(websiteCopy); // Handle preview delete website once done.
 
                 } else {
-                    operatorService.createOrUpdateWebsite(websiteCopy, true);
+                    operatorService.createOrUpdateWebsite(websiteCopy, true); // Handle preview create or update website once done.
 
-                    //IMPLEMENTATION OF ISSUE 59 Start
-                    String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
-                            EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                            EventAttribute.MESSAGE.concat("website preview created")
-                    );
-                    eventSourcingEngine.publishMessage(eventPayload);
-                    //IMPLEMENTATION OF ISSUE 59 End
                 }
                 result = new UpdatedWebsite(website.getMetadata().getName(), website.getMetadata().getNamespace(), mergeStatus.toResponseStatus());
             } else {

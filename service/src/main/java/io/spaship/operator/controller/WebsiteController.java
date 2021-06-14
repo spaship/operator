@@ -18,7 +18,7 @@ import io.spaship.operator.event.EventSourcingEngine;
 import io.spaship.operator.utility.EventAttribute;
 import io.spaship.operator.websiteconfig.GitWebsiteConfigService;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -94,7 +94,7 @@ public class WebsiteController {
                 //IMPLEMENTATION OF ISSUE 59 Start
                 String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                         EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                        EventAttribute.MESSAGE.concat("website cro on add triggred")
+                        EventAttribute.MESSAGE.concat("website cro on add triggered")
                 );
                 eventSourcingEngine.publishMessage(eventPayload);
                 //IMPLEMENTATION OF ISSUE 59 End
@@ -106,7 +106,7 @@ public class WebsiteController {
                 //IMPLEMENTATION OF ISSUE 59 Start
                 String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(newWebsite.getMetadata().getName()),
                         EventAttribute.NAMESPACE.concat(newWebsite.getMetadata().getNamespace()),
-                        EventAttribute.MESSAGE.concat("website cro on update triggred")
+                        EventAttribute.MESSAGE.concat("website cro on update triggered")
                 );
                 eventSourcingEngine.publishMessage(eventPayload);
                 //IMPLEMENTATION OF ISSUE 59 End
@@ -130,7 +130,7 @@ public class WebsiteController {
                 //IMPLEMENTATION OF ISSUE 59 Start
                 String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                         EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                        EventAttribute.MESSAGE.concat("website cro on delete triggred")
+                        EventAttribute.MESSAGE.concat("website cro on delete triggered")
                 );
                 eventSourcingEngine.publishMessage(eventPayload);
                 //IMPLEMENTATION OF ISSUE 59 End
@@ -170,6 +170,7 @@ public class WebsiteController {
             //IMPLEMENTATION OF ISSUE 59 Start
             String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                     EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                    EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE.toString()),
                     EventAttribute.MESSAGE.concat("new website created")
             );
             eventSourcingEngine.publishMessage(eventPayload);
@@ -246,6 +247,7 @@ public class WebsiteController {
             //IMPLEMENTATION OF ISSUE 59 Start
             String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                     EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                    EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_DELETE.name()),
                     EventAttribute.MESSAGE.concat("website removed")
             );
             eventSourcingEngine.publishMessage(eventPayload);
