@@ -200,7 +200,7 @@ public class WebsiteController {
         Website websiteCrd = newWebsite;
         try {
             // oldWebsite can be null if website initialization failed
-            Website oldWebsite = websiteRepository.getWebsite(newWebsite.getId());
+            Website oldWebsite = websiteRepository.getWebsite(newWebsite.getId()); //TODO oldWebsite can also be an input parameter from update event
             WebsiteConfig newConfig;
             boolean redeploy = true;
             if (oldWebsite == null) {
