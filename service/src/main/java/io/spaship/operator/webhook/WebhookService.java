@@ -1,8 +1,11 @@
 package io.spaship.operator.webhook;
 
 import io.quarkus.runtime.StartupEvent;
+import io.spaship.operator.Utils;
 import io.spaship.operator.controller.OperatorService;
 import io.spaship.operator.crd.Website;
+import io.spaship.operator.event.EventSourcingEngine;
+import io.spaship.operator.utility.EventAttribute;
 import io.spaship.operator.webhook.github.GithubWebHookManager;
 import io.spaship.operator.webhook.gitlab.GitlabWebHookManager;
 import io.spaship.operator.webhook.model.UpdatedWebsite;
@@ -46,6 +49,9 @@ public class WebhookService {
     @Inject
     OperatorService operatorService;
 
+    @Inject
+    EventSourcingEngine eventSourcingEngine; //TODO Preferably declare this variable final and use constructor injection,
+
     Set<GitWebHookManager> managers;
 
     void onStart(@Observes StartupEvent ev) {
@@ -88,7 +94,7 @@ public class WebhookService {
                 return Future.succeededFuture(resultObject);
             }
 
-            updatedSites = handleWebsites(authorizedWebsites);
+            updatedSites = handleWebsites(authorizedWebsites); // it's handling authorizedWebsites hence the sites already exists
             resultObject.setWebsites(updatedSites);
             someWebsitesUpdated = updatedSites.size() != 0;
         } catch (Exception e) {
@@ -121,11 +127,17 @@ public class WebhookService {
         return promise.future();
     }
 
+
+    /**
+     * TODO Avoid direct dependency on operatorService
+     * clarification: to make the flow unified it can pass the control to website controller, where it will update the
+     * cro which will trigger and Invoke The initNewWebsite method of operator service
+     **/
     protected List<UpdatedWebsite> handleWebsites(List<Website> websites) throws GitAPIException, IOException {
         List<UpdatedWebsite> updatedSites = new ArrayList<>();
 
         for (Website website : websites) {
-            boolean updatePerformed = operatorService.rolloutWebsiteNonBlocking(website, false);
+            boolean updatePerformed = operatorService.rolloutWebsiteNonBlocking(website, false); //TODO check in the method comment
             UpdatedWebsite result = new UpdatedWebsite(
                     website.getMetadata().getName(),
                     website.getMetadata().getNamespace(),
@@ -143,9 +155,11 @@ public class WebhookService {
             if (website.getSpec().getPreviews()) {
                 Website websiteCopy = OperatorService.createWebsiteCopy(website, previewId, previewGitUrl, previewRef);
                 if (mergeStatus == GitWebHookManager.MergeStatus.CLOSE) {
-                    operatorService.deleteWebsite(websiteCopy);
+                    operatorService.deleteWebsite(websiteCopy); // Handle preview delete website once done.
+
                 } else {
-                    operatorService.createOrUpdateWebsite(websiteCopy, true);
+                    operatorService.createOrUpdateWebsite(websiteCopy, true); // Handle preview create or update website once done.
+
                 }
                 result = new UpdatedWebsite(website.getMetadata().getName(), website.getMetadata().getNamespace(), mergeStatus.toResponseStatus());
             } else {

@@ -16,7 +16,7 @@ import java.util.UUID;
 public class EventSourcingEngine {
 
     private static final Logger LOG = LoggerFactory.getLogger(EventSourcingEngine.class);
-    private static final String BUS_ADDRESS = "crud-event-source";
+    public static final String BUS_ADDRESS = "crud-event-source";
     private final Vertx vertx;
     private boolean toggleEnabled;
 
@@ -34,7 +34,7 @@ public class EventSourcingEngine {
         if (!toggleEnabled)
             return;
         JsonObject messageBody = buildMessageBody(payload);
-        LOG.info("sourcing message {}", messageBody);
+        LOG.debug("sourcing message {}", messageBody);
         vertx.eventBus().publish(BUS_ADDRESS, messageBody); // sourcing message to the bus. To make it distributed across sam network enable clustered option in properties file
     }
 
@@ -50,7 +50,7 @@ public class EventSourcingEngine {
         try {
             return new JsonObject(input);
         } catch (DecodeException decodeException) {
-            LOG.error("failed to parse string into json detected {} proceeding with string format", decodeException.getMessage());
+            LOG.warn("failed to parse string into json detected {} proceeding with string format", decodeException.getMessage());
             return input;
         }
     }

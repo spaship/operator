@@ -15,8 +15,10 @@ import io.spaship.operator.crd.Website;
 import io.spaship.operator.crd.WebsiteEnvs;
 import io.spaship.operator.crd.WebsiteSpec;
 import io.spaship.operator.crd.WebsiteStatus;
+import io.spaship.operator.event.EventSourcingEngine;
 import io.spaship.operator.router.IngressController;
 import io.spaship.operator.router.RouterController;
+import io.spaship.operator.utility.EventAttribute;
 import io.spaship.operator.websiteconfig.GitWebsiteConfigService;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -37,6 +39,9 @@ import java.util.stream.Collectors;
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
 
 @ApplicationScoped
+/**
+ * TODO change the name to WebsiteService and make it accessible only by the WebsiteController
+ */
 public class OperatorService {
 
     private static final Logger log = Logger.getLogger(OperatorService.class);
@@ -64,6 +69,9 @@ public class OperatorService {
 
     @Inject
     Vertx vertx;
+
+    @Inject
+    EventSourcingEngine eventSourcingEngine; //TODO Preferably declare this variable final and use constructor injection,
 
     // eager start
     void startup(@Observes StartupEvent event) {
@@ -185,6 +193,11 @@ public class OperatorService {
      * @return
      * @throws GitAPIException
      * @throws IOException
+     *
+     * TODO Should be accessed by WebsiteController only
+     * clarification: without taking the WebsiteController in confidence this method is either deploying  of updating an
+     * existing deployment , it would be difficult to Figure the entry point for controlling purpose.
+     *
      */
     public boolean rolloutWebsiteNonBlocking(Website website, boolean forceRollout) throws GitAPIException, IOException {
         String websiteId = website.getId();
@@ -211,6 +224,16 @@ public class OperatorService {
         }, res -> {
             if (res.succeeded()) {
                 log.infof("Website updated websiteId=%s", websiteId);
+
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                        EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_UPDATE.name()),
+                        EventAttribute.MESSAGE.concat("website updated")
+                );
+                eventSourcingEngine.publishMessage(eventPayload);
+                //IMPLEMENTATION OF ISSUE 59 End
+
             } else {
                 log.error("Cannot update website, websiteId=" + websiteId, res.cause());
             }
@@ -261,11 +284,31 @@ public class OperatorService {
 
         if (existingWebsite != null) {
             websiteController.updateStatus(existingWebsite, WebsiteStatus.STATUS.FORCE_UPDATE);
-        } else {
+
+            //IMPLEMENTATION OF ISSUE 59 Start
+            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                    EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_UPDATE.name()),
+                    EventAttribute.MESSAGE.concat("website preview update done")
+            );
+            eventSourcingEngine.publishMessage(eventPayload);
+            //IMPLEMENTATION OF ISSUE 59 End
+
+        } else { // This is basically creation of new website
             websiteController.getWebsiteClient()
                     .inNamespace(website.getMetadata().getNamespace())
                     .withName(website.getMetadata().getName())
                     .createOrReplace(website);
+
+            //IMPLEMENTATION OF ISSUE 59 Start
+            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                    EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_CREATE.name()),
+                    EventAttribute.MESSAGE.concat("website preview update done")
+            );
+            eventSourcingEngine.publishMessage(eventPayload);
+            //IMPLEMENTATION OF ISSUE 59 End
+
         }
     }
 
@@ -278,6 +321,14 @@ public class OperatorService {
             Website websiteToDelete = websiteRepository.getWebsite(website.getId());
             deleteInfrastructure(websiteToDelete);
         }
+        //IMPLEMENTATION OF ISSUE 59 Start
+        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_DELETE.name()),
+                EventAttribute.MESSAGE.concat("website preview deleted")
+        );
+        eventSourcingEngine.publishMessage(eventPayload);
+        //IMPLEMENTATION OF ISSUE 59 End
     }
 
     public WebsiteStatus deployNewWebsite(Website website, boolean updateGitIfExists, boolean redeploy) throws IOException, GitAPIException {
