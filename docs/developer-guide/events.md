@@ -12,5 +12,12 @@
 <tr><td>PREVIEW_DELETE</td><td>website preview delete event</td><td>yes</td></tr>
 <table>
 
+### consume events
+all the events are published in this bus `crud-event-source`, there are two ways to consume events within the application 
+1. `vertx.eventBus().consumer("crud-event-source",handler->...)` for more details on browse [this page](https://vertx.io/docs/vertx-core/java/#_registering_handlers)
+2. use `@ConsumeEvent` annotation. for more details on browse [this page](https://quarkus.io/guides/reactive-event-bus#consuming-events)
+
+fore more details on the consumer implementation there is an event log consumer available in [this location](../../service/src/main/java/io/spaship/operator/event/consumer/LogEvents.java) 
+
 
 
