@@ -63,6 +63,7 @@ nav:
     - user-guide/live-website-coding.md
   - Developer Guide:
     - developer-guide/project-structure.md
+    - developer-guide/events.md
     - developer-guide/running-locally.md
     - developer-guide/website-performance-tests.md
     - developer-guide/operator-performance-tests.md
