@@ -124,6 +124,16 @@ public class OperatorService {
         if (exception != null) {
             throw exception;
         }
+
+        //IMPLEMENTATION OF ISSUE 59 Start
+        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE.name()),
+                EventAttribute.MESSAGE.concat("website created")
+        );
+        eventSourcingEngine.publishMessage(eventPayload);
+        //IMPLEMENTATION OF ISSUE 59 End
+
         log.debugf("Infrastructure initialized. status=%s", status);
         return status;
     }
