@@ -2,15 +2,17 @@
 
 
 ### event lists
-<table>
-<th>Event Name</th><th>Description</th><th>Is Available</th>
-<tr><td>WEBSITE_CREATE</td><td>website create event</td><td>yes</td></tr>
-<tr><td>WEBSITE_UPDATE</td><td>website update event</td><td>yes</td></tr>
-<tr><td>WEBSITE_DELETE</td><td>website delete event</td><td>yes</td></tr>
-<tr><td>PREVIEW_CREATE</td><td>website preview create event</td><td>yes</td></tr>
-<tr><td>PREVIEW_UPDATE</td><td>website preview update event</td><td>yes</td></tr>
-<tr><td>PREVIEW_DELETE</td><td>website preview delete event</td><td>yes</td></tr>
-<table>
+
+| Event Name | Description | Is Available |
+| ---------------------|---------|-------------|
+|WEBSITE_CREATE|website create event|yes|
+|WEBSITE_UPDATE|website update event|yes|
+|WEBSITE_DELETE|website delete event|yes|
+|PREVIEW_CREATE|website preview create event|yes|
+|PREVIEW_UPDATE|website preview update event|yes|
+|PREVIEW_DELETE|website preview delete event|yes|
+
+
 
 ### consume events
 all the events are published in this bus `crud-event-source`, there are two ways to consume events within the application 
