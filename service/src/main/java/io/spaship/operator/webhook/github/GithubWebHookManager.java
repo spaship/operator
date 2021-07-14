@@ -143,7 +143,10 @@ public class GithubWebHookManager implements GitWebHookManager {
     // GitHub issue 65
     @Override
     public JsonObject extractRepositoryInformation(JsonObject data) {
-        return null;
+        var repositoryMeta = new JsonObject();
+        repositoryMeta.put("projectUrl",data.getJsonObject("pull_request").getString("url"));
+        repositoryMeta.put("repoType", RepoType.GITHUB);
+        return repositoryMeta;
     }
     // GitHub issue 65
 }

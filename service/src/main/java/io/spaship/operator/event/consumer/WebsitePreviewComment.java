@@ -3,7 +3,6 @@ package io.spaship.operator.event.consumer;
 import io.quarkus.vertx.ConsumeEvent;
 import io.spaship.operator.webhook.WebhookService;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import org.slf4j.Logger;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.Arrays;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -38,17 +36,18 @@ public class WebsitePreviewComment {
 
         LOG.debug("comment post url {}, private token {}, comment body {}"
                 , commentPostURL, event.getString("apiAccessKey"), commentPayload);
-
+        var authHeader = constructApiAccessToken(event);
         client.postAbs(commentPostURL)
-                .putHeader("PRIVATE-TOKEN", event.getString("apiAccessKey"))
-                .sendJsonObject(commentPayload, h -> {
-                    if (h.failed())
-                        LOG.error("failed to post route in Git discussion {}", h.cause().getMessage());
+                .putHeader(authHeader.getString("key"), authHeader.getString("value"))
+                .sendJsonObject(commentPayload, handler -> {
+                    if (handler.failed())
+                        LOG.error("failed to post route in Git discussion {}", handler.cause().getMessage());
                     LOG.info("route posted in discussion");
                 });
 
         LOG.debug("website preview event consumed");
     }
+
 
 
     private String constructCommentPostURL(JsonObject event) {
@@ -57,8 +56,7 @@ public class WebsitePreviewComment {
         switch (event.getString("repoType")) {
 
             case "GITLAB":
-                result
-                        .append(extractBaseURL(event.getString("projectUrl")))
+                result.append(extractBaseURL(event.getString("projectUrl"),0,2))
                         .append("api/v4/projects/")
                         .append(event.getString("projectId"))
                         .append("/")
@@ -68,6 +66,8 @@ public class WebsitePreviewComment {
                         .append("notes");
                 break;
             case "GITHUB":
+                result.append(event.getString("projectUrl").replace("pulls","issues"))
+                        .append("/comments");
                 break;
             default:
                 break;
@@ -79,14 +79,39 @@ public class WebsitePreviewComment {
 
     }
 
-    private String extractBaseURL(String input) {
+    private JsonObject constructApiAccessToken(JsonObject event){
+
+        var header = new JsonObject();
+
+        switch (event.getString("repoType")) {
+            case "GITLAB":
+                header.put("key","PRIVATE-TOKEN");
+                header.put("value",event.getString("apiAccessKey"));
+                break;
+            case "GITHUB":
+                header.put("key","Authorization");
+                header.put("value","Bearer ".concat(event.getString("apiAccessKey")));
+                break;
+            default:
+                break;
+
+        }
+
+
+
+
+
+        return header;
+    }
+
+    private String extractBaseURL(String input,int start,int end) {
 
         String[] part = input.split("/");
         var urlBuilder = new StringBuilder();
         Arrays.stream(part)
                 .filter(item -> !(item.equals("")))
                 .collect(Collectors.toList())
-                .subList(0, 2)
+                .subList(start, end)
                 .forEach(elem -> {
                             if (elem.contains("http")) {
                                 urlBuilder.append(elem).append("//");
