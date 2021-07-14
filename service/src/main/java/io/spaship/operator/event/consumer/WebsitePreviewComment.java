@@ -36,9 +36,9 @@ public class WebsitePreviewComment {
 
         LOG.debug("comment post url {}, private token {}, comment body {}"
                 , commentPostURL, event.getString("apiAccessKey"), commentPayload);
-        var authHeader = constructApiAccessToken(event);
+        var auth = apiAccessToken(event);
         client.postAbs(commentPostURL)
-                .putHeader(authHeader.getString("key"), authHeader.getString("value"))
+                .putHeader(auth.getString("key"), auth.getString("value"))
                 .sendJsonObject(commentPayload, handler -> {
                     if (handler.failed())
                         LOG.error("failed to post route in Git discussion {}", handler.cause().getMessage());
@@ -79,7 +79,7 @@ public class WebsitePreviewComment {
 
     }
 
-    private JsonObject constructApiAccessToken(JsonObject event){
+    private JsonObject apiAccessToken(JsonObject event){
 
         var header = new JsonObject();
 
