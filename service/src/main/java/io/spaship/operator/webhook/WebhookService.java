@@ -183,9 +183,12 @@ public class WebhookService {
                     operatorService.createOrUpdateWebsite(websiteCopy, true); // Handle preview create or update website once done.
 
                     // GitHub issue 65
-                    var event=manager.extractRepositoryInformation(data).put("preview_hosts",previewHosts(websiteCopy));
+                    var event=manager.extractRepositoryInformation(data)
+                            .put("apiAccessKey",website.getSpec().getGitApiToken())
+                            .put("previewHosts",previewHosts(websiteCopy));
                     // TODO <E> organize and refactor the event sourcing pattern, make changes and source this event using EventSourcingEngine,
                     vertx.eventBus().publish(BUS_ADDRESS, event);
+                    log.debugf("sent to the vert.x event bus");
                     // GitHub issue 65
 
                 }

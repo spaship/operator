@@ -140,9 +140,10 @@ public class GitlabWebHookManager implements GitWebHookManager {
     public JsonObject extractRepositoryInformation(JsonObject data) {
         // TODO <E> handle nullpointer exception and return empty hashMap if any of the required properties are missing.
         var repositoryMeta = new JsonObject();
-        repositoryMeta.put("projectId",data.getJsonObject("project").getInteger("id"));
+        repositoryMeta.put("projectId",Integer.toString(data.getJsonObject("project").getInteger("id")));
+        repositoryMeta.put("projectUrl",data.getJsonObject("project").getString("web_url"));
         repositoryMeta.put("prId",getPreviewId(data));
-        repositoryMeta.put("type", RepoType.GITLAB);
+        repositoryMeta.put("repoType", RepoType.GITLAB);
         return repositoryMeta;
     }
     // GitHub issue 65
