@@ -13,7 +13,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAuthorizedException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class GitlabWebHookManager implements GitWebHookManager {
@@ -85,6 +87,8 @@ public class GitlabWebHookManager implements GitWebHookManager {
         return websiteRepository.getByGitUrl(gitUrl, signature, false);
     }
 
+
+
     @Override
     public String getGitUrl(HttpServerRequest request, JsonObject postData) {
         if (isMergeRequest(request)) {
@@ -130,4 +134,16 @@ public class GitlabWebHookManager implements GitWebHookManager {
         }
         return null;
     }
+
+    // GitHub issue 65
+    @Override
+    public JsonObject extractRepositoryInformation(JsonObject data) {
+        // TODO <E> handle nullpointer exception and return empty hashMap if any of the required properties are missing.
+        var repositoryMeta = new JsonObject();
+        repositoryMeta.put("projectId",data.getJsonObject("project").getInteger("id"));
+        repositoryMeta.put("prId",getPreviewId(data));
+        repositoryMeta.put("type", RepoType.GITLAB);
+        return repositoryMeta;
+    }
+    // GitHub issue 65
 }

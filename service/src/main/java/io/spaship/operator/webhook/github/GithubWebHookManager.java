@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAuthorizedException;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class GithubWebHookManager implements GitWebHookManager {
@@ -138,4 +139,11 @@ public class GithubWebHookManager implements GitWebHookManager {
     public String getPreviewId(JsonObject postData) {
         return postData.getInteger("number").toString();
     }
+
+    // GitHub issue 65
+    @Override
+    public JsonObject extractRepositoryInformation(JsonObject data) {
+        return null;
+    }
+    // GitHub issue 65
 }
