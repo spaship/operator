@@ -214,7 +214,7 @@ public class WebhookService {
     // GitHub issue 65
     private JsonArray previewHosts(Website website){
         var hostList = new JsonArray();
-        website.getEnabledEnvs().forEach(env-> hostList.add(routingController.getContentHost(env,website)));
+        website.getEnabledEnvs().forEach(env-> hostList.add(new JsonObject().put("env",env).put("host",routingController.getContentHost(env,website))));
         return hostList;
     }
     // GitHub issue 65
