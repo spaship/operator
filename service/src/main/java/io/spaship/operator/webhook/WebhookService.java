@@ -98,6 +98,8 @@ public class WebhookService {
 
             if (manager.isMergeRequest(request)) {
 
+                log.debugf("!!!!!!!!!!!!!!!!!!!!MERGE REQUEST DETECTED!!!!!!!!!!!!!!!");
+
                 // GitHub issue 65 - Edit
                 updatedSites = handlePreview(authorizedWebsites, manager,data);
                 // GitHub issue 65 - Edit

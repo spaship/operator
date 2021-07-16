@@ -99,11 +99,10 @@ public class GithubWebHookManager implements GitWebHookManager {
      * already deals with the complexity with request parsing and other stuffs
      * */
     @Override
-    public List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject event) {
-        String gitUrl = getGitUrl(request, event);
-        String signature = WebHookResource.getHeader(request, "X-Hub-Signature-256");
-
-        return websiteRepository.getByGitUrl(gitUrl, signature, true);
+    public List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject reqBody) {
+        String gitUrl = getGitUrl(request, reqBody);
+        String gitHubHmacHash = WebHookResource.getHeader(request, "X-Hub-Signature-256");
+        return websiteRepository.getByGitUrl(gitUrl,reqBody.encode() ,gitHubHmacHash);
     }
 
     @Override
