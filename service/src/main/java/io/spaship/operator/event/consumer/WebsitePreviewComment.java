@@ -68,7 +68,7 @@ public class WebsitePreviewComment {
             LOG.error("failed to post route in Git discussion {}", handler.cause().getMessage());
 
         if (handler.result().statusCode() >= 200 && handler.result().statusCode() <= 205) {
-            LOG.info("route posted in discussion");
+            LOG.info("preview posted in discussion");
         } else {
             LOG.error("failed to post the comment response code {} | message {} | response body {} , "
                     , handler.result().statusCode(), handler.result().statusMessage()
