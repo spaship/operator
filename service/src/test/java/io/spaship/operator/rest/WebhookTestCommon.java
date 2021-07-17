@@ -39,14 +39,8 @@ public class WebhookTestCommon extends QuarkusTestBase {
     public static final String GIT_EXAMPLES_CONFIG_ADVANCED = "websites/02-advanced";
     public static final String SECRET_SIMPLE = "testsecret_simple";
     public static final String SECRET_ADVANCED = "testsecret_advanced";
-    public static String SECRET_SIMPLE_PAYLOAD_HASH_MERGE;
-    public static String SECRET_SIMPLE_PAYLOAD_HASH_PUSH;
-
-    // TODO tom-me -> nasty nasty static block come-up with a better coding taste
-    static {
-        SECRET_SIMPLE_PAYLOAD_HASH_MERGE = fileToString("/github-merge-request.json");
-        SECRET_SIMPLE_PAYLOAD_HASH_PUSH = fileToString("/github-push.json");
-    }
+    public static final String SECRET_SIMPLE_PAYLOAD_HASH_MERGE = fileToString("/github-merge-request.json");
+    public static final String SECRET_SIMPLE_PAYLOAD_HASH_PUSH = fileToString("/github-push.json");
 
     public static  String fileToString(String fileName){
         String fileContent = null;
