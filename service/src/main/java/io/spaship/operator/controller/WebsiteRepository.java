@@ -20,6 +20,15 @@ public class WebsiteRepository {
 
     private Map<String, Website> websites = new HashMap<>();
 
+    public static Website createWebsite(String name, WebsiteSpec websiteSpec, String namespace) {
+        Website website = new Website();
+        website.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
+        website.setSpec(websiteSpec);
+        website.setStatus(new WebsiteStatus());
+
+        return website;
+    }
+
     public Website addWebsite(Website website) {
         if (website.getConfig() == null) {
             throw new RuntimeException("Cannot register new website without configuration");
@@ -36,15 +45,6 @@ public class WebsiteRepository {
         return websites.get(id);
     }
 
-    public static Website createWebsite(String name, WebsiteSpec websiteSpec, String namespace) {
-        Website website = new Website();
-        website.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
-        website.setSpec(websiteSpec);
-        website.setStatus(new WebsiteStatus());
-
-        return website;
-    }
-
     public List<Website> getByGitUrl(String gitUrl, String secretToken, boolean sha256Hex) {
         LOG.debug("Get Websites by gitUrl gitUrl {}", gitUrl);
         List<Website> result = new ArrayList<>();
@@ -58,16 +58,16 @@ public class WebsiteRepository {
     }
 
 
-    public List<Website> getByGitUrl(String gitUrl, String message ,String gitHubHmacHash) {
+    public List<Website> getByGitUrl(String gitUrl, String message, String gitHubHmacHash) {
         LOG.debug("Get Websites by gitUrl gitUrl {}", gitUrl);
         List<Website> result = new ArrayList<>();
         for (Map.Entry<String, Website> entry : websites.entrySet()) {
             WebsiteSpec spec = entry.getValue().getSpec();
-            boolean isValidHash = HmacSHA256HashValidator.generateHash(message,spec.getSecretToken())
+            boolean isValidHash = HmacSHA256HashValidator.generateHash(message, spec.getSecretToken())
                     .apply(gitHubHmacHash);
-            LOG.debug("compared with hash {}",gitHubHmacHash);
-            LOG.debug("hash match status {}",isValidHash);
-            if (gitUrl.equals(spec.getGitUrl()) &&  isValidHash  ) {
+            LOG.debug("compared with hash {}", gitHubHmacHash);
+            LOG.debug("hash match status {}", isValidHash);
+            if (gitUrl.equals(spec.getGitUrl()) && isValidHash) {
                 result.add(entry.getValue());
             }
         }
@@ -80,10 +80,7 @@ public class WebsiteRepository {
                     if (namespace.isPresent() && !StringUtils.equals(website.getMetadata().getNamespace(), namespace.get())) {
                         return false;
                     }
-                    if (name.isPresent() && !StringUtils.equals(website.getMetadata().getName(), name.get())) {
-                        return false;
-                    }
-                    return true;
+                    return name.isEmpty() || StringUtils.equals(website.getMetadata().getName(), name.get());
                 });
     }
 

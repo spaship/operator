@@ -2,11 +2,11 @@ package io.spaship.operator.event.consumer;
 
 import io.quarkus.vertx.ConsumeEvent;
 import io.spaship.operator.webhook.WebhookService;
-import io.vertx.core.Vertx;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ public class WebsitePreviewComment {
 
 
     @ConsumeEvent(value = WebhookService.BUS_ADDRESS, blocking = true)
-    public void logWebsiteEvents(JsonObject event) {
+    public void processPreviewEvent(JsonObject event) {
 
         String commentPostURL = constructCommentPostURL(event);
 
@@ -40,23 +40,28 @@ public class WebsitePreviewComment {
         LOG.debug("comment post url {}, private token {}, comment body {}"
                 , commentPostURL, event.getString("apiAccessKey"), commentPayload);
         var auth = apiAccessToken(event);
+
+        postComment(commentPostURL, commentPayload, auth);
+
+        LOG.debug("website preview event consumed");
+    }
+
+    private void postComment(String commentPostURL, JsonObject commentPayload, JsonObject auth) {
         client.postAbs(commentPostURL)
                 .putHeader(auth.getString("key"), auth.getString("value"))
                 .sendJsonObject(commentPayload, this::handleResponse);
-
-        LOG.debug("website preview event consumed");
     }
 
     private void handleResponse(AsyncResult<HttpResponse<Buffer>> handler) {
         if (handler.failed())
             LOG.error("failed to post route in Git discussion {}", handler.cause().getMessage());
 
-        if(handler.result().statusCode()>=200 && handler.result().statusCode()<=205){
+        if (handler.result().statusCode() >= 200 && handler.result().statusCode() <= 205) {
             LOG.info("route posted in discussion");
-        }else{
+        } else {
             LOG.error("failed to post the comment response code {} | message {} | response body {} , "
-                    ,handler.result().statusCode(),handler.result().statusMessage()
-                    ,handler.result().bodyAsJsonObject());
+                    , handler.result().statusCode(), handler.result().statusMessage()
+                    , handler.result().bodyAsJsonObject());
         }
     }
 
@@ -67,7 +72,7 @@ public class WebsitePreviewComment {
         switch (event.getString("repoType")) {
 
             case "GITLAB":
-                result.append(extractBaseURL(event.getString("projectUrl"),0,2))
+                result.append(extractBaseURL(event.getString("projectUrl"), 0, 2))
                         .append("api/v4/projects/")
                         .append(event.getString("projectId"))
                         .append("/")
@@ -77,7 +82,7 @@ public class WebsitePreviewComment {
                         .append("notes");
                 break;
             case "GITHUB":
-                result.append(event.getString("projectUrl").replace("pulls","issues"))
+                result.append(event.getString("projectUrl").replace("pulls", "issues"))
                         .append("/comments");
                 break;
             default:
@@ -90,18 +95,18 @@ public class WebsitePreviewComment {
 
     }
 
-    private JsonObject apiAccessToken(JsonObject event){
+    private JsonObject apiAccessToken(JsonObject event) {
 
         var header = new JsonObject();
 
         switch (event.getString("repoType")) {
             case "GITLAB":
-                header.put("key","PRIVATE-TOKEN");
-                header.put("value",event.getString("apiAccessKey"));
+                header.put("key", "PRIVATE-TOKEN");
+                header.put("value", event.getString("apiAccessKey"));
                 break;
             case "GITHUB":
-                header.put("key","Authorization");
-                header.put("value","Bearer ".concat(event.getString("apiAccessKey")));
+                header.put("key", "Authorization");
+                header.put("value", "Bearer ".concat(event.getString("apiAccessKey")));
                 break;
             default:
                 break;
@@ -109,13 +114,10 @@ public class WebsitePreviewComment {
         }
 
 
-
-
-
         return header;
     }
 
-    private String extractBaseURL(String input,int start,int end) {
+    private String extractBaseURL(String input, int start, int end) {
 
         String[] part = input.split("/");
         var urlBuilder = new StringBuilder();
@@ -137,12 +139,12 @@ public class WebsitePreviewComment {
 
     }
 
-    private String markdownPreviewURLs(JsonObject event){
+    private String markdownPreviewURLs(JsonObject event) {
 
         var previewHosts = event.getJsonArray("previewHosts");
         var markDownComment = new StringBuilder();
         markDownComment.append("following are the preview urls <br/>");
-        previewHosts.forEach(host->{
+        previewHosts.forEach(host -> {
             var obj = (JsonObject) host;
             markDownComment.append("[").append(obj.getString("env")).append("]")
                     .append("(http://").append(obj.getString("host")).append(")")
