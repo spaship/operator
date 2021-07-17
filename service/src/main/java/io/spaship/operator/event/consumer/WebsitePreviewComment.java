@@ -39,15 +39,22 @@ public class WebsitePreviewComment {
         var auth = apiAccessToken(event);
         client.postAbs(commentPostURL)
                 .putHeader(auth.getString("key"), auth.getString("value"))
-                .sendJsonObject(commentPayload, handler -> {
-                    if (handler.failed())
-                        LOG.error("failed to post route in Git discussion {}", handler.cause().getMessage());
-                    LOG.info("route posted in discussion");
-                });
+                .sendJsonObject(commentPayload, this::handleResponse);
 
         LOG.debug("website preview event consumed");
     }
 
+    private void handleResponse(io.vertx.core.AsyncResult<io.vertx.ext.web.client.HttpResponse<io.vertx.core.buffer.Buffer>> handler) {
+        if (handler.failed())
+            LOG.error("failed to post route in Git discussion {}", handler.cause().getMessage());
+
+        if(handler.result().statusCode()>=200 && handler.result().statusCode()<=205){
+            LOG.info("route posted in discussion");
+        }else{
+            LOG.error("failed to post the comment response code {} | message {} | response body {} , "
+                    ,handler.result().statusCode(),handler.result().statusMessage() ,handler.result().bodyAsJsonObject());
+        }
+    }
 
 
     private String constructCommentPostURL(JsonObject event) {
