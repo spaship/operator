@@ -14,7 +14,6 @@ import io.spaship.operator.utility.HmacSHA256HashValidator;
 import io.spaship.operator.websiteconfig.GitWebsiteConfigService;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.AfterAll;
@@ -28,6 +27,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 
 import static io.restassured.RestAssured.given;
 
@@ -39,27 +39,27 @@ public class WebhookTestCommon extends QuarkusTestBase {
     public static final String GIT_EXAMPLES_CONFIG_ADVANCED = "websites/02-advanced";
     public static final String SECRET_SIMPLE = "testsecret_simple";
     public static final String SECRET_ADVANCED = "testsecret_advanced";
-    public static String SECRET_SIMPLE_SIGN;
-    public static String SECRET_SIMPLE_SIGN_PUSH;
+    public static String SECRET_SIMPLE_PAYLOAD_HASH_MERGE;
+    public static String SECRET_SIMPLE_PAYLOAD_HASH_PUSH;
 
     // TODO tom-me -> nasty nasty static block come-up with a better coding taste
     static {
-        try(InputStream is = WebhookTestCommon.class.getResourceAsStream("/github-merge-request.json")){
-            String payload = IOUtils.toString(is, StandardCharsets.UTF_8);
-            SECRET_SIMPLE_SIGN = HmacSHA256HashValidator.base16HmacSha256(SECRET_SIMPLE,payload);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try(InputStream is = WebhookTestCommon.class.getResourceAsStream("/github-push.json")){
-            String payload = IOUtils.toString(is, StandardCharsets.UTF_8);
-            SECRET_SIMPLE_SIGN_PUSH = HmacSHA256HashValidator.base16HmacSha256(SECRET_SIMPLE,payload);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SECRET_SIMPLE_PAYLOAD_HASH_MERGE = fileToString("/github-merge-request.json");
+        SECRET_SIMPLE_PAYLOAD_HASH_PUSH = fileToString("/github-push.json");
     }
 
-    public static final String SECRET_ADVANCED_SIGN = DigestUtils.sha256Hex(SECRET_ADVANCED);
+    public static  String fileToString(String fileName){
+        String fileContent = null;
+        try(InputStream is = WebhookTestCommon.class.getResourceAsStream(fileName)){
+            Objects.requireNonNull(is,"input stream is null");
+            String payload = IOUtils.toString(is, StandardCharsets.UTF_8);
+            fileContent = HmacSHA256HashValidator.base16HmacSha256(SECRET_SIMPLE,payload);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileContent;
+    }
+
 
     public static final WebsiteSpec SIMPLE_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_SIMPLE, true, SECRET_SIMPLE);
     public static final WebsiteSpec ADVANCED_WEB = new WebsiteSpec(GIT_EXAMPLES_URL, GIT_EXAMPLES_BRANCH, GIT_EXAMPLES_CONFIG_ADVANCED, true, SECRET_ADVANCED);
