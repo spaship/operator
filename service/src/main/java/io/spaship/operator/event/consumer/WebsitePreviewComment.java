@@ -13,12 +13,18 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class WebsitePreviewComment {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebsitePreviewComment.class);
+    private static final String API_ACCESS_KEY = "apiAccessKey";
+    private static final String PROJECT_URL = "projectUrl";
+    private static final String VALUE = "value";
+    private static final String PREVIEW_HOSTS = "previewHosts";
+
 
     final Vertx vertx;
     WebClient client;
@@ -38,7 +44,12 @@ public class WebsitePreviewComment {
         commentPayload.put("body", markdownPreviewURLs(event));
 
         LOG.debug("comment post url {}, private token {}, comment body {}"
-                , commentPostURL, event.getString("apiAccessKey"), commentPayload);
+                , commentPostURL, event.getString(API_ACCESS_KEY), commentPayload);
+
+        Objects.requireNonNull(event.getString(PROJECT_URL),"no git-url found in the request body");
+        Objects.requireNonNull(event.getString(API_ACCESS_KEY),"no api key found in the request body");
+        Objects.requireNonNull(event.getJsonArray(PREVIEW_HOSTS),"no preview hosts found in the request body");
+
         var auth = apiAccessToken(event);
 
         postComment(commentPostURL, commentPayload, auth);
@@ -48,7 +59,7 @@ public class WebsitePreviewComment {
 
     private void postComment(String commentPostURL, JsonObject commentPayload, JsonObject auth) {
         client.postAbs(commentPostURL)
-                .putHeader(auth.getString("key"), auth.getString("value"))
+                .putHeader(auth.getString("key"), auth.getString(VALUE))
                 .sendJsonObject(commentPayload, this::handleResponse);
     }
 
@@ -72,7 +83,7 @@ public class WebsitePreviewComment {
         switch (event.getString("repoType")) {
 
             case "GITLAB":
-                result.append(extractBaseURL(event.getString("projectUrl"), 0, 2))
+                result.append(extractBaseURL(event.getString(PROJECT_URL), 0, 2))
                         .append("api/v4/projects/")
                         .append(event.getString("projectId"))
                         .append("/")
@@ -82,7 +93,7 @@ public class WebsitePreviewComment {
                         .append("notes");
                 break;
             case "GITHUB":
-                result.append(event.getString("projectUrl").replace("pulls", "issues"))
+                result.append(event.getString(PROJECT_URL).replace("pulls", "issues"))
                         .append("/comments");
                 break;
             default:
@@ -102,11 +113,11 @@ public class WebsitePreviewComment {
         switch (event.getString("repoType")) {
             case "GITLAB":
                 header.put("key", "PRIVATE-TOKEN");
-                header.put("value", event.getString("apiAccessKey"));
+                header.put(VALUE, event.getString(API_ACCESS_KEY));
                 break;
             case "GITHUB":
                 header.put("key", "Authorization");
-                header.put("value", "Bearer ".concat(event.getString("apiAccessKey")));
+                header.put("value", "Bearer ".concat(event.getString(API_ACCESS_KEY)));
                 break;
             default:
                 break;
@@ -141,7 +152,7 @@ public class WebsitePreviewComment {
 
     private String markdownPreviewURLs(JsonObject event) {
 
-        var previewHosts = event.getJsonArray("previewHosts");
+        var previewHosts = event.getJsonArray(PREVIEW_HOSTS);
         var markDownComment = new StringBuilder();
         markDownComment.append("following are the preview urls <br/>");
         previewHosts.forEach(host -> {
