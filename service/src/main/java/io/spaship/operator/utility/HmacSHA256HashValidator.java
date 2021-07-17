@@ -23,6 +23,7 @@ public class HmacSHA256HashValidator {
 
     public static Function<String,Boolean>  generateHash(String payload, String secret){
 
+        LOG.debug("secret token is {}",secret);
         //The BinaryOperator<T> is in fact a sub-interface of BiFunction<T, T, T>
         BinaryOperator<String> calculatedPayloadHash = HmacSHA256HashValidator::base16HmacSha256;
         return hashedPayload -> trimSignaturePrefix(hashedPayload).equals(calculatedPayloadHash.apply(secret,payload));
@@ -30,12 +31,11 @@ public class HmacSHA256HashValidator {
     }
 
 
-
     private static String trimSignaturePrefix(String input){
         return input.replace(SIGNATURE_PREFIX,"");
     }
 
-    private static String base16HmacSha256(String secretKey,String message){
+    public static String base16HmacSha256(String secretKey,String message){
         byte[] hmacSha256 = calcHmacSha256(secretKey
                         .getBytes(StandardCharsets.UTF_8),
                 message.getBytes(StandardCharsets.UTF_8)

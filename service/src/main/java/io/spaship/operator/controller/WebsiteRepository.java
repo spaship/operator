@@ -65,6 +65,7 @@ public class WebsiteRepository {
             WebsiteSpec spec = entry.getValue().getSpec();
             boolean isValidHash = HmacSHA256HashValidator.generateHash(message,spec.getSecretToken())
                     .apply(gitHubHmacHash);
+            LOG.debug("compared with hash {}",gitHubHmacHash);
             LOG.debug("hash match status {}",isValidHash);
             if (gitUrl.equals(spec.getGitUrl()) &&  isValidHash  ) {
                 result.add(entry.getValue());
