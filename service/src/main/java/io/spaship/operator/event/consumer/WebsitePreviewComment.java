@@ -3,6 +3,9 @@ package io.spaship.operator.event.consumer;
 import io.quarkus.vertx.ConsumeEvent;
 import io.spaship.operator.webhook.WebhookService;
 import io.vertx.core.Vertx;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import org.slf4j.Logger;
@@ -44,7 +47,7 @@ public class WebsitePreviewComment {
         LOG.debug("website preview event consumed");
     }
 
-    private void handleResponse(io.vertx.core.AsyncResult<io.vertx.ext.web.client.HttpResponse<io.vertx.core.buffer.Buffer>> handler) {
+    private void handleResponse(AsyncResult<HttpResponse<Buffer>> handler) {
         if (handler.failed())
             LOG.error("failed to post route in Git discussion {}", handler.cause().getMessage());
 
@@ -52,7 +55,8 @@ public class WebsitePreviewComment {
             LOG.info("route posted in discussion");
         }else{
             LOG.error("failed to post the comment response code {} | message {} | response body {} , "
-                    ,handler.result().statusCode(),handler.result().statusMessage() ,handler.result().bodyAsJsonObject());
+                    ,handler.result().statusCode(),handler.result().statusMessage()
+                    ,handler.result().bodyAsJsonObject());
         }
     }
 
