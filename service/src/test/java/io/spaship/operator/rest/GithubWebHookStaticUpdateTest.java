@@ -19,7 +19,7 @@ class GithubWebHookStaticUpdateTest extends WebhookTestCommon {
         given()
                 .header("Content-type", "application/json")
                 .header("X-GitHub-Event", "push")
-                .header("X-Hub-Signature-256", OperatorServiceTest.SECRET_SIMPLE_SIGN)
+                .header("X-Hub-Signature-256", OperatorServiceTest.SECRET_SIMPLE_PAYLOAD_HASH_PUSH)
                 .body(GithubWebHookStaticUpdateTest.class.getResourceAsStream("/github-push.json"))
                 .when().post("/api/webhook")
                 .then()

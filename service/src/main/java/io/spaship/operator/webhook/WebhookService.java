@@ -5,6 +5,7 @@ import io.spaship.operator.Utils;
 import io.spaship.operator.controller.OperatorService;
 import io.spaship.operator.crd.Website;
 import io.spaship.operator.event.EventSourcingEngine;
+import io.spaship.operator.router.IngressController;
 import io.spaship.operator.utility.EventAttribute;
 import io.spaship.operator.webhook.github.GithubWebHookManager;
 import io.spaship.operator.webhook.gitlab.GitlabWebHookManager;
@@ -14,7 +15,9 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.mutiny.core.Vertx;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jboss.logging.Logger;
 
@@ -38,7 +41,7 @@ import static io.spaship.operator.webhook.model.WebhookResponse.STATUS_SUCCESS;
 public class WebhookService {
 
     private static final Logger log = Logger.getLogger(WebhookService.class);
-
+    public static final String BUS_ADDRESS = "website-preview-comment";
 
     @Inject
     GitlabWebHookManager gitlabWebHookManager;
@@ -50,7 +53,13 @@ public class WebhookService {
     OperatorService operatorService;
 
     @Inject
-    EventSourcingEngine eventSourcingEngine; //TODO Preferably declare this variable final and use constructor injection,
+    Vertx vertx; //TODO Preferably declare this variable final and use constructor injection,
+
+    @Inject
+    IngressController routingController;
+
+
+
 
     Set<GitWebHookManager> managers;
 
@@ -88,9 +97,16 @@ public class WebhookService {
             }
 
             if (manager.isMergeRequest(request)) {
-                updatedSites = handlePreview(authorizedWebsites, manager.getPreviewId(data), manager.getPreviewGitUrl(data), manager.getPreviewRef(data), manager.getMergeStatus(data));
+
+                log.debugf("!!!!!!!!!!!!!!!!!!!!MERGE REQUEST DETECTED!!!!!!!!!!!!!!!");
+
+                // GitHub issue 65 - Edit
+                updatedSites = handlePreview(authorizedWebsites, manager,data);
+                // GitHub issue 65 - Edit
+
                 resultObject.setWebsites(updatedSites);
                 resultObject.setComponents(new ArrayList<>());
+
                 return Future.succeededFuture(resultObject);
             }
 
@@ -147,8 +163,16 @@ public class WebhookService {
         return updatedSites;
     }
 
-    protected List<UpdatedWebsite> handlePreview(List<Website> websites, String previewId, String previewGitUrl, String previewRef, GitWebHookManager.MergeStatus mergeStatus) throws GitAPIException, IOException {
+    // GitHub issue 65 - Edit change in method signature
+    protected List<UpdatedWebsite> handlePreview(List<Website> websites, GitWebHookManager manager, JsonObject data) throws GitAPIException, IOException {
         List<UpdatedWebsite> updatedSites = new ArrayList<>();
+
+        // GitHub issue 65 - Added new variables
+        String previewId = manager.getPreviewId(data);
+        String previewGitUrl=manager.getPreviewGitUrl(data);
+        String previewRef=manager.getPreviewRef(data);
+        GitWebHookManager.MergeStatus mergeStatus=manager.getMergeStatus(data);
+        // GitHub issue 65
 
         for (Website website : websites) {
             UpdatedWebsite result;
@@ -159,6 +183,15 @@ public class WebhookService {
 
                 } else {
                     operatorService.createOrUpdateWebsite(websiteCopy, true); // Handle preview create or update website once done.
+
+                    // GitHub issue 65
+                    var event=manager.extractRepositoryInformation(data)
+                            .put("apiAccessKey",website.getSpec().getGitApiToken())
+                            .put("previewHosts",previewHosts(websiteCopy));
+                    // TODO <E> organize and refactor the event sourcing pattern, make changes and source this event using EventSourcingEngine,
+                    vertx.eventBus().publish(BUS_ADDRESS, event);
+                    log.debugf("sent to the vert.x event bus");
+                    // GitHub issue 65
 
                 }
                 result = new UpdatedWebsite(website.getMetadata().getName(), website.getMetadata().getNamespace(), mergeStatus.toResponseStatus());
@@ -179,5 +212,28 @@ public class WebhookService {
         }
         return null;
     }
+
+    // GitHub issue 65
+    private JsonArray previewHosts(Website website){
+        var hostList = new JsonArray();
+        website.getEnabledEnvs()
+                .forEach(env-> hostList.add(
+                        new JsonObject().put("env",env).put("host",routingController.getContentHost(env,website))
+                ));
+        return hostList;
+    }
+    // GitHub issue 65
+
+/*    private String markdownPreviewURLs(Website website){
+        StringBuilder builder = new StringBuilder();
+        website.getEnabledEnvs().forEach(env->{
+            builder
+                    .append("[").append(env).append("]").append("(http://")
+                    .append(routingController.getContentHost(env,website))
+                    .append(")")
+                    .append("\\");
+        });
+        return builder.toString();
+    }*/
 
 }

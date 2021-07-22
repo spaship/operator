@@ -48,7 +48,7 @@ public class GitlabWebHookManager implements GitWebHookManager {
         if (StringUtils.equals(state, "opened")) {
             return StringUtils.equals(action, "update") ? MergeStatus.UPDATE : MergeStatus.OPEN;
         }
-        if (StringUtils.equals(state, "closed")){
+        if (StringUtils.equals(state, "closed")) {
             return MergeStatus.CLOSE;
         }
         return null;
@@ -84,6 +84,7 @@ public class GitlabWebHookManager implements GitWebHookManager {
 
         return websiteRepository.getByGitUrl(gitUrl, signature, false);
     }
+
 
     @Override
     public String getGitUrl(HttpServerRequest request, JsonObject postData) {
@@ -130,4 +131,17 @@ public class GitlabWebHookManager implements GitWebHookManager {
         }
         return null;
     }
+
+    // GitHub issue 65
+    @Override
+    public JsonObject extractRepositoryInformation(JsonObject data) {
+        // TODO <E> handle nullpointer exception and return empty hashMap if any of the required properties are missing.
+        var repositoryMeta = new JsonObject();
+        repositoryMeta.put("projectId", Integer.toString(data.getJsonObject("project").getInteger("id")));
+        repositoryMeta.put("projectUrl", data.getJsonObject("project").getString("web_url"));
+        repositoryMeta.put("prId", getPreviewId(data));
+        repositoryMeta.put("repoType", RepoType.GITLAB);
+        return repositoryMeta;
+    }
+    // GitHub issue 65
 }

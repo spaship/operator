@@ -54,10 +54,7 @@ public class GithubWebHookManager implements GitWebHookManager {
     }
 
     public boolean isPingRequest(JsonObject data) {
-        if (StringUtils.isNotEmpty(data.getString("zen"))) {
-            return true;
-        }
-        return false;
+        return StringUtils.isNotEmpty(data.getString("zen"));
     }
 
     @Override
@@ -96,13 +93,12 @@ public class GithubWebHookManager implements GitWebHookManager {
      * and signature to the invoker and invoker will retrieve the websiteRepository based on those values.
      * Look at the Return type of this method List of Websites is not a responsibility of WebHookManager, a WebHokManager
      * already deals with the complexity with request parsing and other stuffs
-     * */
+     */
     @Override
-    public List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject event) {
-        String gitUrl = getGitUrl(request, event);
-        String signature = WebHookResource.getHeader(request, "X-Hub-Signature-256");
-
-        return websiteRepository.getByGitUrl(gitUrl, signature, true);
+    public List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject reqBody) {
+        String gitUrl = getGitUrl(request, reqBody);
+        String gitHubHmacHash = WebHookResource.getHeader(request, "X-Hub-Signature-256");
+        return websiteRepository.getByGitUrl(gitUrl, reqBody.encode(), gitHubHmacHash);
     }
 
     @Override
@@ -138,4 +134,14 @@ public class GithubWebHookManager implements GitWebHookManager {
     public String getPreviewId(JsonObject postData) {
         return postData.getInteger("number").toString();
     }
+
+    // GitHub issue 65
+    @Override
+    public JsonObject extractRepositoryInformation(JsonObject data) {
+        var repositoryMeta = new JsonObject();
+        repositoryMeta.put("projectUrl", data.getJsonObject("pull_request").getString("url"));
+        repositoryMeta.put("repoType", RepoType.GITHUB);
+        return repositoryMeta;
+    }
+    // GitHub issue 65
 }

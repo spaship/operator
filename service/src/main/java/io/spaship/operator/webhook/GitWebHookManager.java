@@ -5,6 +5,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 
 import java.util.List;
+import java.util.Map;
 
 import static io.spaship.operator.webhook.model.UpdatedWebsite.*;
 
@@ -47,4 +48,10 @@ public interface GitWebHookManager {
     String getPreviewId(JsonObject postData);
 
     List<Website> getAuthorizedWebsites(HttpServerRequest request, JsonObject postData);
+
+    // GitHub issue 65
+    JsonObject extractRepositoryInformation(JsonObject data);
+
+    enum RepoType {GITHUB,GITLAB}
+    // GitHub issue 65
 }

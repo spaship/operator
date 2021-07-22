@@ -265,8 +265,11 @@ public class OperatorService {
         spec.setEnvs(sourceSpec.getEnvs() != null ? sourceSpec.getEnvs() : new WebsiteEnvs());
         if (spec.getEnvs().getIncluded() == null) spec.getEnvs().setIncluded(new ArrayList<>());
         if (spec.getEnvs().getExcluded() == null) spec.getEnvs().setExcluded(new ArrayList<>());
+        spec.setGitApiToken(sourceSpec.getGitApiToken());
 
+        // GitHub issue 65
         previewWebsite.setSpec(spec);
+        // GitHub issue 65
 
         // Just change the name to "name"-<previewId>
         ObjectMeta sourceMetadata = website.getMetadata();
