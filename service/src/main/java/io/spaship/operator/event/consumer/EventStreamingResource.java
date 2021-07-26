@@ -13,12 +13,9 @@ import javax.ws.rs.core.MediaType;
 
 public class EventStreamingResource {
 
-    private final EventSourcingEngine eventSourcing;
     private final Vertx vertx;
 
-    public EventStreamingResource(EventSourcingEngine ob,
-                                  Vertx vertx) {
-        this.eventSourcing = ob;
+    public EventStreamingResource(Vertx vertx) {
         this.vertx = vertx;
     }
 
