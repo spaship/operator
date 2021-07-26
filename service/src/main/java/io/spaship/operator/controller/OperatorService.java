@@ -33,6 +33,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -332,6 +333,10 @@ public class OperatorService {
             websiteController.getWebsiteClient().inNamespace(website.getMetadata().getNamespace()).delete(website);
         } else {
             Website websiteToDelete = websiteRepository.getWebsite(website.getId());
+            if(Objects.isNull(websiteToDelete)){
+                log.error("website doesn't exists in memory");
+                return;
+            }
             deleteInfrastructure(websiteToDelete);
         }
         //IMPLEMENTATION OF ISSUE 59 Start
