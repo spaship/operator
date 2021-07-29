@@ -11,6 +11,9 @@ public interface EventAttribute {
     String TIMESTAMP="timestamp:";
     enum EventCode{
         WEBSITE_CREATE_INIT,
+        WEBSITE_CREATE_OR_UPDATE_INIT,
+        WEBSITE_REFRESH_COMPONENT_INIT,
+        WEBSITE_REFRESH_COMPONENT,
         WEBSITE_CREATE,
         WEBSITE_UPDATE,
         WEBSITE_DELETE,
