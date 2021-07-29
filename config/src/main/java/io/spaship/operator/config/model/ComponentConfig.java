@@ -1,5 +1,8 @@
 package io.spaship.operator.config.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Objects;
 
 public class ComponentConfig {
@@ -50,12 +53,13 @@ public class ComponentConfig {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ComponentConfig{");
-        sb.append("context='").append(context).append('\'');
-        sb.append(", kind='").append(kind).append('\'');
-        sb.append(", spec=").append(spec);
-        sb.append('}');
-        return sb.toString();
+        String result = null;
+        try {
+            result = new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     @Override

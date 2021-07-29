@@ -1,6 +1,7 @@
 package io.spaship.operator.config.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.spaship.operator.config.matcher.ComponentNotSkipped;
 import org.apache.commons.lang3.StringUtils;
 
@@ -11,6 +12,9 @@ import java.util.stream.Stream;
 
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentServiceMatcher;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class WebsiteConfig {
 
@@ -98,13 +102,13 @@ public class WebsiteConfig {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("WebsiteConfig{");
-        sb.append("apiVersion='").append(apiVersion).append('\'');
-        sb.append(", metadata=").append(metadata);
-        sb.append(", envs=").append(envs);
-        sb.append(", components=").append(components);
-        sb.append('}');
-        return sb.toString();
+        String result = null;
+        try {
+            result = new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     @Override

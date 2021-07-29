@@ -31,10 +31,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
@@ -79,6 +77,18 @@ public class OperatorService {
     }
 
     public WebsiteStatus initNewWebsite(Website website, boolean redeploy) {
+
+        String traceId = UUID.randomUUID().toString();
+
+        String eventPayloadStart = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE_INIT.name()),
+                EventAttribute.MESSAGE.concat(website.toString()),
+                EventAttribute.TRACE_ID.concat(traceId),
+                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString())
+        );
+        eventSourcingEngine.publishMessage(eventPayloadStart);
+
         Set<String> enabledEnvs = website.getEnabledEnvs();
         log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s redeploy=%s", website.getId(), enabledEnvs, redeploy);
         websiteRepository.addWebsite(website);
@@ -127,12 +137,14 @@ public class OperatorService {
         }
 
         //IMPLEMENTATION OF ISSUE 59 Start
-        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+        String eventPayloadEnd = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                 EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
                 EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE.name()),
-                EventAttribute.MESSAGE.concat("website created")
+                EventAttribute.MESSAGE.concat(website.toString()),
+                EventAttribute.TRACE_ID.concat(traceId),
+                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString())
         );
-        eventSourcingEngine.publishMessage(eventPayload);
+        eventSourcingEngine.publishMessage(eventPayloadEnd);
         //IMPLEMENTATION OF ISSUE 59 End
 
         log.debugf("Infrastructure initialized. status=%s", status);

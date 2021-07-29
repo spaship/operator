@@ -7,7 +7,10 @@ public interface EventAttribute {
     String NAMESPACE = "namespace:";
     String MESSAGE = "message:";
     String CODE="CODE:";
+    String TRACE_ID="traceId:";
+    String TIMESTAMP="timestamp:";
     enum EventCode{
+        WEBSITE_CREATE_INIT,
         WEBSITE_CREATE,
         WEBSITE_UPDATE,
         WEBSITE_DELETE,

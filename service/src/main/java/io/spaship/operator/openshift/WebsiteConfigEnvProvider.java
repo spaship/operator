@@ -9,7 +9,8 @@ import io.spaship.operator.crd.WebsiteSpec;
 import io.vertx.core.Vertx;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -22,7 +23,7 @@ import java.util.Optional;
 @ApplicationScoped
 public class WebsiteConfigEnvProvider {
 
-    private static final Logger log = Logger.getLogger(WebsiteConfigEnvProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(WebsiteConfigEnvProvider.class);
 
     @ConfigProperty(name = "website.name")
     Optional<String> websiteName;
@@ -67,13 +68,13 @@ public class WebsiteConfigEnvProvider {
     private boolean ready = false;
 
     void onStart(@Observes StartupEvent ev) throws Exception {
-        log.infof("WebsiteConfigEnvProvider enabled=%s", providerEnabled.orElse(false));
+        log.info("WebsiteConfigEnvProvider enabled={}", providerEnabled.orElse(false));
         if (!providerEnabled.orElse(false)) {
             ready = true;
             return;
         }
         Website website = createWebsiteFromEnv();
-        log.debugf("Website from envs=%s", website);
+        log.debug("Website from envs={}", website);
         start(initDelay, website);
     }
 
@@ -94,7 +95,8 @@ public class WebsiteConfigEnvProvider {
     }
 
     protected void start(long delay, Website website) throws GitAPIException, IOException, URISyntaxException {
-        log.infof("Registering INIT EnvProvider with delay=%s website=%s", initDelay, website.getSpec());
+        log.info("Registering INIT EnvProvider with delay={} website={}", initDelay, website.getSpec());
+
         if (delay > 0) {
             vertx.setTimer(delay, e -> vertx.executeBlocking(future -> {
                 try {
@@ -112,15 +114,16 @@ public class WebsiteConfigEnvProvider {
             try {
                 registerWebsite(website, true);
             } catch (Exception ex) {
+
                 log.error("Cannot init ENV provider", ex);
-                throw ex;
+
             }
         }
     }
 
     private void registerWebsite(Website website, boolean updateIfExists) throws IOException, GitAPIException {
         operatorService.deployNewWebsite(website, updateIfExists, false);
-        log.infof("Initialization completed from ENV provider.");
+        log.info("Initialization completed from ENV provider.");
         ready = true;
     }
 
