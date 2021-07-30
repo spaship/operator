@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 class UtilsTest {
 
     @Test
-    public void testLabels() throws IOException {
+    void testLabels() throws IOException {
         try (InputStream is = OperatorConfigUtils.class.getResourceAsStream("/labels-test.yaml")) {
             WebsiteConfig config = OperatorConfigUtils.loadYaml(is);
 
@@ -38,25 +38,22 @@ class UtilsTest {
     void testBuildEventPayloadCase1(){
         JsonObject expectedOutcome =  new JsonObject();
         expectedOutcome.put("name","sample").put("ns","operator-test");
-        String outcome = Utils.buildEventPayload("name:sample","ns:operator-test");
+        String outcome = Utils.buildEventPayload("name~sample","ns~operator-test");
         assertEquals(expectedOutcome.toString(),outcome);
-        assertEquals(expectedOutcome, new JsonObject(outcome));
     }
     @Test
     void testBuildEventPayloadCase2(){
         JsonObject expectedOutcome =  new JsonObject();
         expectedOutcome.put("name","sample").put("attr_1","operator-test");
-        String outcome = Utils.buildEventPayload("name:sample","operator-test");
+        String outcome = Utils.buildEventPayload("name~sample","operator-test");
         assertEquals(expectedOutcome.toString(),outcome);
-        assertEquals(expectedOutcome, new JsonObject(outcome));
     }
     @Test
     void testBuildEventPayloadCase3(){
         JsonObject expectedOutcome =  new JsonObject();
         expectedOutcome.put("name","sample").put("ns","operator-test");
-        String outcome = Utils.buildEventPayload("name:sample","operator-test");
+        String outcome = Utils.buildEventPayload("name~sample","operator-test");
         assertNotEquals(expectedOutcome.toString(),outcome);
-        assertNotEquals(expectedOutcome, new JsonObject(outcome));
     }
 
 }

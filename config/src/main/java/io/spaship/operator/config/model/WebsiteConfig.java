@@ -1,7 +1,6 @@
 package io.spaship.operator.config.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import io.spaship.operator.config.matcher.ComponentNotSkipped;
 import org.apache.commons.lang3.StringUtils;
@@ -14,8 +13,6 @@ import java.util.stream.Stream;
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentServiceMatcher;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class WebsiteConfig {
 
