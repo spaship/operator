@@ -2,6 +2,7 @@ package io.spaship.operator.config.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 
 import java.util.Map;
 import java.util.Objects;
@@ -81,13 +82,14 @@ public class ComponentSpec {
 
     @Override
     public String toString() {
-        String result = null;
-        try {
-            result = new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return result;
+        return "{\"ComponentSpec\":{"
+                + "                        \"url\":\"" + url + "\""
+                + ",                         \"dir\":\"" + dir + "\""
+                + ",                         \"branch\":\"" + branch + "\""
+                + ",                         \"serviceName\":\"" + serviceName + "\""
+                + ",                         \"targetPort\":\"" + targetPort + "\""
+                + ",                         \"envs\":" +new Gson().toJson(envs)
+                + "}}";
     }
 
     @Override

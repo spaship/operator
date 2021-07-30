@@ -1,5 +1,6 @@
 package io.spaship.operator.crd;
 
+import com.google.gson.Gson;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.util.List;
@@ -36,13 +37,21 @@ public class WebsiteEnvs {
         this.excluded = excluded;
     }
 
-    @Override
+/*    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("WebsiteEnvs{");
         sb.append("included=").append(included);
         sb.append(", excluded=").append(excluded);
         sb.append('}');
         return sb.toString();
+    }*/
+
+    @Override
+    public String toString() {
+        return "{\"WebsiteEnvs\":{"
+                + "                        \"included\":" +  (Objects.isNull(included)?"[]":new Gson().toJsonTree(included).getAsJsonArray())
+                + ",                         \"excluded\":" + (Objects.isNull(excluded)?"[]":new Gson().toJsonTree(excluded).getAsJsonArray())
+                + "}}";
     }
 
     @Override

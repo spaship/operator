@@ -2,6 +2,7 @@ package io.spaship.operator.config.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.gson.Gson;
 import io.spaship.operator.config.matcher.ComponentNotSkipped;
 import org.apache.commons.lang3.StringUtils;
 
@@ -102,14 +103,15 @@ public class WebsiteConfig {
 
     @Override
     public String toString() {
-        String result = null;
-        try {
-            result = new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return result;
+        return "{\"WebsiteConfig\":{"
+                + "                        \"apiVersion\":\"" + apiVersion + "\""
+                + ",                         \"metadata\":" + new Gson().toJson(metadata)
+                + ",                         \"labels\":" + new Gson().toJson(labels)
+                + ",                         \"envs\":" + new Gson().toJson(envs)
+                + ",                         \"components\":" + new Gson().toJsonTree(components).getAsJsonArray() //toJson(components
+                + "}}";
     }
+
 
     @Override
     public boolean equals(Object o) {

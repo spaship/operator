@@ -2,6 +2,7 @@ package io.spaship.operator.crd;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.gson.Gson;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
@@ -11,6 +12,8 @@ import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.crd.matcher.EnvIncluded;
 
 import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,12 +69,9 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
 
     @Override
     public String toString() {
-        String result = null;
-        try {
-            result = new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return result;
+        return "{\"Website\":{"
+                + "                        \"config\":" + (Objects.isNull(config)?"NF":config.toString())
+                + ",                         \"enabledEnvs\":" + (Objects.isNull(enabledEnvs)?"[]": new Gson().toJsonTree(enabledEnvs).getAsJsonArray())
+                + "}}";
     }
 }

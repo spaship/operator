@@ -48,6 +48,7 @@ public class EventSourcingEngine {
 
     private Object transformMessage(String input) {
         try {
+            input = input.replace("\\","");
             return new JsonObject(input);
         } catch (DecodeException decodeException) {
             LOG.warn("failed to parse string into json detected {} proceeding with string format", decodeException.getMessage());

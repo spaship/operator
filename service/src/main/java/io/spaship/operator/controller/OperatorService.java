@@ -80,6 +80,10 @@ public class OperatorService {
 
         String traceId = UUID.randomUUID().toString();
 
+        if(Objects.isNull(website.getConfig()))
+            System.exit(1);
+
+
         String eventPayloadStart = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                 EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
                 EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE_OR_UPDATE_INIT.name()),
@@ -88,6 +92,8 @@ public class OperatorService {
                 EventAttribute.MESSAGE.concat(website.toString())
         );
         eventSourcingEngine.publishMessage(eventPayloadStart);
+
+
 
         Set<String> enabledEnvs = website.getEnabledEnvs();
         log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s redeploy=%s", website.getId(), enabledEnvs, redeploy);

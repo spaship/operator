@@ -1,11 +1,15 @@
 package io.spaship.operator.crd;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RegisterForReflection
 public class WebsiteStatus {
@@ -120,13 +124,12 @@ public class WebsiteStatus {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("WebsiteStatus{");
-        sb.append("status='").append(status).append('\'');
-        sb.append(", message='").append(message).append('\'');
-        sb.append(", envs=").append(envs);
-        sb.append(", envHosts=").append(envHosts);
-        sb.append(", updated='").append(updated).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "{\"WebsiteStatus\":{"
+                + "                        \"status\":\"" + status + "\""
+                + ",                         \"message\":\"" + message + "\""
+                + ",                         \"envs\":" + (Objects.isNull(envs)? "[]": new Gson().toJsonTree(envs).getAsJsonArray())
+                + ",                         \"envHosts\":" + (Objects.isNull(envHosts)? "{}": new Gson().toJson(envHosts))
+                + ",                         \"updated\":\"" + updated + "\""
+                + "}}";
     }
 }
