@@ -98,7 +98,7 @@ public class WebhookService {
 
             if (manager.isMergeRequest(request)) {
 
-                log.debugf("!!!!!!!!!!!!!!!!!!!!MERGE REQUEST DETECTED!!!!!!!!!!!!!!!");
+                log.debugf("request identified as git merge event");
 
                 // GitHub issue 65 - Edit
                 updatedSites = handlePreview(authorizedWebsites, manager,data);

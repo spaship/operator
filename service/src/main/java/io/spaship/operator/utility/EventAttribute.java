@@ -3,11 +3,17 @@ package io.spaship.operator.utility;
 public interface EventAttribute {
 
     //CRO ops and Preview event attributes
-    String CR_NAME = "cr_name:";
-    String NAMESPACE = "namespace:";
-    String MESSAGE = "message:";
-    String CODE="CODE:";
+    String CR_NAME = "cr_name~";
+    String NAMESPACE = "namespace~";
+    String MESSAGE = "message~";
+    String CODE="CODE~";
+    String TRACE_ID="traceId~";
+    String TIMESTAMP="timestamp~";
     enum EventCode{
+        WEBSITE_CREATE_INIT,
+        WEBSITE_CREATE_OR_UPDATE_INIT,
+        WEBSITE_REFRESH_COMPONENT_INIT,
+        WEBSITE_REFRESH_COMPONENT,
         WEBSITE_CREATE,
         WEBSITE_UPDATE,
         WEBSITE_DELETE,

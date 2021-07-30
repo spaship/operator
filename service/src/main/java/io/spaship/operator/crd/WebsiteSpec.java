@@ -1,5 +1,6 @@
 package io.spaship.operator.crd;
 
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.util.Objects;
@@ -102,18 +103,19 @@ public class WebsiteSpec {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("WebsiteSpec{");
-        sb.append("displayName='").append(displayName).append('\'');
-        sb.append(", gitUrl='").append(gitUrl).append('\'');
-        sb.append(", branch='").append(branch).append('\'');
-        sb.append(", dir='").append(dir).append('\'');
-        sb.append(", sslVerify=").append(sslVerify);
-        sb.append(", previews=").append(previews);
-        sb.append(", envs=").append(envs);
-        sb.append('}');
-        return sb.toString();
+        return "{\"WebsiteSpec\":{"
+                + "                        \"displayName\":\"" + displayName + "\""
+                + ",                         \"gitUrl\":\"" + gitUrl + "\""
+                + ",                         \"branch\":\"" + branch + "\""
+                + ",                         \"dir\":\"" + dir + "\""
+                + ",                         \"sslVerify\":\"" + sslVerify + "\""
+                + ",                         \"secretToken\":\"" + secretToken + "\""
+                + ",                         \"previews\":\"" + previews + "\""
+                + ",                         \"gitApiToken\":\"" + gitApiToken + "\""
+                + ",                         \"envs\":" + envs
+                + "}}";
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

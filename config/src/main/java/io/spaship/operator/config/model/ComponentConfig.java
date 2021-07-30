@@ -1,5 +1,7 @@
 package io.spaship.operator.config.model;
 
+
+
 import java.util.Objects;
 
 public class ComponentConfig {
@@ -50,12 +52,11 @@ public class ComponentConfig {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ComponentConfig{");
-        sb.append("context='").append(context).append('\'');
-        sb.append(", kind='").append(kind).append('\'');
-        sb.append(", spec=").append(spec);
-        sb.append('}');
-        return sb.toString();
+        return "{\"ComponentConfig\":{"
+                + "                        \"context\":\"" + context + "\""
+                + ",                         \"kind\":\"" + kind + "\""
+                + ",                         \"spec\":" + spec
+                + "}}";
     }
 
     @Override

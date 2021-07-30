@@ -1,6 +1,7 @@
 package io.spaship.operator.crd;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.Gson;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
@@ -10,8 +11,11 @@ import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.crd.matcher.EnvIncluded;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+
 
 @Version("v1")
 @Group("spaship.io")
@@ -60,4 +64,11 @@ public class Website extends CustomResource<WebsiteSpec, WebsiteStatus> implemen
         return enabledEnvs;
     }
 
+    @Override
+    public String toString() {
+        return "{\"Website\":{"
+                + "                        \"config\":" + (Objects.isNull(config)?"NF":config.toString())
+                + ",                         \"enabledEnvs\":" + (Objects.isNull(enabledEnvs)?"[]": new Gson().toJsonTree(enabledEnvs).getAsJsonArray())
+                + "}}";
+    }
 }

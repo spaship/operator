@@ -1,5 +1,9 @@
 package io.spaship.operator.config.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+
 import java.util.Map;
 import java.util.Objects;
 
@@ -78,15 +82,14 @@ public class ComponentSpec {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ComponentSpec{");
-        sb.append("url='").append(url).append('\'');
-        sb.append(", dir='").append(dir).append('\'');
-        sb.append(", branch='").append(branch).append('\'');
-        sb.append(", serviceName='").append(serviceName).append('\'');
-        sb.append(", targetPort='").append(targetPort).append('\'');
-        sb.append(", envs=").append(envs);
-        sb.append('}');
-        return sb.toString();
+        return "{\"ComponentSpec\":{"
+                + "                        \"url\":\"" + url + "\""
+                + ",                         \"dir\":\"" + dir + "\""
+                + ",                         \"branch\":\"" + branch + "\""
+                + ",                         \"serviceName\":\"" + serviceName + "\""
+                + ",                         \"targetPort\":\"" + targetPort + "\""
+                + ",                         \"envs\":" +new Gson().toJson(envs)
+                + "}}";
     }
 
     @Override

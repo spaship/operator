@@ -31,9 +31,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
@@ -78,6 +77,24 @@ public class OperatorService {
     }
 
     public WebsiteStatus initNewWebsite(Website website, boolean redeploy) {
+
+        String traceId = UUID.randomUUID().toString();
+
+        if(Objects.isNull(website.getConfig()))
+            System.exit(1);
+
+
+        String eventPayloadStart = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE_OR_UPDATE_INIT.name()),
+                EventAttribute.TRACE_ID.concat(traceId),
+                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                EventAttribute.MESSAGE.concat(website.toString())
+        );
+        eventSourcingEngine.publishMessage(eventPayloadStart);
+
+
+
         Set<String> enabledEnvs = website.getEnabledEnvs();
         log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s redeploy=%s", website.getId(), enabledEnvs, redeploy);
         websiteRepository.addWebsite(website);
@@ -126,12 +143,14 @@ public class OperatorService {
         }
 
         //IMPLEMENTATION OF ISSUE 59 Start
-        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+        String eventPayloadEnd = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                 EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
                 EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE.name()),
-                EventAttribute.MESSAGE.concat("website created")
+                EventAttribute.TRACE_ID.concat(traceId),
+                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                EventAttribute.MESSAGE.concat(website.toString())
         );
-        eventSourcingEngine.publishMessage(eventPayload);
+        eventSourcingEngine.publishMessage(eventPayloadEnd);
         //IMPLEMENTATION OF ISSUE 59 End
 
         log.debugf("Infrastructure initialized. status=%s", status);
@@ -187,7 +206,39 @@ public class OperatorService {
                             String componentRef = GitContentUtils.getRef(website.getConfig(), env, component.getContext());
                             return ref.endsWith(componentRef);
                         })
-                        .map(env -> contentController.refreshComponent(website, env, GitContentUtils.getDirName(component.getContext(), rootContext)))
+                        .map(env -> {
+
+
+
+                            String traceId = UUID.randomUUID().toString();
+                            String eventPayloadStart = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                                    EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_REFRESH_COMPONENT_INIT.name()),
+                                    EventAttribute.TRACE_ID.concat(traceId),
+                                    EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                                    EventAttribute.MESSAGE.concat(website.toString())
+
+                            );
+                            eventSourcingEngine.publishMessage(eventPayloadStart);
+
+                            Future<UpdatedComponent> updatedComponentFuture
+                                            = contentController.refreshComponent(website, env, GitContentUtils.getDirName(component.getContext(), rootContext));
+
+                            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                                    EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_REFRESH_COMPONENT.name()),
+                                    EventAttribute.TRACE_ID.concat(traceId),
+                                    EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                                    EventAttribute.MESSAGE.concat(website.toString())
+
+                            );
+                            eventSourcingEngine.publishMessage(eventPayload);
+
+                            return updatedComponentFuture;
+                        }
+
+
+                        )
                         .collect(Collectors.toList());
                 updates.addAll(componentsUpdates);
             }
@@ -286,6 +337,16 @@ public class OperatorService {
     public void createOrUpdateWebsite(Website website, boolean redeploy) throws GitAPIException, IOException {
         log.infof("Create/Update website website_id=%s redeploy=%s", website.getId(), redeploy);
 
+        String traceId = UUID.randomUUID().toString();
+        String eventPayloadStart = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE_OR_UPDATE_INIT.name()),
+                EventAttribute.TRACE_ID.concat(traceId),
+                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                EventAttribute.MESSAGE.concat(website.toString())
+        );
+        eventSourcingEngine.publishMessage(eventPayloadStart);
+
         if (!websiteController.isCrdEnabled()) {
             deployNewWebsite(website, true, redeploy);
             return;
@@ -302,7 +363,9 @@ public class OperatorService {
             String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                     EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
                     EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_UPDATE.name()),
-                    EventAttribute.MESSAGE.concat("website preview update done")
+                    EventAttribute.TRACE_ID.concat(traceId),
+                    EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                    EventAttribute.MESSAGE.concat(existingWebsite.toString())
             );
             eventSourcingEngine.publishMessage(eventPayload);
             //IMPLEMENTATION OF ISSUE 59 End
@@ -317,7 +380,9 @@ public class OperatorService {
             String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
                     EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
                     EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_CREATE.name()),
-                    EventAttribute.MESSAGE.concat("website preview update done")
+                    EventAttribute.TRACE_ID.concat(traceId),
+                    EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                    EventAttribute.MESSAGE.concat(website.toString())
             );
             eventSourcingEngine.publishMessage(eventPayload);
             //IMPLEMENTATION OF ISSUE 59 End
@@ -332,6 +397,10 @@ public class OperatorService {
             websiteController.getWebsiteClient().inNamespace(website.getMetadata().getNamespace()).delete(website);
         } else {
             Website websiteToDelete = websiteRepository.getWebsite(website.getId());
+            if(Objects.isNull(websiteToDelete)){
+                log.error("website doesn't exists in memory");
+                return;
+            }
             deleteInfrastructure(websiteToDelete);
         }
         //IMPLEMENTATION OF ISSUE 59 Start

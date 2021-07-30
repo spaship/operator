@@ -1,6 +1,7 @@
 package io.spaship.operator.config.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.Gson;
 import io.spaship.operator.config.matcher.ComponentNotSkipped;
 import org.apache.commons.lang3.StringUtils;
 
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentGitMatcher;
 import static io.spaship.operator.config.matcher.ComponentKindMatcher.ComponentServiceMatcher;
+
 
 public class WebsiteConfig {
 
@@ -98,14 +100,15 @@ public class WebsiteConfig {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("WebsiteConfig{");
-        sb.append("apiVersion='").append(apiVersion).append('\'');
-        sb.append(", metadata=").append(metadata);
-        sb.append(", envs=").append(envs);
-        sb.append(", components=").append(components);
-        sb.append('}');
-        return sb.toString();
+        return "{\"WebsiteConfig\":{"
+                + "                        \"apiVersion\":\"" + apiVersion + "\""
+                + ",                         \"metadata\":" + new Gson().toJson(metadata)
+                + ",                         \"labels\":" + new Gson().toJson(labels)
+                + ",                         \"envs\":" + new Gson().toJson(envs)
+                + ",                         \"components\":" + new Gson().toJsonTree(components).getAsJsonArray() //toJson(components
+                + "}}";
     }
+
 
     @Override
     public boolean equals(Object o) {
