@@ -216,25 +216,15 @@ public class OperatorService {
                                     EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_REFRESH_COMPONENT_INIT.name()),
                                     EventAttribute.TRACE_ID.concat(traceId),
                                     EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
-                                    EventAttribute.MESSAGE.concat(website.toString())
+                                    EventAttribute.MESSAGE.concat(website.toString()),
+                                    EventAttribute.ENVIRONMENT.concat(env)
 
                             );
                             eventSourcingEngine.publishMessage(eventPayloadStart);
 
-                            Future<UpdatedComponent> updatedComponentFuture
-                                            = contentController.refreshComponent(website, env, GitContentUtils.getDirName(component.getContext(), rootContext));
+                            return contentController.refreshComponent(website, env,
+                                    GitContentUtils.getDirName(component.getContext(), rootContext),traceId);
 
-                            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
-                                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                                    EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_REFRESH_COMPONENT.name()),
-                                    EventAttribute.TRACE_ID.concat(traceId),
-                                    EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
-                                    EventAttribute.MESSAGE.concat(website.toString())
-
-                            );
-                            eventSourcingEngine.publishMessage(eventPayload);
-
-                            return updatedComponentFuture;
                         }
 
 

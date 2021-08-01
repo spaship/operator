@@ -17,8 +17,10 @@ import io.spaship.operator.config.model.DeploymentConfig;
 import io.spaship.operator.config.model.Environment;
 import io.spaship.operator.config.model.WebsiteConfig;
 import io.spaship.operator.crd.Website;
+import io.spaship.operator.event.EventSourcingEngine;
 import io.spaship.operator.router.IngressController;
 import io.spaship.operator.router.RouterController;
+import io.spaship.operator.utility.EventAttribute;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -39,6 +41,7 @@ import javax.inject.Inject;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -92,6 +95,9 @@ public class ContentController {
     IngressController ingressController;
 
     WebClient webClient;
+
+    @Inject
+    EventSourcingEngine eventSourcingEngine; //TODO Preferably declare this variable final and use constructor injection,
 
     void startup(@Observes StartupEvent event) {
         log.infof("ContentController init. contentApiHost=%s staticContentApiPort=%s rootContext=%s " +
@@ -353,6 +359,59 @@ public class ContentController {
                 });
         return promise.future();
     }
+
+
+    public Future<UpdatedComponent> refreshComponent(Website website, String env, String name,String traceId) {
+        Promise<UpdatedComponent> promise = Promise.promise();
+        WebClientOptions options = getRequestOptions(website, env);
+
+        String componentDesc = String.format("websiteId=%s env=%s name=%s", website.getId(), env, name);
+        log.infof("Update components on %s apiHost=%s apiPort=%s", componentDesc, options.getDefaultHost(), options.getDefaultPort());
+
+        getApiGet("/api/update/" + name, options)
+                .expect(ResponsePredicate.SC_OK)
+                .send(ar -> {
+                    if (ar.succeeded()) {
+                        UpdatedComponent result = new UpdatedComponent(name,
+                                ar.result().bodyAsString(),
+                                website.getMetadata().getNamespace(),
+                                website.getMetadata().getName(),
+                                env);
+                        log.tracef("update result=%s", result);
+
+                        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_REFRESH_COMPONENT.name()),
+                                EventAttribute.TRACE_ID.concat(traceId),
+                                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                                EventAttribute.MESSAGE.concat(website.toString()),
+                                EventAttribute.ENVIRONMENT.concat(env)
+
+                        );
+                        eventSourcingEngine.publishMessage(eventPayload);
+
+                        promise.tryComplete(result);
+                    } else {
+                        String message = String.format("Cannot update content on %s", componentDesc);
+                        log.error(message, ar.cause());
+
+                        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_REFRESH_COMPONENT_FAILED.name()),
+                                EventAttribute.TRACE_ID.concat(traceId),
+                                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                                EventAttribute.ERROR.concat(ar.cause().getMessage()),
+                                EventAttribute.MESSAGE.concat(website.toString()),
+                                EventAttribute.ENVIRONMENT.concat(env)
+
+                        );
+                        eventSourcingEngine.publishMessage(eventPayload);
+                        promise.tryFail(new InternalServerErrorException(message));
+                    }
+                });
+        return promise.future();
+    }
+
 
     public Future<JsonObject> componentInfo(Website website, String env, String name) {
         Promise<JsonObject> promise = Promise.promise();
