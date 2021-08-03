@@ -10,7 +10,7 @@ public interface EventAttribute {
     String TRACE_ID="traceId~";
     String TIMESTAMP="timestamp~";
     String ERROR="error~";
-    String ENVIRONMENT="refresh-env~";
+    String ENVIRONMENT="target-env~";
     enum EventCode{
         WEBSITE_CREATE_INIT,
         WEBSITE_CREATE_OR_UPDATE_INIT,
