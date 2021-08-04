@@ -132,7 +132,31 @@ public class OperatorService {
                 if (redeploy) {
                     contentController.redeploy(env, website);
                 }
+
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayloadEnd = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                        EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE.name()),
+                        EventAttribute.TRACE_ID.concat(traceId),
+                        EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                        EventAttribute.MESSAGE.concat(website.toString()),
+                        EventAttribute.ENVIRONMENT.concat(env)
+                );
+                eventSourcingEngine.publishMessage(eventPayloadEnd);
+                //IMPLEMENTATION OF ISSUE 59 End
+
             } catch (RuntimeException ex) {
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayloadEnd = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                        EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_INIT_FAILED.name()),
+                        EventAttribute.TRACE_ID.concat(traceId),
+                        EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                        EventAttribute.MESSAGE.concat(website.toString()),
+                        EventAttribute.ENVIRONMENT.concat(env)
+                );
+                eventSourcingEngine.publishMessage(eventPayloadEnd);
+                //IMPLEMENTATION OF ISSUE 59 End
                 log.error("Error processing env=" + env, ex);
                 exception = ex;
                 // continue with processing other environments and throw exception after loop ends
@@ -142,20 +166,97 @@ public class OperatorService {
             throw exception;
         }
 
-        //IMPLEMENTATION OF ISSUE 59 Start
-        String eventPayloadEnd = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
-                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE.name()),
-                EventAttribute.TRACE_ID.concat(traceId),
-                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
-                EventAttribute.MESSAGE.concat(website.toString())
-        );
-        eventSourcingEngine.publishMessage(eventPayloadEnd);
-        //IMPLEMENTATION OF ISSUE 59 End
+        log.debugf("Infrastructure initialized. status=%s", status);
+        return status;
+    }
+
+
+
+    public WebsiteStatus initNewWebsite(Website website, boolean redeploy,String traceId) {
+
+        if(Objects.isNull(website.getConfig()))
+            System.exit(1);
+
+        Set<String> enabledEnvs = website.getEnabledEnvs();
+        log.infof("Init infrastructure for websiteId=%s, enabledEnvs=%s redeploy=%s", website.getId(), enabledEnvs, redeploy);
+        websiteRepository.addWebsite(website);
+
+        RuntimeException exception = null;
+        WebsiteStatus status = website.getStatus();
+        if (status == null) {
+            status = new WebsiteStatus();
+        }
+        for (String env : enabledEnvs) {
+            try {
+                log.debugf("Processing env=%s", env);
+
+                setupCoreServices(env, website);
+
+                String apiHost = null;
+                Integer port = null;
+                if (ingressController.isEnabled()) {
+                    Ingress ingress = ingressController.updateIngress(env, website);
+                    if (ingress != null) {
+                        String contentHost = ingress.getSpec().getRules().get(0).getHost();
+                        status.addEnvHost(env, contentHost);
+                    }
+                } else if (routerController.isEnabled()) {
+                    List<Route> contentRoutes = routerController.updateWebsiteRoutes(env, website);
+                    if (contentRoutes != null && contentRoutes.size() > 0) {
+                        String contentHost = contentRoutes.get(0).getSpec().getHost();
+                        status.addEnvHost(env, contentHost);
+                    }
+                    routerController.updateApiRoute(env, website);
+                } else {
+                    log.infof("No routing created");
+                }
+
+                if (redeploy) {
+                    contentController.redeploy(env, website);
+                }
+
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayloadEnd = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                        EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE.name()),
+                        EventAttribute.TRACE_ID.concat(traceId),
+                        EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                        EventAttribute.MESSAGE.concat(website.toString()),
+                        EventAttribute.ENVIRONMENT.concat(env)
+                );
+                eventSourcingEngine.publishMessage(eventPayloadEnd);
+                //IMPLEMENTATION OF ISSUE 59 End
+
+            } catch (RuntimeException ex) {
+                //IMPLEMENTATION OF ISSUE 59 Start
+                String eventPayloadEnd = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                        EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                        EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_INIT_FAILED.name()),
+                        EventAttribute.TRACE_ID.concat(traceId),
+                        EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                        EventAttribute.MESSAGE.concat(website.toString()),
+                        EventAttribute.ENVIRONMENT.concat(env)
+                );
+                eventSourcingEngine.publishMessage(eventPayloadEnd);
+                //IMPLEMENTATION OF ISSUE 59 End
+                log.error("Error processing env=" + env, ex);
+                exception = ex;
+                // continue with processing other environments and throw exception after loop ends
+            }
+        }
+        if (exception != null) {
+            throw exception;
+        }
 
         log.debugf("Infrastructure initialized. status=%s", status);
         return status;
     }
+
+
+
+
+
+
 
     private void setupCoreServices(String env, Website website) {
         String namespace = website.getMetadata().getNamespace();
@@ -188,6 +289,40 @@ public class OperatorService {
             }
         }
     }
+
+
+
+    public void deleteInfrastructure(Website website,String traceId) {
+        log.infof("Delete infrastructure for websiteId=%s", website.getId());
+
+        String namespace = website.getMetadata().getNamespace();
+        final String websiteName = Utils.getWebsiteName(website);
+
+        for (String env : website.getEnabledEnvs()) {
+            contentController.deleteDeployment(env, namespace, websiteName);
+            contentController.deleteConfigs(env, namespace, website);
+
+            if (ingressController.isEnabled()) {
+                ingressController.deleteIngress(env, website);
+            } else if (routerController.isEnabled()) {
+                routerController.deleteWebsiteRoutes(env, website);
+            } else {
+                log.infof("No routing deleted");
+            }
+
+            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                    EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_DELETED.name()),
+                    EventAttribute.TRACE_ID.concat(traceId),
+                    EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                    EventAttribute.MESSAGE.concat(website.toString()),
+                    EventAttribute.ENVIRONMENT.concat(env)
+            );
+            eventSourcingEngine.publishMessage(eventPayload);
+
+        }
+    }
+
 
     public List<Future> updateRelatedComponents(List<Website> authorizedWebsites, String gitUrl, String ref, Set<String> updatedWebsites) {
         List<Future> updates = new ArrayList<>();
@@ -327,16 +462,6 @@ public class OperatorService {
     public void createOrUpdateWebsite(Website website, boolean redeploy) throws GitAPIException, IOException {
         log.infof("Create/Update website website_id=%s redeploy=%s", website.getId(), redeploy);
 
-        String traceId = UUID.randomUUID().toString();
-        String eventPayloadStart = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
-                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE_OR_UPDATE_INIT.name()),
-                EventAttribute.TRACE_ID.concat(traceId),
-                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
-                EventAttribute.MESSAGE.concat(website.toString())
-        );
-        eventSourcingEngine.publishMessage(eventPayloadStart);
-
         if (!websiteController.isCrdEnabled()) {
             deployNewWebsite(website, true, redeploy);
             return;
@@ -349,39 +474,28 @@ public class OperatorService {
         if (existingWebsite != null) {
             websiteController.updateStatus(existingWebsite, WebsiteStatus.STATUS.FORCE_UPDATE);
 
-            //IMPLEMENTATION OF ISSUE 59 Start
-            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
-                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                    EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_UPDATE.name()),
-                    EventAttribute.TRACE_ID.concat(traceId),
-                    EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
-                    EventAttribute.MESSAGE.concat(existingWebsite.toString())
-            );
-            eventSourcingEngine.publishMessage(eventPayload);
-            //IMPLEMENTATION OF ISSUE 59 End
-
         } else { // This is basically creation of new website
             websiteController.getWebsiteClient()
                     .inNamespace(website.getMetadata().getNamespace())
                     .withName(website.getMetadata().getName())
                     .createOrReplace(website);
-
-            //IMPLEMENTATION OF ISSUE 59 Start
-            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
-                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                    EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_CREATE.name()),
-                    EventAttribute.TRACE_ID.concat(traceId),
-                    EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
-                    EventAttribute.MESSAGE.concat(website.toString())
-            );
-            eventSourcingEngine.publishMessage(eventPayload);
-            //IMPLEMENTATION OF ISSUE 59 End
-
         }
     }
 
     public void deleteWebsite(Website website) {
         log.infof("Deleting website website_id=%s", website.getId());
+
+        String traceId = UUID.randomUUID().toString();
+        //IMPLEMENTATION OF ISSUE 59 Start
+        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_DELETE_INIT.name()),
+                EventAttribute.TRACE_ID.concat(traceId),
+                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                EventAttribute.MESSAGE.concat(website.toString())
+        );
+        eventSourcingEngine.publishMessage(eventPayload);
+        //IMPLEMENTATION OF ISSUE 59 End
 
         if (websiteController.isCrdEnabled()) {
             websiteController.getWebsiteClient().inNamespace(website.getMetadata().getNamespace()).delete(website);
@@ -391,22 +505,27 @@ public class OperatorService {
                 log.error("website doesn't exists in memory");
                 return;
             }
-            deleteInfrastructure(websiteToDelete);
+            deleteInfrastructure(websiteToDelete,traceId);
         }
-        //IMPLEMENTATION OF ISSUE 59 Start
-        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
-                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                EventAttribute.CODE.concat(EventAttribute.EventCode.PREVIEW_DELETE.name()),
-                EventAttribute.MESSAGE.concat("website preview deleted")
-        );
-        eventSourcingEngine.publishMessage(eventPayload);
-        //IMPLEMENTATION OF ISSUE 59 End
+
     }
 
     public WebsiteStatus deployNewWebsite(Website website, boolean updateGitIfExists, boolean redeploy) throws IOException, GitAPIException {
+
+        String traceId = UUID.randomUUID().toString();
+
+        String eventPayloadStart = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
+                EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
+                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_CREATE_OR_UPDATE_INIT.name()),
+                EventAttribute.TRACE_ID.concat(traceId),
+                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                EventAttribute.MESSAGE.concat(website.toString())
+        );
+        eventSourcingEngine.publishMessage(eventPayloadStart);
+
         WebsiteConfig websiteConfig = gitWebsiteConfigService.cloneRepo(website, updateGitIfExists);
         website.setConfig(websiteConfig);
-        return initNewWebsite(website, redeploy);
+        return initNewWebsite(website, redeploy,traceId);
     }
 
     public void updateAndRegisterWebsite(Website website, boolean updateGitIfExists) throws GitAPIException, IOException {

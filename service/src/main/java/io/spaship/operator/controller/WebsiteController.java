@@ -28,6 +28,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -234,24 +235,29 @@ public class WebsiteController {
     }
 
     public void websiteDeleted(Website websiteToDelete) {
+
+        String traceId = UUID.randomUUID().toString();
+        //IMPLEMENTATION OF ISSUE 59 Start
+        String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(websiteToDelete.getMetadata().getName()),
+                EventAttribute.NAMESPACE.concat(websiteToDelete.getMetadata().getNamespace()),
+                EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_DELETE_INIT.name()),
+                EventAttribute.TRACE_ID.concat(traceId),
+                EventAttribute.TIMESTAMP.concat(LocalDateTime.now().toString()),
+                EventAttribute.MESSAGE.concat(websiteToDelete.toString())
+        );
+        eventSourcingEngine.publishMessage(eventPayload);
+        //IMPLEMENTATION OF ISSUE 59 End
+
         log.infof("Website deleted, websiteId=%s", websiteToDelete.getId());
         try {
             Website website = websiteRepository.getWebsite(websiteToDelete.getId());
             if (website != null) {
                 gitWebsiteConfigService.deleteRepo(websiteToDelete);
-                operatorService.deleteInfrastructure(website);
+                operatorService.deleteInfrastructure(website,traceId);
                 websiteRepository.removeWebsite(website.getId());
             }
             removeLock(websiteToDelete.getMetadata().getNamespace(), websiteToDelete.getMetadata().getName());
 
-            //IMPLEMENTATION OF ISSUE 59 Start
-            String eventPayload = Utils.buildEventPayload(EventAttribute.CR_NAME.concat(website.getMetadata().getName()),
-                    EventAttribute.NAMESPACE.concat(website.getMetadata().getNamespace()),
-                    EventAttribute.CODE.concat(EventAttribute.EventCode.WEBSITE_DELETE.name()),
-                    EventAttribute.MESSAGE.concat("website removed")
-            );
-            eventSourcingEngine.publishMessage(eventPayload);
-            //IMPLEMENTATION OF ISSUE 59 End
 
         } catch (Exception e) {
             log.error("Error on CRD deleted", e);
