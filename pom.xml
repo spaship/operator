@@ -43,7 +43,7 @@
 
         <!-- Be sure that mvn clean install and also mvn quarkus:dev works !!! -->
         <quarkus.platform.version>1.13.7.Final</quarkus.platform.version>
-        <snakeyaml.version>1.28</snakeyaml.version>
+        <snakeyaml.version>1.29</snakeyaml.version>
         <fabric8.client.version>5.0.1</fabric8.client.version>
 
         <!-- By default just do maven install and let github to do the deploy on release -->
